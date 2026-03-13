@@ -1,0 +1,42 @@
+﻿# Maxfiy fayllar - HECH QACHON YUKLAMANG!
+.env
+.env.local
+.env.*.local
+
+# Python virtual environment
+venv/
+venv312/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Bot kodlari (backend kerak emas)
+bot/
+database/
+handlers/
+keyboards/
+utils/
+states/
+requirements.txt
