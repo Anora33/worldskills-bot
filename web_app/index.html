@@ -9,7 +9,6 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        /* 🎬 Advanced Animations */
         @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
         @keyframes slideIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
@@ -32,7 +31,6 @@
         
         .container { max-width: 420px; margin: 0 auto; }
         
-        /* ✨ Enhanced Header with Glow */
         .header {
             text-align: center;
             padding: 35px 20px;
@@ -67,7 +65,6 @@
             position: relative;
         }
         
-        /* 💎 Enhanced Cards */
         .card {
             background: rgba(255,255,255,0.98);
             color: #333;
@@ -105,7 +102,6 @@
             gap: 12px;
         }
         
-        /* 🎭 Enhanced Avatar */
         .user-card { text-align: center; }
         .avatar {
             width: 120px;
@@ -136,7 +132,6 @@
             animation: pulse 2s ease-in-out infinite, glow 3s ease-in-out infinite;
         }
         
-        /* 🎯 Enhanced Menu Items */
         .menu-item {
             padding: 20px;
             margin-bottom: 14px;
@@ -177,11 +172,9 @@
             animation: bounce 2s ease-in-out infinite;
         }
         
-        /* Sections */
         .section { display: none; animation: fadeIn 0.5s ease-out; }
         .section.active { display: block; }
         
-        /* Form Elements */
         .form-group { margin-bottom: 25px; }
         .form-group label { 
             display: block; 
@@ -208,7 +201,6 @@
         }
         .form-group textarea { min-height: 130px; resize: vertical; }
         
-        /* Enhanced Buttons */
         .btn {
             width: 100%;
             padding: 20px;
@@ -243,7 +235,6 @@
         .btn:active { transform: translateY(-2px) scale(0.98); }
         .btn-success { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
         
-        /* Info Rows */
         .info-row {
             padding: 16px;
             margin-bottom: 12px;
@@ -264,7 +255,6 @@
         .info-label { opacity: 0.75; font-weight: 600; }
         .info-value { font-weight: 800; }
         
-        /* 🏆 Enhanced WorldSkills Stats */
         .ws-stat {
             text-align: center;
             padding: 30px;
@@ -303,7 +293,6 @@
             font-weight: 600;
         }
         
-        /* Portfolio Items */
         .portfolio-item {
             padding: 20px;
             margin-bottom: 16px;
@@ -335,7 +324,6 @@
             animation: pulse 2s ease-in-out infinite;
         }
         
-        /* Loading */
         .loading { text-align: center; padding: 100px 20px; }
         .loading-spinner {
             width: 70px;
@@ -348,7 +336,6 @@
         }
         .loading p { font-size: 20px; animation: pulse 1.5s ease-in-out infinite; }
         
-        /* Back Button */
         .back-btn {
             width: 100%;
             padding: 20px;
@@ -369,7 +356,6 @@
         }
         .back-btn:active { transform: translateY(-2px); }
         
-        /* File Input */
         .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
         .file-input-wrapper input[type=file] { position: absolute; left: -9999px; }
         .file-input-label {
@@ -390,14 +376,6 @@
             border-color: #764ba2;
         }
         
-        /* 🇺🇿 Uzbekistan Flag Colors */
-        .uz-flag {
-            background: linear-gradient(180deg, #0099B5 33%, #CE1126 33%, #CE1126 66%, #FFFFFF 66%);
-            border-radius: 10px;
-            padding: 3px;
-        }
-        
-        /* Goals List */
         .goals-list {
             list-style: none;
             padding: 0;
@@ -420,7 +398,6 @@
         .goals-list li i { margin-right: 10px; color: #667eea; }
         .goals-list li:hover i { color: white; }
         
-        /* Directions Grid */
         .directions-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -446,7 +423,7 @@
 </head>
 <body>
     <div class="container">
-        <!-- Enhanced Header -->
+        <!-- Header -->
         <div class="header">
             <h1>🏆 WorldSkills Uzbekistan</h1>
             <p>Professional Bot</p>
@@ -603,7 +580,7 @@
                 </button>
             </div>
             
-            <!-- 🇺🇿 WorldSkills Uzbekistan Info Section -->
+            <!-- WorldSkills Uzbekistan Info Section -->
             <div id="worldskillsSection" class="section">
                 <div class="ws-stat">
                     <div class="ws-stat-number">2020</div>
