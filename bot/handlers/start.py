@@ -308,3 +308,4 @@ async def handle_change_profession(message: Message, state: FSMContext):
     lang = user_data.get("language", "uz")
     await state.set_state(UserState.waiting_for_profession)
     await message.answer(t("change_profession", lang), reply_markup=get_profession_keyboard(lang))
+

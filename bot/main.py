@@ -49,10 +49,10 @@ dp = Dispatcher(storage=MemoryStorage())
 try:
     from bot.handlers import start, webapp, admin, ai_chat
     
+    dp.include_router(ai_chat.router)  # AI birinchi!
     dp.include_router(start.router)
     dp.include_router(webapp.router)
     dp.include_router(admin.router)
-    dp.include_router(ai_chat.router)
     
     logging.info("✅ Barcha handlerlar yuklandi!")
     logging.info(f"  - start: {hasattr(start, 'router')}")
@@ -92,3 +92,4 @@ if __name__ == '__main__':
         import traceback
         traceback.print_exc()
         sys.exit(1)
+
