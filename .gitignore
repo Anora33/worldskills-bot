@@ -1,4 +1,4 @@
-﻿# Maxfiy fayllar - HECH QACHON YUKLAMANG!
+﻿# Maxfiy fayllar
 .env
 .env.local
 .env.*.local
@@ -32,11 +32,9 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Bot kodlari (backend kerak emas)
-bot/
-database/
-handlers/
-keyboards/
-utils/
-states/
-requirements.txt
+# Mini App build (agar kerak bo'lsa)
+web_app/dist/
+web_app/build/
+.env
+.env.local
+.env.*.local
