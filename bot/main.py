@@ -1,42 +1,31 @@
-﻿import asyncio
-from aiogram import Bot, Dispatcher
-
-
-# ... sizning kodlaringiz ...
-
-async def main():
-    # Avval webhookni o'chirib, kutilayotgan so'rovlarni bekor qilish
-    await bot.delete_webhook(drop_pending_updates=True)
-
-    # Keyin polling boshlash
-    await dp.start_polling(bot, drop_pending_updates=True)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import asyncio
 import logging
 import os
 import sys
 from dotenv import load_dotenv
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, F
+from aiogram.filters import Command
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from flask import Flask
 import threading
 
-# Load .env (lokal uchun)
+# Load .env for local testing
 load_dotenv()
 
-# Flask app
+# Logging setup
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Flask app for health checks
 app = Flask(__name__)
 
 @app.route('/')
-def health():
-    return "WorldSkills Bot is running!", 200
-
 @app.route('/health')
 def health_check():
     return {"status": "ok", "bot": "WorldSkills Professional Bot"}, 200
@@ -50,46 +39,59 @@ BOT_TOKEN = os.environ.get('BOT_TOKEN')
 DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite+aiosqlite:///worldskills.db')
 ADMIN_ID = int(os.environ.get('ADMIN_ID', 0))
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
-SECRET_KEY = os.environ.get('SECRET_KEY', 'default-secret-key')
 WEBAPP_URL = os.environ.get('WEBAPP_URL', 'https://worldskills-webapp.vercel.app').strip()
 
 if not BOT_TOKEN:
-    logging.error("❌ BOT_TOKEN not found!")
+    logger.error("❌ BOT_TOKEN not found in environment variables!")
     sys.exit(1)
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# ✅ AVVAL Bot yaratamiz, keyin foydalanamiz!
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=MemoryStorage())
 
-# 🎯 Import handlers
+# Import handlers
 try:
     from bot.handlers import start, webapp, admin, ai_chat
     
-    dp.include_router(ai_chat.router)  # AI birinchi!
+    # ✅ AI handler birinchi (priority!)
+    dp.include_router(ai_chat.router)
     dp.include_router(start.router)
     dp.include_router(webapp.router)
     dp.include_router(admin.router)
     
-    logging.info("✅ Barcha handlerlar yuklandi!")
-    logging.info(f"  - start: {hasattr(start, 'router')}")
-    logging.info(f"  - webapp: {hasattr(webapp, 'router')}")
-    logging.info(f"  - admin: {hasattr(admin, 'router')}")
-    logging.info(f"  - ai_chat: {hasattr(ai_chat, 'router')}")
+    logger.info("✅ Barcha handlerlar yuklandi!")
+    logger.info(f"  - start: {hasattr(start, 'router')}")
+    logger.info(f"  - webapp: {hasattr(webapp, 'router')}")
+    logger.info(f"  - admin: {hasattr(admin, 'router')}")
+    logger.info(f"  - ai_chat: {hasattr(ai_chat, 'router')}")
     
 except Exception as e:
-    logging.error(f"❌ Handler import xatosi: {e}")
+    logger.error(f"❌ Handler import xatosi: {e}")
     import traceback
     traceback.print_exc()
     sys.exit(1)
 
 async def main():
-    logging.info("=" * 50)
-    logging.info("✅ WorldSkills Professional Bot ishga tushdi!")
-    logging.info(f"🤖 Bot: @{(await bot.get_me()).username}")
-    logging.info(f"🌐 Flask: port {os.environ.get('PORT', 5000)}")
-    logging.info(f"💾 Database: {DATABASE_URL}")
-    logging.info(f"👤 Admin: {ADMIN_ID}")
-    logging.info("=" * 50)
+    # ✅ Bot yaratilgandan keyin webhook'ni o'chiramiz
+    try:
+        await bot.delete_webhook(drop_pending_updates=True)
+        logger.info("✅ Webhook o'chirildi, polling boshlandi")
+    except Exception as e:
+        logger.warning(f"⚠️ Webhook o'chirishda ogohlantirish: {e}")
+    
+    logger.info("=" * 50)
+    logger.info("✅ WorldSkills Professional Bot ishga tushdi!")
+    
+    try:
+        me = await bot.get_me()
+        logger.info(f"🤖 Bot: @{me.username} (id={me.id})")
+    except Exception as e:
+        logger.error(f"❌ Bot info olishda xato: {e}")
+    
+    logger.info(f"🌐 Flask: port {os.environ.get('PORT', 5000)}")
+    logger.info(f"💾 Database: {DATABASE_URL}")
+    logger.info(f"👤 Admin: {ADMIN_ID}")
+    logger.info("=" * 50)
     
     # Flask thread
     flask_thread = threading.Thread(target=run_flask, daemon=True)
@@ -102,10 +104,9 @@ if __name__ == '__main__':
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        logging.info("Bot to'xtatildi")
+        logger.info("Bot to'xtatildi")
     except Exception as e:
-        logging.error(f"❌ Fatal xato: {e}")
+        logger.error(f"❌ Fatal xato: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
-
