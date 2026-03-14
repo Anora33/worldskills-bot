@@ -7,45 +7,20 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 16px;
             color: #ffffff;
-            overflow-x: hidden;
         }
-        
         .container { max-width: 420px; margin: 0 auto; }
-        
-        /* Animated Header */
         .header {
             text-align: center;
             padding: 30px 20px;
@@ -55,17 +30,9 @@
             margin-bottom: 20px;
             animation: slideIn 0.6s ease-out;
             border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         }
-        .header h1 { 
-            font-size: 32px; 
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            animation: float 3s ease-in-out infinite;
-        }
+        .header h1 { font-size: 32px; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
         .header p { font-size: 16px; opacity: 0.9; }
-        
-        /* Glass Cards */
         .card {
             background: rgba(255,255,255,0.95);
             color: #333;
@@ -74,39 +41,17 @@
             margin-bottom: 20px;
             animation: slideIn 0.6s ease-out;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.3);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-            transition: transform 0.3s, box-shadow 0.3s;
         }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 50px rgba(0,0,0,0.2);
-        }
-        .card h2 { 
-            font-size: 22px; 
-            margin-bottom: 20px; 
-            padding-bottom: 15px; 
-            border-bottom: 3px solid #667eea;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        /* Animated Avatar */
+        .card h2 { font-size: 22px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 3px solid #667eea; display: flex; align-items: center; gap: 10px; }
         .user-card { text-align: center; }
         .avatar {
-            width: 100px;
-            height: 100px;
+            width: 100px; height: 100px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 50%;
             margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
-            color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 48px; color: white;
             animation: float 3s ease-in-out infinite, pulse 2s ease-in-out infinite;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
         .user-card h2 { font-size: 26px; margin-bottom: 10px; border: none; }
         .user-card p { font-size: 16px; opacity: 0.7; margin-bottom: 15px; }
@@ -118,298 +63,112 @@
             display: inline-block;
             font-weight: 700;
             font-size: 18px;
-            box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
             animation: pulse 2s ease-in-out infinite;
         }
-        
-        /* Animated Menu Items */
         .menu-item {
-            padding: 18px;
-            margin-bottom: 12px;
+            padding: 18px; margin-bottom: 12px;
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 18px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            font-size: 17px;
-            font-weight: 600;
-            border: 2px solid transparent;
-            position: relative;
-            overflow: hidden;
+            border-radius: 18px; cursor: pointer;
+            transition: all 0.3s; display: flex; align-items: center; gap: 18px;
+            font-size: 17px; font-weight: 600;
         }
-        .menu-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            transition: left 0.5s;
-        }
-        .menu-item:hover::before {
-            left: 100%;
-        }
-        .menu-item:hover {
-            transform: translateX(10px) scale(1.02);
-            border-color: #667eea;
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
-        }
+        .menu-item:hover { transform: translateX(10px) scale(1.02); border: 2px solid #667eea; }
         .menu-item:active { transform: scale(0.98); }
-        .menu-icon { 
-            font-size: 28px; 
-            width: 40px; 
-            text-align: center;
-            animation: bounce 2s ease-in-out infinite;
-        }
-        
-        /* Sections */
-        .section { 
-            display: none;
-            animation: fadeIn 0.4s ease-out;
-        }
+        .menu-icon { font-size: 28px; width: 40px; text-align: center; animation: bounce 2s ease-in-out infinite; }
+        .section { display: none; animation: fadeIn 0.4s ease-out; }
         .section.active { display: block; }
-        
-        /* Form Elements */
         .form-group { margin-bottom: 22px; }
-        .form-group label { 
-            display: block; 
-            margin-bottom: 10px; 
-            font-weight: 700; 
-            color: #333;
-            font-size: 15px;
-        }
+        .form-group label { display: block; margin-bottom: 10px; font-weight: 700; color: #333; }
         .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 14px;
-            font-size: 16px;
-            transition: all 0.3s;
-            background: white;
+            width: 100%; padding: 16px; border: 2px solid #e0e0e0;
+            border-radius: 14px; font-size: 16px; transition: all 0.3s;
         }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
+            outline: none; border-color: #667eea; box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
         }
         .form-group textarea { min-height: 120px; resize: vertical; }
-        
-        /* Animated Buttons */
         .btn {
-            width: 100%;
-            padding: 18px;
+            width: 100%; padding: 18px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 16px;
-            font-size: 17px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 14px;
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-            position: relative;
-            overflow: hidden;
+            color: white; border: none; border-radius: 16px;
+            font-size: 17px; font-weight: 700; cursor: pointer;
+            transition: all 0.3s; margin-bottom: 14px;
         }
-        .btn::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-        .btn:active::after {
-            width: 300px;
-            height: 300px;
-        }
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
-        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6); }
         .btn:active { transform: translateY(-1px) scale(0.98); }
-        .btn-secondary { background: linear-gradient(135deg, #6c757d 0%, #495057 100%); }
         .btn-success { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
-        
-        /* Info Rows */
         .info-row {
-            padding: 14px;
-            margin-bottom: 10px;
+            padding: 14px; margin-bottom: 10px;
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s;
-        }
-        .info-row:hover {
-            transform: translateX(5px);
-            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            border-radius: 14px; display: flex; justify-content: space-between; align-items: center;
         }
         .info-label { opacity: 0.7; font-weight: 500; }
         .info-value { font-weight: 700; color: #667eea; }
-        
-        /* WorldSkills Stats */
         .ws-stat {
-            text-align: center;
-            padding: 25px;
+            text-align: center; padding: 25px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 20px;
-            margin-bottom: 18px;
+            color: white; border-radius: 20px; margin-bottom: 18px;
             animation: float 3s ease-in-out infinite;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
         }
-        .ws-stat:nth-child(2) { animation-delay: 0.5s; }
-        .ws-stat-number { 
-            font-size: 42px; 
-            font-weight: bold; 
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
+        .ws-stat-number { font-size: 42px; font-weight: bold; margin-bottom: 10px; }
         .ws-stat-label { font-size: 15px; opacity: 0.95; }
-        
-        /* Portfolio Items */
         .portfolio-item {
-            padding: 18px;
-            margin-bottom: 14px;
+            padding: 18px; margin-bottom: 14px;
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 16px;
-            border-left: 5px solid #667eea;
-            transition: all 0.3s;
-            animation: slideIn 0.4s ease-out;
+            border-radius: 16px; border-left: 5px solid #667eea;
+            transition: all 0.3s; animation: slideIn 0.4s ease-out;
         }
-        .portfolio-item:hover {
-            transform: translateX(8px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
+        .portfolio-item:hover { transform: translateX(8px); }
         .portfolio-item h3 { font-size: 17px; margin-bottom: 10px; color: #667eea; }
         .portfolio-item p { font-size: 14px; opacity: 0.85; margin-bottom: 10px; }
         .portfolio-grade {
-            display: inline-block;
-            padding: 6px 16px;
+            display: inline-block; padding: 6px 16px;
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            border-radius: 25px;
-            font-size: 15px;
-            font-weight: 700;
-            box-shadow: 0 3px 15px rgba(40, 167, 69, 0.3);
+            color: white; border-radius: 25px; font-size: 15px; font-weight: 700;
         }
         .portfolio-grade.pending { 
-            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
-            color: #333;
+            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%); color: #333;
             animation: pulse 2s ease-in-out infinite;
         }
-        
-        /* Loading Animation */
         .loading { text-align: center; padding: 80px 20px; }
         .loading-spinner {
-            width: 60px;
-            height: 60px;
+            width: 60px; height: 60px;
             border: 5px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
+            border-top-color: white; border-radius: 50%;
             animation: rotate 1s linear infinite;
             margin: 0 auto 25px;
         }
-        .loading p { font-size: 18px; animation: pulse 1.5s ease-in-out infinite; }
-        
-        /* Back Button */
         .back-btn {
-            width: 100%;
-            padding: 18px;
+            width: 100%; padding: 18px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 16px;
-            font-size: 17px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 20px;
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-            transition: all 0.3s;
+            color: white; border: none; border-radius: 16px;
+            font-size: 17px; font-weight: 700; cursor: pointer;
+            margin-top: 20px; transition: all 0.3s;
         }
-        .back-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
-        }
-        .back-btn:active { transform: translateY(-1px); }
-        
-        /* Success Message */
-        .success-message { text-align: center; padding: 50px 20px; animation: slideIn 0.6s ease-out; }
-        .success-icon { 
-            font-size: 80px; 
-            margin-bottom: 20px;
-            animation: bounce 1s ease-in-out infinite;
-        }
-        
-        /* Badge */
-        .badge {
-            display: inline-block;
-            padding: 5px 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 25px;
-            font-size: 12px;
-            margin-left: 10px;
-            font-weight: 600;
-            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
-        }
-        
-        /* File Input Styling */
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            width: 100%;
-        }
-        .file-input-wrapper input[type=file] {
-            position: absolute;
-            left: -9999px;
-        }
+        .back-btn:hover { transform: translateY(-3px); }
+        .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
+        .file-input-wrapper input[type=file] { position: absolute; left: -9999px; }
         .file-input-label {
-            display: block;
-            padding: 16px;
+            display: block; padding: 16px;
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border: 2px dashed #667eea;
-            border-radius: 14px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-            color: #667eea;
+            border: 2px dashed #667eea; border-radius: 14px;
+            text-align: center; cursor: pointer; transition: all 0.3s;
+            font-weight: 600; color: #667eea;
         }
-        .file-input-label:hover {
-            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-            transform: translateY(-2px);
-        }
+        .file-input-label:hover { background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Animated Header -->
         <div class="header">
             <h1>🏆 WorldSkills</h1>
             <p>Professional Bot</p>
         </div>
-        
-        <!-- Loading -->
         <div id="loading" class="loading">
             <div class="loading-spinner"></div>
             <p>Yuklanmoqda...</p>
         </div>
-        
-        <!-- Content -->
         <div id="content" style="display: none;">
-            
             <!-- Registration Section -->
             <div id="registrationSection" class="section active">
                 <div class="card">
@@ -443,7 +202,6 @@
                     </button>
                 </div>
             </div>
-            
             <!-- Main Menu -->
             <div id="mainMenuSection" class="section">
                 <div class="card user-card">
@@ -452,7 +210,6 @@
                     <p id="userCompetition">Yo'nalish tanlanmagan</p>
                     <div class="points">🏆 <span id="userPoints">0</span> ball</div>
                 </div>
-                
                 <div class="card">
                     <div class="menu-item" onclick="showSection('profileSection')">
                         <span class="menu-icon"><i class="fas fa-user-circle"></i></span>
@@ -476,7 +233,6 @@
                     </div>
                 </div>
             </div>
-            
             <!-- Profile Section -->
             <div id="profileSection" class="section">
                 <div class="card">
@@ -510,7 +266,6 @@
                     </button>
                 </div>
             </div>
-            
             <!-- Portfolio Section -->
             <div id="portfolioSection" class="section">
                 <div class="card">
@@ -524,7 +279,7 @@
                         <textarea id="workDescription" placeholder="Ishingiz haqida qisqacha ma'lumot..." required></textarea>
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-file-upload"></i> Fayl yuklash (foto/video):</label>
+                        <label><i class="fas fa-file-upload"></i> Fayl yuklash:</label>
                         <div class="file-input-wrapper">
                             <input type="file" id="workFile" accept="image/*,video/*">
                             <label for="workFile" class="file-input-label">
@@ -536,7 +291,6 @@
                         <i class="fas fa-paper-plane"></i> Yuborish
                     </button>
                 </div>
-                
                 <div class="card">
                     <h2><i class="fas fa-folder-open"></i> Mening Ishlarim</h2>
                     <div id="portfolioList">
@@ -546,30 +300,25 @@
                         </p>
                     </div>
                 </div>
-                
                 <button class="back-btn" onclick="backToMenu()">
                     <i class="fas fa-arrow-left"></i> Ortga
                 </button>
             </div>
-            
             <!-- WorldSkills Info Section -->
             <div id="worldskillsSection" class="section">
                 <div class="ws-stat">
                     <div class="ws-stat-number">1950</div>
                     <div class="ws-stat-label"><i class="fas fa-calendar"></i> Tashkil etilgan yil</div>
                 </div>
-                
                 <div class="ws-stat">
                     <div class="ws-stat-number">80+</div>
                     <div class="ws-stat-label"><i class="fas fa-globe"></i> Mamlakatlar</div>
                 </div>
-                
                 <div class="card">
                     <h2><i class="fas fa-info-circle"></i> WorldSkills haqida</h2>
                     <p style="margin-bottom: 15px; line-height: 1.6;">
                         <b>WorldSkills International</b> - dunyodagi eng yirik professional mahorat musobaqasi.
                     </p>
-                    
                     <div class="info-row">
                         <span class="info-label"><i class="fas fa-calendar-alt"></i> Tashkil etilgan:</span>
                         <span class="info-value">1950 yil</span>
@@ -586,17 +335,14 @@
                         <span class="info-label"><i class="fas fa-user-clock"></i> Yosh chegarasi:</span>
                         <span class="info-value">22 yoshgacha</span>
                     </div>
-                    
                     <p style="margin-top: 20px; padding: 15px; background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-radius: 12px; border-left: 4px solid #fdcb6e;">
                         <b><i class="fas fa-bullseye"></i> Maqsad:</b> Yoshlarning professional ko'nikmalarini rivojlantirish va dunyo miqyosida tan olish.
                     </p>
                 </div>
-                
                 <button class="back-btn" onclick="backToMenu()">
                     <i class="fas fa-arrow-left"></i> Ortga
                 </button>
             </div>
-            
             <!-- Stats Section -->
             <div id="statsSection" class="section">
                 <div class="card">
@@ -642,7 +388,6 @@
         
         window.onload = function() {
             console.log('Page loaded');
-            
             try {
                 const saved = localStorage.getItem('worldskills_user_' + userData.id);
                 if (saved) {
@@ -651,33 +396,31 @@
             } catch (e) {
                 console.error('Error loading ', e);
             }
-            
             document.getElementById('loading').style.display = 'none';
             document.getElementById('content').style.display = 'block';
-            
             if (userData.isRegistered) {
                 showMainMenu();
             } else {
                 showSection('registrationSection');
             }
-            
             tg.setHeaderColor('#667eea');
             tg.setBackgroundColor('#667eea');
             tg.ready();
         };
         
-        function registerUser() {
+        async function registerUser() {
+            console.log('Register button clicked');
             const firstName = document.getElementById('firstName').value.trim();
             const lastName = document.getElementById('lastName').value.trim();
             const phone = document.getElementById('phone').value.trim();
             const competition = document.getElementById('competition').value;
             
             if (!firstName || firstName.length < 2) {
-                tg.showAlert('Iltimos, ismingizni to\'g\'ri kiriting (kamida 2 ta belgi)!');
+                tg.showAlert('Iltimos, ismingizni to\'g\'ri kiriting!');
                 return;
             }
             if (!lastName || lastName.length < 2) {
-                tg.showAlert('Iltimos, familiyangizni to\'g\'ri kiriting (kamida 2 ta belgi)!');
+                tg.showAlert('Iltimos, familiyangizni to\'g\'ri kiriting!');
                 return;
             }
             if (!phone || phone.length < 9) {
@@ -689,38 +432,49 @@
                 return;
             }
             
+            tg.showProgress(true);
+            
+            // 🎯 BOTGA MA'LUMOT YUBORISH
+            const data = {
+                action: 'register',
+                firstName: firstName,
+                lastName: lastName,
+                phone: phone,
+                competition: competition,
+                telegramId: userData.id
+            };
+            
+            // Telegram orqali botga yuborish
+            tg.sendData(JSON.stringify(data));
+            
+            // Mahalliy saqlash (fallback)
             userData.firstName = firstName;
             userData.lastName = lastName;
             userData.phone = phone;
             userData.competition = competition;
             userData.points = 10;
             userData.isRegistered = true;
+            localStorage.setItem('worldskills_user_' + userData.id, JSON.stringify(userData));
             
-            try {
-                localStorage.setItem('worldskills_user_' + userData.id, JSON.stringify(userData));
-            } catch (e) {
-                console.error('Error saving ', e);
-            }
-            
-            tg.showAlert('✅ Tabriklaymiz! Ro\'yxatdan o\'tdingiz!\n\nIsm: ' + firstName + ' ' + lastName + '\nYo\'nalish: ' + competition + '\n\n+10 ball qo\'shildi!');
-            showMainMenu();
+            setTimeout(() => {
+                tg.showProgress(false);
+                tg.showAlert('✅ Tabriklaymiz! Ro\'yxatdan o\'tdingiz!\n\n+10 ball qo\'shildi!');
+                showMainMenu();
+            }, 1000);
         }
         
         function showMainMenu() {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById('mainMenuSection').classList.add('active');
-            
             document.getElementById('userName').textContent = userData.firstName + ' ' + userData.lastName;
             document.getElementById('userCompetition').textContent = userData.competition;
             document.getElementById('userPoints').textContent = userData.points;
-            
             document.getElementById('profileName').textContent = userData.firstName;
             document.getElementById('profileLastName').textContent = userData.lastName;
             document.getElementById('profilePhone').textContent = userData.phone;
             document.getElementById('profileId').textContent = userData.id;
             document.getElementById('profileCompetition').textContent = userData.competition;
             document.getElementById('profilePoints').textContent = userData.points;
-            
             document.getElementById('statsPoints').textContent = userData.points;
             document.getElementById('statsWorks').textContent = userData.works?.length || 0;
         }
@@ -734,6 +488,22 @@
                 return;
             }
             
+            tg.showProgress(true);
+            
+            // 🎯 BOTGA ISH MA'LUMOTINI YUBORISH
+            const workData = {
+                action: 'submit_work',
+                title: title,
+                description: description,
+                telegramId: userData.id,
+                userName: userData.firstName + ' ' + userData.lastName,
+                competition: userData.competition
+            };
+            
+            // Telegram orqali botga yuborish
+            tg.sendData(JSON.stringify(workData));
+            
+            // Mahalliy saqlash
             const work = {
                 id: Date.now(),
                 title: title,
@@ -747,13 +517,14 @@
             userData.works.push(work);
             localStorage.setItem('worldskills_user_' + userData.id, JSON.stringify(userData));
             
-            tg.showAlert('✅ Ish muvaffaqiyatli yuborildi! Admin tekshiradi.');
-            
-            document.getElementById('workTitle').value = '';
-            document.getElementById('workDescription').value = '';
-            document.getElementById('workFile').value = '';
-            
-            loadPortfolio();
+            setTimeout(() => {
+                tg.showProgress(false);
+                tg.showAlert('✅ Ish muvaffaqiyatli yuborildi!\n\nAdmin tekshiradi.');
+                document.getElementById('workTitle').value = '';
+                document.getElementById('workDescription').value = '';
+                document.getElementById('workFile').value = '';
+                loadPortfolio();
+            }, 1000);
         }
         
         function loadPortfolio() {
@@ -762,7 +533,6 @@
                 list.innerHTML = '<p style="text-align: center; opacity: 0.6; padding: 20px;"><i class="fas fa-inbox" style="font-size: 48px; display: block; margin-bottom: 10px;"></i>Hali ishlar yuborilmagan</p>';
                 return;
             }
-            
             list.innerHTML = userData.works.map(work => `
                 <div class="portfolio-item">
                     <h3><i class="fas fa-file-alt"></i> ${work.title}</h3>
@@ -779,11 +549,9 @@
         function showSection(sectionId) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
-            
             if (sectionId === 'portfolioSection') {
                 loadPortfolio();
             }
-            
             tg.HapticFeedback.impactOccurred('light');
         }
         
