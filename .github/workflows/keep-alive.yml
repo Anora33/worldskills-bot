@@ -2,15 +2,12 @@
 
 on:
   schedule:
-    # Har 5 daqiqada ishga tushadi
-    - cron: '*/5 * * * *'
+    - cron: '*/5 * * * *'  # Har 5 daqiqada
   workflow_dispatch:
 
 jobs:
-  ping-bot:
+  ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping bot to keep it alive
-        run: |
-          curl -X GET https://worldskills-bot.onrender.com/health
-          echo "✅ Bot pinged successfully!"
+      - name: Ping bot
+        run: curl -s -o /dev/null -w "%{http_code}" https://worldskills-bot.onrender.com/health
