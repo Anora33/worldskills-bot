@@ -1,4 +1,20 @@
-﻿# -*- coding: utf-8 -*-
+﻿import asyncio
+from aiogram import Bot, Dispatcher
+
+
+# ... sizning kodlaringiz ...
+
+async def main():
+    # Avval webhookni o'chirib, kutilayotgan so'rovlarni bekor qilish
+    await bot.delete_webhook(drop_pending_updates=True)
+
+    # Keyin polling boshlash
+    await dp.start_polling(bot, drop_pending_updates=True)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+# -*- coding: utf-8 -*-
 import asyncio
 import logging
 import os
