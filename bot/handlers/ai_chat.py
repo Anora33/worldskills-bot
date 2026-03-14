@@ -1,6 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 from aiogram import Router, F
 from aiogram.types import Message
+from aiogram.fsm.context import FSMContext
 import os
 import httpx
 
@@ -9,17 +10,28 @@ router = Router()
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
 GROQ_MODEL = "llama3-70b-8192"
 
-@router.message(F.regexp(r"^(?!/).+$"))
-async def ai_chat(message: Message):
-    """AI bilan suhbat - faqat AI tugmasi bosilgandan keyin"""
+# System prompts for different languages
+SYSTEM_PROMPTS = {
+    "uz": "Siz WorldSkills professional yordamchisisiz. Foydalanuvchilarga musobaqa, topshiriqlar va texnik savollar bo'yicha yordam berasiz. Javoblaringiz qisqa (max 300 belgi), aniq va foydali bo'lsin. Faqat o'zbek tilida javob bering.",
+    "ru": "Вы профессиональный помощник WorldSkills. Помогаете пользователям по вопросам соревнований, заданий и технической поддержки. Ответы должны быть краткими (макс. 300 символов), точными и полезными. Отвечайте только на русском языке.",
+    "en": "You are a professional WorldSkills assistant. Help users with competition, tasks, and technical questions. Keep answers short (max 300 chars), precise and helpful. Respond only in English."
+}
+
+@router.message(F.state == "ai_mode")
+async def ai_chat_active(message: Message, state: FSMContext):
+    """AI bilan suhbat - faqat AI mode'da ishlaydi"""
     if not GROQ_API_KEY:
         await message.answer("❌ GROQ_API_KEY sozlanmagan!")
+        await state.clear()
         return
+    
+    user_data = await state.get_data()
+    lang = user_data.get("language", "uz")
     
     try:
         await message.chat.action("typing")
         
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=15) as client:
             response = await client.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 headers={
@@ -29,19 +41,12 @@ async def ai_chat(message: Message):
                 json={
                     "model": GROQ_MODEL,
                     "messages": [
-                        {
-                            "role": "system", 
-                            "content": "Siz WorldSkills professional yordamchisisiz. Foydalanuvchilarga musobaqa, topshiriqlar va texnik savollar bo'yicha yordam berasiz. Qisqa, aniq va foydali javob bering."
-                        },
-                        {
-                            "role": "user", 
-                            "content": message.text
-                        }
+                        {"role": "system", "content": SYSTEM_PROMPTS.get(lang, SYSTEM_PROMPTS["uz"])},
+                        {"role": "user", "content": message.text}
                     ],
-                    "max_tokens": 500,
+                    "max_tokens": 300,
                     "temperature": 0.7
-                },
-                timeout=30
+                }
             )
             
             if response.status_code == 200:
@@ -49,10 +54,7 @@ async def ai_chat(message: Message):
                 ai_response = data["choices"][0]["message"]["content"]
                 await message.answer(ai_response)
             else:
-                error_data = response.json().get("error", {})
-                error_msg = error_data.get("message", "Noma'lum xato")
-                await message.answer(f"❌ AI xatosi: {error_msg}")
+                await message.answer("❌ " + {"uz": "AI vaqtincha ishlamayapti", "ru": "AI временно не работает", "en": "AI is temporarily unavailable"}.get(lang, "AI error"))
                 
     except Exception as e:
-        error_text = str(e)[:200]
-        await message.answer(f"❌ Xato: {error_text}")
+        await message.answer("❌ " + {"uz": "Xato yuz berdi", "ru": "Произошла ошибка", "en": "An error occurred"}.get(lang, "Error"))
