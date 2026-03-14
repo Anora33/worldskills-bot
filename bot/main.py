@@ -7,68 +7,88 @@ from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart
-from aiogram.types import Message
 from aiogram.fsm.storage.memory import MemoryStorage
 from flask import Flask
 import threading
 
-# Load .env file (lokal test uchun!)
+# Load .env (lokal uchun)
 load_dotenv()
 
-print("=" * 50)
-print("BOT STARTING...")
-print("=" * 50)
-
-# Flask
+# Flask app
 app = Flask(__name__)
+
 @app.route('/')
 def health():
-    return "OK", 200
+    return "WorldSkills Bot is running!", 200
 
 @app.route('/health')
 def health_check():
-    return {"status": "ok", "bot": "WorldSkills"}, 200
+    return {"status": "ok", "bot": "WorldSkills Professional Bot"}, 200
 
 def run_flask():
     port = int(os.environ.get('PORT', 5000))
-    print(f"Flask running on port {port}")
     app.run(host='0.0.0.0', port=port)
 
-# Check env vars
+# Environment variables
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
-print(f"BOT_TOKEN: {'SET' if BOT_TOKEN else 'NOT SET'}")
-print(f"ADMIN_ID: {os.environ.get('ADMIN_ID', 'NOT SET')}")
-print(f"DATABASE_URL: {os.environ.get('DATABASE_URL', 'NOT SET')}")
+DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite+aiosqlite:///worldskills.db')
+ADMIN_ID = int(os.environ.get('ADMIN_ID', 0))
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'default-secret-key')
+WEBAPP_URL = os.environ.get('WEBAPP_URL', 'https://worldskills-webapp.vercel.app').strip()
 
 if not BOT_TOKEN:
-    print("ERROR: BOT_TOKEN is required!")
+    logging.error("❌ BOT_TOKEN not found!")
     sys.exit(1)
 
-print("Creating bot...")
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=MemoryStorage())
 
-@dp.message(CommandStart())
-async def cmd_start(message: Message):
-    await message.answer("✅ Bot is working! /app tugmasini bosing")
+# 🎯 Import handlers
+try:
+    from bot.handlers import start, webapp, admin, ai_chat
+    
+    dp.include_router(start.router)
+    dp.include_router(webapp.router)
+    dp.include_router(admin.router)
+    dp.include_router(ai_chat.router)
+    
+    logging.info("✅ Barcha handlerlar yuklandi!")
+    logging.info(f"  - start: {hasattr(start, 'router')}")
+    logging.info(f"  - webapp: {hasattr(webapp, 'router')}")
+    logging.info(f"  - admin: {hasattr(admin, 'router')}")
+    logging.info(f"  - ai_chat: {hasattr(ai_chat, 'router')}")
+    
+except Exception as e:
+    logging.error(f"❌ Handler import xatosi: {e}")
+    import traceback
+    traceback.print_exc()
+    sys.exit(1)
 
 async def main():
-    print("Starting Flask thread...")
+    logging.info("=" * 50)
+    logging.info("✅ WorldSkills Professional Bot ishga tushdi!")
+    logging.info(f"🤖 Bot: @{(await bot.get_me()).username}")
+    logging.info(f"🌐 Flask: port {os.environ.get('PORT', 5000)}")
+    logging.info(f"💾 Database: {DATABASE_URL}")
+    logging.info(f"👤 Admin: {ADMIN_ID}")
+    logging.info("=" * 50)
+    
+    # Flask thread
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
     
-    print("Starting polling...")
+    # Start polling
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
     try:
-        print("=" * 50)
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("Bot stopped by user")
+        logging.info("Bot to'xtatildi")
     except Exception as e:
-        print(f"FATAL ERROR: {e}")
+        logging.error(f"❌ Fatal xato: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
