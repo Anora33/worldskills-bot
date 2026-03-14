@@ -2,36 +2,40 @@
 from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 import os
 import httpx
 
 router = Router()
 
+# State
+class AIState(StatesGroup):
+    waiting_for_message = State()
+
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
-GROQ_MODEL = "llama3-70b-8192"
 
-# System prompts for different languages
-SYSTEM_PROMPTS = {
-    "uz": "Siz WorldSkills professional yordamchisisiz. Foydalanuvchilarga musobaqa, topshiriqlar va texnik savollar bo'yicha yordam berasiz. Javoblaringiz qisqa (max 300 belgi), aniq va foydali bo'lsin. Faqat o'zbek tilida javob bering.",
-    "ru": "Вы профессиональный помощник WorldSkills. Помогаете пользователям по вопросам соревнований, заданий и технической поддержки. Ответы должны быть краткими (макс. 300 символов), точными и полезными. Отвечайте только на русском языке.",
-    "en": "You are a professional WorldSkills assistant. Help users with competition, tasks, and technical questions. Keep answers short (max 300 chars), precise and helpful. Respond only in English."
-}
+@router.message(F.text == "🤖 AI yordamchi")
+async def ai_start(message: Message, state: FSMContext):
+    """AI ni ishga tushirish"""
+    await state.set_state(AIState.waiting_for_message)
+    await message.answer(
+        "🤖 <b>AI yordamchi</b>\n\n"
+        "Savolingizni yozing, men javob beraman.\n\n"
+        "<i>Chiqish uchun /start bosing</i>"
+    )
 
-@router.message(F.state == "ai_mode")
-async def ai_chat_active(message: Message, state: FSMContext):
-    """AI bilan suhbat - faqat AI mode'da ishlaydi"""
+@router.message(AIState.waiting_for_message)
+async def ai_response(message: Message, state: FSMContext):
+    """AI javobi"""
     if not GROQ_API_KEY:
-        await message.answer("❌ GROQ_API_KEY sozlanmagan!")
+        await message.answer("❌ API key topilmadi!")
         await state.clear()
         return
-    
-    user_data = await state.get_data()
-    lang = user_data.get("language", "uz")
     
     try:
         await message.chat.action("typing")
         
-        async with httpx.AsyncClient(timeout=15) as client:
+        async with httpx.AsyncClient(timeout=30) as client:
             response = await client.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 headers={
@@ -39,22 +43,27 @@ async def ai_chat_active(message: Message, state: FSMContext):
                     "Content-Type": "application/json"
                 },
                 json={
-                    "model": GROQ_MODEL,
+                    "model": "llama3-70b-8192",
                     "messages": [
-                        {"role": "system", "content": SYSTEM_PROMPTS.get(lang, SYSTEM_PROMPTS["uz"])},
+                        {"role": "system", "content": "Siz WorldSkills yordamchisisiz. Qisqa va aniq javob bering."},
                         {"role": "user", "content": message.text}
                     ],
-                    "max_tokens": 300,
-                    "temperature": 0.7
+                    "max_tokens": 300
                 }
             )
             
             if response.status_code == 200:
                 data = response.json()
-                ai_response = data["choices"][0]["message"]["content"]
-                await message.answer(ai_response)
+                answer = data["choices"][0]["message"]["content"]
+                await message.answer(answer)
             else:
-                await message.answer("❌ " + {"uz": "AI vaqtincha ishlamayapti", "ru": "AI временно не работает", "en": "AI is temporarily unavailable"}.get(lang, "AI error"))
+                await message.answer(f"❌ Xato: {response.status_code}")
                 
     except Exception as e:
-        await message.answer("❌ " + {"uz": "Xato yuz berdi", "ru": "Произошла ошибка", "en": "An error occurred"}.get(lang, "Error"))
+        await message.answer(f"❌ Xato: {str(e)[:100]}")
+
+@router.message(Command("start"))
+async def ai_exit(message: Message, state: FSMContext):
+    """AI dan chiqish"""
+    await state.clear()
+    await message.answer("✅ AI dan chiqdingiz")
