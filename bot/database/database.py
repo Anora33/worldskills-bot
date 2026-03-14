@@ -1,17 +1,29 @@
-﻿from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, declarative_base
-from bot.config import config
+﻿# -*- coding: utf-8 -*-
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+import os
 
-engine = create_async_engine(config.DATABASE_URL, echo=False)
-async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-Base = declarative_base()
+# Database URL - to'g'ridan-to'g'ri os.environ dan
+DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite+aiosqlite:///worldskills.db')
 
+# Async engine yaratish
+engine = create_async_engine(DATABASE_URL, echo=False, future=True)
 
-async def get_db() -> AsyncSession:
-    async with async_session() as session:
-        yield session
+# Async session factory
+async_session = sessionmaker(
+    engine, 
+    class_=AsyncSession, 
+    expire_on_commit=False,
+    future=True
+)
 
-
-async def init_db():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+# Database'ni tekshirish funksiyasi
+async def test_connection():
+    """Database ulanishini tekshirish"""
+    try:
+        async with async_session() as session:
+            await session.execute("SELECT 1")
+        return True
+    except Exception as e:
+        print(f"❌ Database connection error: {e}")
+        return False

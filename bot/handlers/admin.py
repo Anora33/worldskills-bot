@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from bot.database.database import async_session
 from bot.database.queries import get_user_by_telegram_id
-from bot.config import config
+import os
 from sqlalchemy import select, func
 from bot.database.models import User
 
@@ -13,7 +13,7 @@ router = Router()
 
 def is_admin(telegram_id: int) -> bool:
     """Adminligini tekshirish"""
-    return telegram_id == config.ADMIN_ID
+    return telegram_id == int(os.environ.get('ADMIN_ID', 0))
 
 
 @router.message(Command("admin"))
@@ -241,3 +241,4 @@ async def cmd_export(message: Message):
     
     import os
     os.remove(filename)
+

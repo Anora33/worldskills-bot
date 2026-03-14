@@ -6,7 +6,7 @@ from bot.states.states import AIChatStates
 from bot.database.database import async_session
 from bot.database.queries import get_user_by_telegram_id, add_points
 from bot.keyboards.inline import get_main_menu_keyboard
-from bot.config import config
+import os
 import httpx
 
 router = Router()
@@ -194,3 +194,4 @@ async def cmd_menu(message: Message, state: FSMContext):
         "📱 Asosiy menyu",
         reply_markup=get_main_menu_keyboard(lang)
     )
+

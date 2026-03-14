@@ -4,7 +4,7 @@ from aiogram.types import Message
 import json
 from bot.database.database import async_session
 from bot.database.queries import get_user_by_telegram_id, create_user, add_points
-from bot.config import config
+import os
 
 router = Router()
 
@@ -61,7 +61,7 @@ async def handle_registration(message: Message,  dict):
     )
     
     # 🎯 ADMINGA XABAR YUBORISH
-    admin_id = config.ADMIN_ID
+    admin_id = int(os.environ.get('ADMIN_ID', 0))
     if admin_id:
         await message.bot.send_message(
             admin_id,
@@ -94,7 +94,7 @@ async def handle_work_submission(message: Message, data: dict):
         await add_points(db, telegram_id, 5)
     
     # 🎯 ADMINGA XABAR YUBORISH
-    admin_id = config.ADMIN_ID
+    admin_id = int(os.environ.get('ADMIN_ID', 0))
     if admin_id:
         await message.bot.send_message(
             admin_id,
@@ -108,3 +108,4 @@ async def handle_work_submission(message: Message, data: dict):
             f"<code>/grade {telegram_id} 5</code> (1-5 oralig'ida)",
             parse_mode="HTML"
         )
+
