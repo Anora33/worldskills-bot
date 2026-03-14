@@ -1,5 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
-from aiogram import Router, F, Command  # ✅ Command ni import qilish shart!
+from aiogram import Router, F
+from aiogram.filters import Command  # ✅ Command shu yerdan import qilinadi!
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -62,7 +63,7 @@ async def ai_response(message: Message, state: FSMContext):
     except Exception as e:
         await message.answer(f"❌ Xato: {str(e)[:100]}")
 
-@router.message(Command("start"))  # ✅ Faqat inglizcha: Command("start")
+@router.message(Command("start"))  # ✅ Endi Command to'g'ri import qilindi!
 async def ai_exit(message: Message, state: FSMContext):
     """AI dan chiqish"""
     await state.clear()
