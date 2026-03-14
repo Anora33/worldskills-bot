@@ -7,7 +7,6 @@ import httpx
 router = Router()
 
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
-# ✅ Yangi model: llama3-70b-8192 (avvalgisining o'rniga)
 GROQ_MODEL = "llama3-70b-8192"
 
 @router.message(F.text == "🤖 AI assistant")
@@ -40,7 +39,7 @@ async def ai_chat(message: Message):
                     "Content-Type": "application/json"
                 },
                 json={
-                    "model": GROQ_MODEL,  # ✅ Yangi model
+                    "model": GROQ_MODEL,
                     "messages": [
                         {
                             "role": "system", 
@@ -62,8 +61,12 @@ async def ai_chat(message: Message):
                 ai_response = data['choices'][0]['message']['content']
                 await message.answer(ai_response)
             else:
-                error_msg = response.json().get('error', {}).get('message', 'Noma'lum xato')
+                # ✅ Apostrof muammosi tuzatildi: double quotes ishlatildi
+                error_data = response.json().get("error", {})
+                error_msg = error_data.get("message", "Noma'lum xato")
                 await message.answer(f"❌ AI xatosi: {error_msg}")
                 
     except Exception as e:
-        await message.answer(f"❌ Xato: {str(e)[:200]}")
+        # ✅ Apostrof muammosi tuzatildi
+        error_text = str(e)[:200]
+        await message.answer(f"❌ Xato: {error_text}")
