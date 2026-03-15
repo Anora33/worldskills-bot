@@ -9,16 +9,17 @@ from aiogram.filters import Command
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
-from flask import Flask
+from flask import Flask, jsonify
 import threading
 
 # Load .env for local testing
 load_dotenv()
 
-# Logging setup
+# Logging setup - RENDER uchun muhim!
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
 )
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ app = Flask(__name__)
 @app.route('/')
 @app.route('/health')
 def health_check():
-    return {"status": "ok", "bot": "WorldSkills Professional Bot"}, 200
+    return jsonify({"status": "ok", "bot": "WorldSkills Professional Bot"}), 200
 
 def run_flask():
     port = int(os.environ.get('PORT', 5000))
@@ -41,19 +42,23 @@ ADMIN_ID = int(os.environ.get('ADMIN_ID', 0))
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
 WEBAPP_URL = os.environ.get('WEBAPP_URL', 'https://worldskills-webapp.vercel.app').strip()
 
-if not BOT_TOKEN:
-    logger.error("❌ BOT_TOKEN not found in environment variables!")
+logger.info(f"🔍 BOT_TOKEN loaded: {'YES' if BOT_TOKEN else 'NO'}")
+if BOT_TOKEN:
+    logger.info(f"🔍 BOT_TOKEN length: {len(BOT_TOKEN)}, has spaces: {' ' in BOT_TOKEN}")
+
+if not BOT_TOKEN or ' ' in BOT_TOKEN:
+    logger.error("❌ BOT_TOKEN not found or contains spaces!")
     sys.exit(1)
 
-# ✅ AVVAL Bot yaratamiz, keyin foydalanamiz!
+# Bot va Dispatcher yaratish
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=MemoryStorage())
 
-# Import handlers
+# Handler'larni import qilish
 try:
     from bot.handlers import start, webapp, admin, ai_chat
     
-    # ✅ AI handler birinchi (priority!)
+    # Router'larni qo'shish (AI birinchi!)
     dp.include_router(ai_chat.router)
     dp.include_router(start.router)
     dp.include_router(webapp.router)
@@ -66,19 +71,18 @@ try:
     logger.info(f"  - ai_chat: {hasattr(ai_chat, 'router')}")
     
 except Exception as e:
-    logger.error(f"❌ Handler import xatosi: {e}")
-    import traceback
-    traceback.print_exc()
+    logger.error(f"❌ Handler import xatosi: {e}", exc_info=True)
     sys.exit(1)
 
 async def main():
-    # ✅ Bot yaratilgandan keyin webhook'ni o'chiramiz
+    # Webhook'ni o'chirish
     try:
         await bot.delete_webhook(drop_pending_updates=True)
-        logger.info("✅ Webhook o'chirildi, polling boshlandi")
+        logger.info("✅ Webhook o'chirildi")
     except Exception as e:
         logger.warning(f"⚠️ Webhook o'chirishda ogohlantirish: {e}")
     
+    # Bot ma'lumotlari
     logger.info("=" * 50)
     logger.info("✅ WorldSkills Professional Bot ishga tushdi!")
     
@@ -96,17 +100,17 @@ async def main():
     # Flask thread
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
+    logger.info("🌐 Flask server ishga tushdi")
     
-    # Start polling
+    # Polling ni boshlash
+    logger.info("🔄 Start polling...")
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        logger.info("Bot to'xtatildi")
+        logger.info("⌨️ Bot to'xtatildi (Ctrl+C)")
     except Exception as e:
-        logger.error(f"❌ Fatal xato: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"❌ Fatal xato: {e}", exc_info=True)
         sys.exit(1)
