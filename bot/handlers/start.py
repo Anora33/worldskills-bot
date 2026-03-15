@@ -1,6 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 from aiogram import Router, F
-from aiogram.filters import CommandStart, Command
+from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery, WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
@@ -11,140 +11,116 @@ import logging
 logger = logging.getLogger(__name__)
 router = Router()
 
-# States
 class UserState(StatesGroup):
     waiting_for_fullname = State()
     waiting_for_phone = State()
     waiting_for_profession = State()
 
-# Keyboards
-def get_language_keyboard():
+@router.message(CommandStart())
+async def cmd_start(message: Message, state: FSMContext):
+    logger.info(f"📩 START: user={message.from_user.id}")
+    await state.clear()
+    
+    # Inline keyboard yaratish
     builder = InlineKeyboardBuilder()
     builder.button(text="🇺🇿 O'zbekcha", callback_data="lang_uz")
     builder.button(text="🇷🇺 Русский", callback_data="lang_ru")
     builder.button(text="🇬🇧 English", callback_data="lang_en")
     builder.adjust(1)
-    return builder.as_markup()
-
-def get_profession_keyboard(lang):
-    texts = {
-        "uz": ["💻 Dasturlash", "🎨 Dizayn", "🔧 Mexanika", "🏗 Qurilish", "👨‍🍳 Oshpazlik", "💼 Biznes"],
-        "ru": ["💻 Программирование", "🎨 Дизайн", "🔧 Механика", "🏗 Строительство", "👨‍🍳 Кулинария", "💼 Бизнес"],
-        "en": ["💻 Programming", "🎨 Design", "🔧 Mechanics", "🏗 Construction", "👨‍🍳 Cooking", "💼 Business"]
-    }
-    builder = InlineKeyboardBuilder()
-    for btn in texts.get(lang, texts["uz"]):
-        builder.button(text=btn, callback_data=f"prof_{btn.split()[-1].lower()}")
-    builder.adjust(2)
-    return builder.as_markup()
-
-def get_main_menu_keyboard(lang):
-    texts = {
-        "uz": {"mini_app": "📱 Mini App", "my_stats": "📊 Mening statistikam", "my_competition": "🏆 Mening musobaqam", "ai_assistant": "🤖 AI yordamchi", "rating": "⭐ Reyting", "admin_help": "👨‍💼 Admin yordami", "change_profession": "🔄 Kasbni o'zgartirish"},
-        "ru": {"mini_app": "📱 Mini App", "my_stats": "📊 Моя статистика", "my_competition": "🏆 Моё соревнование", "ai_assistant": "🤖 AI помощник", "rating": "⭐ Рейтинг", "admin_help": "👨‍💼 Помощь админа", "change_profession": "🔄 Сменить профессию"},
-        "en": {"mini_app": "📱 Mini App", "my_stats": "📊 My statistics", "my_competition": "🏆 My competition", "ai_assistant": "🤖 AI assistant", "rating": "⭐ Rating", "admin_help": "👨‍💼 Admin help", "change_profession": "🔄 Change profession"}
-    }
-    t = texts.get(lang, texts["uz"])
-    builder = ReplyKeyboardBuilder()
-    builder.row(KeyboardButton(text=t["mini_app"]))
-    builder.row(KeyboardButton(text=t["my_stats"]))
-    builder.row(KeyboardButton(text=t["my_competition"]), KeyboardButton(text=t["ai_assistant"]))
-    builder.row(KeyboardButton(text=t["rating"]), KeyboardButton(text=t["admin_help"]))
-    builder.row(KeyboardButton(text=t["change_profession"]))
-    return builder.as_markup(resize_keyboard=True)
-
-# ========== HANDLERS ==========
-
-@router.message(CommandStart())
-async def cmd_start(message: Message, state: FSMContext):
-    logger.info(f"📩 /start from user {message.from_user.id}")
-    await state.clear()
-    await message.answer(
-        "🌍 <b>Xush kelibsiz!</b>\n\nTilni tanlang:",
-        reply_markup=get_language_keyboard()
-    )
-    logger.info(f"✅ Welcome sent to {message.from_user.id}")
+    keyboard = builder.as_markup()
+    
+    logger.info("📤 Sending welcome message...")
+    await message.answer("🌍 <b>Xush kelibsiz!</b>\n\nTilni tanlang:", reply_markup=keyboard)
+    logger.info(f"✅ Welcome sent to user={message.from_user.id}")
 
 @router.callback_query(F.data.startswith("lang_"))
 async def set_language(callback: CallbackQuery, state: FSMContext):
     lang = callback.data.split("_")[1]
+    logger.info(f"🌍 Language selected: {lang}")
     await state.update_data(language=lang)
     await state.set_state(UserState.waiting_for_fullname)
     
-    texts = {"uz": "🇺🇿 O'zbek tili tanlandi!\n\n<i>Ism familiyangizni kiriting:</i>", "ru": "🇷🇺 Русский выбран!\n\n<i>Введите имя:</i>", "en": "🇬🇧 English selected!\n\n<i>Enter your name:</i>"}
+    texts = {"uz": "🇺🇿 O'zbek tili tanlandi!\n\n<i>Ism familiyangizni kiriting:</i>", "ru": "🇷🇺 Русский выбран!", "en": "🇬🇧 English selected!"}
     await callback.message.answer(texts.get(lang, texts["uz"]))
     await callback.answer()
 
 @router.message(UserState.waiting_for_fullname)
 async def process_fullname(message: Message, state: FSMContext):
-    user_data = await state.get_data()
-    lang = user_data.get("language", "uz")
+    logger.info(f"📝 Fullname received: {message.text}")
     fullname = message.text.strip()
     if len(fullname) < 3:
-        await message.answer({"uz": "❌ Ism juda qisqa!", "ru": "❌ Имя короткое!", "en": "❌ Name too short!"}.get(lang, "❌"))
+        await message.answer("❌ Ism juda qisqa!")
         return
     await state.update_data(fullname=fullname)
     await state.set_state(UserState.waiting_for_phone)
-    await message.answer({"uz": f"✅ {fullname}\n\n<b>Telefon:</b>", "ru": f"✅ {fullname}\n\n<b>Телефон:</b>", "en": f"✅ {fullname}\n\n<b>Phone:</b>"}.get(lang, ""))
+    await message.answer(f"✅ {fullname}\n\n<b>Telefon raqamingizni kiriting:</b>")
 
 @router.message(UserState.waiting_for_phone)
 async def process_phone(message: Message, state: FSMContext):
-    user_data = await state.get_data()
-    lang = user_data.get("language", "uz")
+    logger.info(f"📝 Phone received: {message.text}")
     phone = message.text.strip()
     if not phone.startswith("+") or len(phone) < 12:
-        await message.answer({"uz": "❌ Telefon noto'g'ri!", "ru": "❌ Неверный телефон!", "en": "❌ Invalid phone!"}.get(lang, "❌"))
+        await message.answer("❌ Telefon noto'g'ri! Masalan: +998901234567")
         return
     await state.update_data(phone=phone)
     await state.set_state(UserState.waiting_for_profession)
-    await message.answer({"uz": "✅ Telefon\n\n<b>Kasb tanlang:</b>", "ru": "✅ Телефон\n\n<b>Профессия:</b>", "en": "✅ Phone\n\n<b>Profession:</b>"}.get(lang, ""), reply_markup=get_profession_keyboard(lang))
+    
+    # Kasb tanlash keyboard
+    builder = InlineKeyboardBuilder()
+    professions = ["💻 Dasturlash", "🎨 Dizayn", "🔧 Mexanika", "🏗 Qurilish", "👨‍🍳 Oshpazlik", "💼 Biznes"]
+    for prof in professions:
+        builder.button(text=prof, callback_data=f"prof_{prof.split()[-1].lower()}")
+    builder.adjust(2)
+    
+    await message.answer("✅ Telefon qabul qilindi\n\n<b>Kasbingizni tanlang:</b>", reply_markup=builder.as_markup())
 
 @router.callback_query(UserState.waiting_for_profession)
 async def process_profession(callback: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     lang = user_data.get("language", "uz")
+    logger.info(f"🎉 Registration complete for user={callback.from_user.id}")
     await state.clear()
-    texts = {"uz": "🎉 Ro'yxatdan o'tdingiz!", "ru": "🎉 Регистрация завершена!", "en": "🎉 Registration complete!"}
-    await callback.message.answer(texts.get(lang, texts["uz"]), reply_markup=get_main_menu_keyboard(lang))
+    
+    # Asosiy menyu
+    builder = ReplyKeyboardBuilder()
+    menu = ["📱 Mini App", "📊 Mening statistikam", "🏆 Mening musobaqam", "🤖 AI yordamchi", "⭐ Reyting", "👨‍💼 Admin yordami"]
+    for btn in menu:
+        builder.button(text=btn)
+    builder.adjust(1, 2, 2, 1)
+    
+    await callback.message.answer("🎉 <b>Ro'yxatdan o'tdingiz!</b>", reply_markup=builder.as_markup())
     await callback.answer()
 
-# Menu buttons
+# Menu tugmalari
 @router.message(F.text == "📱 Mini App")
 async def handle_mini_app(message: Message):
-    await message.answer("📱 <b>Mini App</b>", reply_markup=InlineKeyboardBuilder().button(text="🚀 Ochish", web_app=WebAppInfo(url="https://worldskills-webapp.vercel.app")).as_markup())
+    logger.info("📱 Mini App clicked")
+    builder = InlineKeyboardBuilder()
+    builder.button(text="🚀 Ochish", web_app=WebAppInfo(url="https://worldskills-webapp.vercel.app"))
+    await message.answer("📱 <b>Mini App</b>", reply_markup=builder.as_markup())
 
-@router.message(F.text == "🤖 AI yordamchi" or F.text == "🤖 AI помощник" or F.text == "🤖 AI assistant")
+@router.message(F.text == "🤖 AI yordamchi")
 async def handle_ai(message: Message, state: FSMContext):
-    user_data = await state.get_data()
-    lang = user_data.get("language", "uz")
+    logger.info("🤖 AI clicked")
     await state.update_data(ai_active=True)
-    texts = {"uz": "🤖 <b>AI Yordamchi</b>\n\nSavolingizni yozing:", "ru": "🤖 <b>AI Помощник</b>\n\nНапишите вопрос:", "en": "🤖 <b>AI Assistant</b>\n\nType your question:"}
-    await message.answer(texts.get(lang, texts["uz"]))
+    await message.answer("🤖 <b>AI Yordamchi</b>\n\nSavolingizni yozing:")
 
-@router.message(F.text == "📊 Mening statistikam" or F.text == "📊 Моя статистика" or F.text == "📊 My statistics")
+@router.message(F.text == "📊 Mening statistikam")
 async def handle_stats(message: Message):
+    logger.info("📊 Stats clicked")
     await message.answer("📊 Statistika tez orada...")
 
-@router.message(F.text == "🏆 Mening musobaqam" or F.text == "🏆 Моё соревнование" or F.text == "🏆 My competition")
+@router.message(F.text == "🏆 Mening musobaqam")
 async def handle_competition(message: Message):
-    await message.answer("🏆 Musobaqa tez orada...")
+    logger.info("🏆 Competition clicked")
+    await message.answer("🏆 Musobaqa ma'lumotlari tez orada...")
 
-@router.message(F.text == "⭐ Reyting" or F.text == "⭐ Рейтинг" or F.text == "⭐ Rating")
+@router.message(F.text == "⭐ Reyting")
 async def handle_rating(message: Message):
+    logger.info("⭐ Rating clicked")
     await message.answer("⭐ Reyting tez orada...")
 
-@router.message(F.text == "👨‍💼 Admin yordami" or F.text == "👨‍💼 Помощь админа" or F.text == "👨‍💼 Admin help")
+@router.message(F.text == "👨‍💼 Admin yordami")
 async def handle_admin(message: Message):
+    logger.info("👨‍💼 Admin clicked")
     await message.answer("👨‍💼 Admin: @admin_username")
-
-@router.message(F.text == "🔄 Kasbni o'zgartirish" or F.text == "🔄 Сменить профессию" or F.text == "🔄 Change profession")
-async def handle_change_profession(message: Message, state: FSMContext):
-    user_data = await state.get_data()
-    lang = user_data.get("language", "uz")
-    await state.set_state(UserState.waiting_for_profession)
-    await message.answer({"uz": "<b>Kasb tanlang:</b>", "ru": "<b>Профессия:</b>", "en": "<b>Profession:</b>"}.get(lang, ""), reply_markup=get_profession_keyboard(lang))
-
-@router.message(Command("start"))
-async def exit_any_state(message: Message, state: FSMContext):
-    await state.clear()
-    await cmd_start(message, state)
