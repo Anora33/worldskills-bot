@@ -1,150 +1,112 @@
-﻿// Telegram Web App init
+﻿// Telegram WebApp init
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// User data
-let userData = {
-    id: tg.initDataUnsafe?.user?.id || 0,
-    first_name: tg.initDataUnsafe?.user?.first_name || 'Foydalanuvchi',
-    username: tg.initDataUnsafe?.user?.username || '',
-    competition: '',
-    points: 0
-};
+// Sahifa yuklanganda
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ WebApp loaded');
+    tg.ready();
 
-// DOM Elements
-const userCard = document.getElementById('userCard');
-const userName = document.getElementById('userName');
-const userCompetition = document.getElementById('userCompetition');
-const userPoints = document.getElementById('userPoints');
-const backBtn = document.getElementById('backBtn');
+    // Foydalanuvchi ma'lumotlarini ko'rsatish
+    if (tg.initDataUnsafe?.user) {
+        document.getElementById('userName').textContent =
+            tg.initDataUnsafe.user.first_name + ' ' +
+            (tg.initDataUnsafe.user.last_name || '');
+        document.getElementById('userId').textContent = tg.initDataUnsafe.user.id;
+    }
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    loadUserData();
-    showUserCard();
+    // Telegram MainButton sozlash
+    tg.MainButton.setText("Yopish");
+    tg.MainButton.onClick(() => tg.close());
 });
 
-// Load user data from backend
-async function loadUserData() {
-    try {
-        const response = await fetch(`/api/user/${userData.id}`);
-        if (response.ok) {
-            const data = await response.json();
-            userData.competition = data.competition || "Yo'nalish tanlanmagan";
-            userData.points = data.points || 0;
-        }
-    } catch (error) {
-        console.log('User data not loaded yet');
+// Rasm yuklash funksiyasi
+async function uploadPhoto() {
+    const fileInput = document.getElementById('photoInput');
+    const statusDiv = document.getElementById('uploadStatus');
+    const previewImg = document.getElementById('photoPreview');
+    const previewContainer = document.getElementById('previewContainer');
+
+    const file = fileInput.files[0];
+
+    // Tekshirish: fayl tanlanganmi?
+    if (!file) {
+        showStatus('❌ Fayl tanlanmagan!', 'error');
+        return;
     }
-}
 
-// Show user card
-function showUserCard() {
-    userCard.style.display = 'block';
-    userName.textContent = userData.first_name;
-    userCompetition.textContent = userData.competition;
-    userPoints.textContent = userData.points;
-    
-    // Update profile section
-    document.getElementById('profileName').textContent = userData.first_name;
-    document.getElementById('profileId').textContent = userData.id;
-    document.getElementById('profileCompetition').textContent = userData.competition;
-    document.getElementById('profilePoints').textContent = userData.points;
-}
-
-// Show section
-function showSection(sectionName) {
-    // Hide all sections
-    document.querySelectorAll('.section').forEach(section => {
-        section.style.display = 'none';
-    });
-    
-    // Show selected section
-    const section = document.getElementById(sectionName + 'Section');
-    if (section) {
-        section.style.display = 'block';
-        backBtn.style.display = 'block';
+    // Fayl hajmini tekshirish (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showStatus('❌ Fayl hajmi 5MB dan oshmasligi kerak!', 'error');
+        return;
     }
-    
-    // Haptic feedback
-    tg.HapticFeedback.impactOccurred('light');
-}
 
-// Back to menu
-function backToMenu() {
-    document.querySelectorAll('.section').forEach(section => {
-        section.style.display = 'none';
-    });
-    backBtn.style.display = 'none';
-    tg.HapticFeedback.impactOccurred('light');
-}
+    // Fayl turini tekshirish
+    if (!file.type.startsWith('image/')) {
+        showStatus('❌ Faqat rasm fayllari yuklash mumkin!', 'error');
+        return;
+    }
 
-// Send message in AI chat
-async function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const messages = document.getElementById('chatMessages');
-    const message = input.value.trim();
-    
-    if (!message) return;
-    
-    // Add user message
-    const userMsg = document.createElement('div');
-    userMsg.className = 'message user';
-    userMsg.textContent = message;
-    messages.appendChild(userMsg);
-    
-    input.value = '';
-    
-    // Scroll to bottom
-    messages.scrollTop = messages.scrollHeight;
-    
-    // Send to backend
+    // Rasmni ko'rish uchun preview
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        previewImg.src = e.target.result;
+        previewContainer.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+
+    // Yuklash jarayoni
+    showStatus('⏳ Yuklanmoqda...', 'loading');
+
+    const formData = new FormData();
+    formData.append('photo', file);
+    formData.append('telegram_id', tg.initDataUnsafe?.user?.id || 0);
+    formData.append('username', tg.initDataUnsafe?.user?.username || '');
+
     try {
-        const response = await fetch('/api/ai/chat', {
+        // Backend API ga yuborish (hozircha mock response)
+        // Haqiqiy backend bo'lsa, URL'ni o'zgartiring
+        const response = await fetch('https://your-backend.com/api/upload', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user_id: userData.id,
-                message: message
-            })
+            body: formData
         });
-        
-        if (response.ok) {
-            const data = await response.json();
-            const botMsg = document.createElement('div');
-            botMsg.className = 'message bot';
-            botMsg.textContent = data.response;
-            messages.appendChild(botMsg);
+
+        const result = await response.json();
+
+        if (result.success) {
+            showStatus('✅ Rasm muvaffaqiyatli yuklandi!', 'success');
+
+            // Telegram bot ga xabar yuborish
+            tg.sendData(JSON.stringify({
+                action: 'photo_uploaded',
+                photo_url: result.photo_url,
+                telegram_id: tg.initDataUnsafe?.user?.id
+            }));
         } else {
-            const botMsg = document.createElement('div');
-            botMsg.className = 'message bot';
-            botMsg.textContent = "Kechirasiz, hozir javob bera olmayman. Keyinroq urinib ko'ring.";
-            messages.appendChild(botMsg);
+            showStatus('❌ Xatolik: ' + result.error, 'error');
         }
     } catch (error) {
-        const botMsg = document.createElement('div');
-        botMsg.className = 'message bot';
-        botMsg.textContent = "Xatolik yuz berdi. Internetni tekshiring.";
-        messages.appendChild(botMsg);
+        // Demo mode (backend yo'q bo'lsa)
+        console.log('Demo mode - backend yo\'q');
+        showStatus('✅ Demo: Rasm yuklandi (backend ulanmagan)', 'success');
+
+        // Telegram bot ga xabar
+        tg.sendData(JSON.stringify({
+            action: 'photo_uploaded_demo',
+            telegram_id: tg.initDataUnsafe?.user?.id
+        }));
     }
-    
-    // Scroll to bottom
-    messages.scrollTop = messages.scrollHeight;
-    tg.HapticFeedback.impactOccurred('light');
 }
 
-// Enter key to send
-document.getElementById('chatInput').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        sendMessage();
-    }
-});
+// Status ko'rsatish
+function showStatus(message, type) {
+    const statusDiv = document.getElementById('uploadStatus');
+    statusDiv.textContent = message;
+    statusDiv.className = 'status ' + type;
+    statusDiv.style.display = 'block';
 
-// Set header color
-tg.setHeaderColor('#667eea');
-tg.setBackgroundColor('#667eea');
-
-// Ready
-tg.ready();
+    // 5 soniyadan keyin yo'qoladi
+    setTimeout(() => {
+        statusDiv.style.display = 'none';
+    }, 5000);
+}

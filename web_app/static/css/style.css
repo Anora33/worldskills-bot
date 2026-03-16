@@ -316,3 +316,83 @@ body {
 .section {
     animation: fadeIn 0.3s ease-out;
 }
+/* Rasm Yuklash Stili */
+.upload-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 30px;
+    border-radius: 25px;
+    margin: 20px 0;
+    text-align: center;
+    color: white;
+}
+
+.upload-section h2 {
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+.file-input {
+    display: block;
+    margin: 20px auto;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px dashed rgba(255, 255, 255, 0.5);
+    border-radius: 15px;
+    width: 100%;
+    max-width: 400px;
+    color: white;
+}
+
+.upload-btn {
+    background: #fff;
+    color: #667eea;
+    border: none;
+    padding: 15px 40px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin: 10px;
+}
+
+.upload-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.status {
+    margin: 15px 0;
+    padding: 15px;
+    border-radius: 10px;
+    font-weight: bold;
+    display: none;
+}
+
+.status.error {
+    background: rgba(255, 0, 0, 0.2);
+    display: block;
+}
+
+.status.success {
+    background: rgba(0, 255, 0, 0.2);
+    display: block;
+}
+
+.status.loading {
+    background: rgba(255, 255, 0, 0.2);
+    display: block;
+}
+
+.preview {
+    margin-top: 20px;
+    display: none;
+}
+
+.preview img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 15px;
+    border: 3px solid white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}

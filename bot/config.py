@@ -1,28 +1,13 @@
 ﻿# -*- coding: utf-8 -*-
 import os
+from dotenv import load_dotenv
 
-# Render uchun: os.environ.get() ishlatamiz (load_dotenv shart emas)
+load_dotenv()
 
-# Bot token
-BOT_TOKEN = os.environ.get('BOT_TOKEN')
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://worldskills-webapp.vercel.app")
+DATABASE_URL = "worldskills.db"
 
-# Database URL
-DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite+aiosqlite:///worldskills.db')
-
-# Admin ID
-ADMIN_ID = int(os.environ.get('ADMIN_ID', 0))
-
-# Groq API Key
-GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
-
-# Secret key
-SECRET_KEY = os.environ.get('SECRET_KEY', 'default-secret-key-change-in-production')
-
-# Vercel URL (Mini App) - bo'sh joylarsiz!
-WEBAPP_URL = os.environ.get('WEBAPP_URL', 'https://worldskills-webapp.vercel.app').strip()
-
-# Tekshirish
-if not BOT_TOKEN:
-    raise ValueError("BOT_TOKEN not found in environment variables!")
-if not GROQ_API_KEY:
-    print("⚠️ Warning: GROQ_API_KEY not set, AI features may not work")
+USE_GROQ = bool(GROQ_API_KEY and GROQ_API_KEY.strip())
