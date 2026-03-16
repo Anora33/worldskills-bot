@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorldSkills Uzbekistan - Ro'yxatdan O'tish</title>
+    <title>WorldSkills Uzbekistan</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,35 +21,17 @@
             margin: 0 auto;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        h1 { 
-            color: #667eea; 
-            text-align: center; 
-            margin-bottom: 30px;
-            font-size: 26px;
-        }
-        .form-group { 
-            margin-bottom: 20px;
-        }
-        label { 
-            display: block; 
-            margin-bottom: 8px; 
-            color: #333; 
-            font-weight: 600;
-            font-size: 14px;
-        }
+        h1 { color: #667eea; text-align: center; margin-bottom: 30px; font-size: 26px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #333; font-weight: 600; font-size: 14px; }
         input, select {
             width: 100%;
             padding: 14px 18px;
             border: 2px solid #e0e0e0;
             border-radius: 12px;
             font-size: 16px;
-            transition: all 0.3s;
         }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
-        }
+        input:focus, select:focus { outline: none; border-color: #667eea; }
         .submit-btn {
             width: 100%;
             padding: 16px;
@@ -60,73 +42,30 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 5px 20px rgba(102,126,234,0.4);
         }
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102,126,234,0.5);
-        }
-        .submit-btn:disabled { 
-            opacity: 0.6; 
-            cursor: not-allowed;
-            transform: none;
-        }
-        .loading, .success, .error { 
-            display: none; 
-            text-align: center; 
-            padding: 40px 20px;
-        }
+        .submit-btn:hover { transform: translateY(-2px); }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .loading, .success, .error { display: none; text-align: center; padding: 40px 20px; }
         .spinner {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #667eea;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 50px; height: 50px;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
         }
-        @keyframes spin { 
-            0% { transform: rotate(0deg); } 
-            100% { transform: rotate(360deg); } 
-        }
-        .success-icon { 
-            font-size: 80px; 
-            color: #4CAF50;
-            animation: scaleIn 0.5s;
-        }
-        @keyframes scaleIn {
-            from { transform: scale(0); }
-            50% { transform: scale(1.2); }
-            to { transform: scale(1); }
-        }
-        .success h2 {
-            color: #4CAF50;
-            margin: 20px 0 10px;
-        }
-        .error-icon {
-            font-size: 60px;
-            color: #f44336;
-            margin-bottom: 20px;
-        }
-        .error h2 {
-            color: #f44336;
-            margin: 20px 0 10px;
-        }
-        .error p {
-            color: #666;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-        .debug-info {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-size: 12px;
-            font-family: monospace;
-            text-align: left;
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .success-icon { font-size: 80px; color: #4CAF50; }
+        .error-icon { font-size: 60px; color: #f44336; margin-bottom: 20px; }
+        .debug { 
+            background: #f5f5f5; 
+            padding: 10px; 
+            border-radius: 8px; 
+            margin-top: 15px; 
+            font-size: 11px; 
+            font-family: monospace; 
             display: none;
+            white-space: pre-wrap;
         }
     </style>
 </head>
@@ -139,19 +78,16 @@
                 <label>👤 Ism:</label>
                 <input type="text" id="firstName" required placeholder="Ismingizni kiriting">
             </div>
-            
             <div class="form-group">
                 <label>👤 Familiya:</label>
                 <input type="text" id="lastName" required placeholder="Familiyangizni kiriting">
             </div>
-            
             <div class="form-group">
-                <label>📱 Telefon raqam:</label>
+                <label>📱 Telefon:</label>
                 <input type="tel" id="phone" required placeholder="+998901234567">
             </div>
-            
             <div class="form-group">
-                <label>🎓 Yo'nalishni tanlang:</label>
+                <label>🎓 Yo'nalish:</label>
                 <select id="profession" required>
                     <option value="">Tanlang...</option>
                     <option value="Dasturlash">💻 Dasturlash</option>
@@ -163,7 +99,6 @@
                     <option value="Biznes">💼 Biznes</option>
                 </select>
             </div>
-            
             <button type="submit" class="submit-btn" id="submitBtn">✅ Ro'yxatdan o'tish</button>
         </form>
         
@@ -184,155 +119,10 @@
             <p id="errorMessage">-</p>
         </div>
         
-        <div class="debug-info" id="debugInfo"></div>
+        <div class="debug" id="debugInfo"></div>
     </div>
 
-    <script>
-        console.log("🚀 Mini App started");
-        
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
-        
-        console.log("Telegram WebApp:", tg);
-        console.log("Init data:", tg.initDataUnsafe);
-        
-        const user = tg.initDataUnsafe.user;
-        console.log("User:", user);
-        
-        const telegramId = user?.id;
-        console.log("Telegram ID:", telegramId);
-        
-        if (!telegramId) {
-            showError("❌ Telegram ID topilmadi! Iltimos Telegram ichida oching.");
-            document.getElementById('debugInfo').style.display = 'block';
-            document.getElementById('debugInfo').innerHTML = `
-                <strong>Debug Info:</strong><br>
-                User: ${JSON.stringify(user, null, 2)}<br>
-                initDataUnsafe: ${JSON.stringify(tg.initDataUnsafe, null, 2)}
-            `;
-        } else {
-            // Pre-fill from Telegram
-            if (user.first_name) {
-                document.getElementById('firstName').value = user.first_name;
-            }
-            if (user.last_name) {
-                document.getElementById('lastName').value = user.last_name;
-            }
-        }
-        
-        // Form submission
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            console.log("📝 Form submitted");
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const loading = document.getElementById('loading');
-            const form = document.getElementById('registerForm');
-            const error = document.getElementById('error');
-            
-            // Hide error if visible
-            error.style.display = 'none';
-            
-            // Show loading
-            submitBtn.disabled = true;
-            loading.style.display = 'block';
-            form.style.display = 'none';
-            
-            const data = {
-                telegramId: telegramId,
-                firstName: document.getElementById('firstName').value,
-                lastName: document.getElementById('lastName').value,
-                phone: document.getElementById('phone').value,
-                profession: document.getElementById('profession').value
-            };
-            
-            console.log("📤 Sending data:", data);
-            
-            try {
-                // Get current URL to determine backend URL
-                const currentUrl = window.location.href;
-                const backendUrl = currentUrl.includes('localhost') 
-                    ? 'http://localhost:5000' 
-                    : currentUrl.substring(0, currentUrl.lastIndexOf('/'));
-                
-                console.log("🌐 Backend URL:", backendUrl);
-                
-                const response = await fetch(`${backendUrl}/api/register`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    mode: 'cors',
-                    body: JSON.stringify(data)
-                });
-                
-                console.log("📥 Response status:", response.status);
-                
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
-                
-                const result = await response.json();
-                console.log("📥 Response:", result);
-                
-                if (result.success) {
-                    // Show success
-                    loading.style.display = 'none';
-                    document.getElementById('success').style.display = 'block';
-                    
-                    // Show alert
-                    if (tg.showAlert) {
-                        tg.showAlert("✅ Muvaffaqiyatli ro'yxatdan o'tdingiz!");
-                    } else {
-                        alert("✅ Muvaffaqiyatli ro'yxatdan o'tdingiz!");
-                    }
-                    
-                    // Close after 2 seconds
-                    setTimeout(() => {
-                        if (tg.close) {
-                            tg.close();
-                        } else {
-                            window.close();
-                        }
-                    }, 2000);
-                } else {
-                    throw new Error(result.error || 'Registration failed');
-                }
-                
-            } catch (error) {
-                console.error("❌ Error:", error);
-                
-                loading.style.display = 'none';
-                form.style.display = 'block';
-                submitBtn.disabled = false;
-                
-                const errorMsg = error.message || "Noma'lum xatolik yuz berdi";
-                showError(`❌ ${errorMsg}\n\n🔍 Maslahat:\n• Internet aloqangizni tekshiring\n• Qayta urinib ko'ring\n• Admin bilan bog'laning`);
-                
-                // Show debug info
-                document.getElementById('debugInfo').style.display = 'block';
-                document.getElementById('debugInfo').innerHTML = `
-                    <strong>Error Details:</strong><br>
-                    Message: ${error.message}<br>
-                    Stack: ${error.stack}<br>
-                    Backend URL: ${backendUrl || 'unknown'}<br>
-                    Telegram ID: ${telegramId}
-                `;
-            }
-        });
-        
-        function showError(msg) {
-            const errorDiv = document.getElementById('error');
-            document.getElementById('errorMessage').textContent = msg;
-            errorDiv.style.display = 'block';
-        }
-        
-        // Log when page loads
-        window.addEventListener('load', () => {
-            console.log("✅ Page loaded successfully");
-        });
-    </script>
+    <!-- JavaScript ni ulash -->
+    <script src="js/apps.js"></script>
 </body>
 </html>
