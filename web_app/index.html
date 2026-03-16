@@ -15,18 +15,66 @@
         }
         .container {
             background: white;
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 30px;
             max-width: 500px;
             margin: 0 auto;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        h1 { color: #667eea; text-align: center; margin-bottom: 10px; }
-        .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
-        .profile { text-align: center; padding: 30px 0; }
+        
+        /* Language Switcher */
+        .lang-switcher {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        .lang-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .lang-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+        .lang-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+        
+        h1 { 
+            color: #667eea; 
+            text-align: center; 
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle { 
+            text-align: center; 
+            color: #666; 
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        /* Profile Section */
+        .profile { 
+            text-align: center; 
+            padding: 30px 0;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         .avatar {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin: 0 auto 20px;
@@ -34,84 +82,165 @@
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 40px;
+            font-size: 50px;
+            box-shadow: 0 10px 30px rgba(102,126,234,0.4);
         }
-        .name { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-        .profession { color: #666; margin-bottom: 20px; }
+        .name { 
+            font-size: 26px; 
+            font-weight: bold; 
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .profession { 
+            color: #666; 
+            margin-bottom: 25px;
+            font-size: 16px;
+        }
         .score {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
-            padding: 15px 30px;
+            padding: 15px 35px;
             border-radius: 30px;
             display: inline-block;
             font-weight: bold;
             font-size: 18px;
+            box-shadow: 0 5px 20px rgba(245,87,108,0.4);
         }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; color: #333; font-weight: 600; }
+        
+        /* Form */
+        .form-group { 
+            margin-bottom: 20px;
+            animation: slideIn 0.3s;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            color: #333; 
+            font-weight: 600;
+            font-size: 14px;
+        }
         input, select {
             width: 100%;
-            padding: 12px 15px;
+            padding: 14px 18px;
             border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px;
+            transition: all 0.3s;
         }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        
+        /* Modern Button */
         .submit-btn {
             width: 100%;
-            padding: 15px;
+            padding: 16px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(102,126,234,0.4);
         }
-        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .loading, .success { display: none; text-align: center; padding: 20px; }
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.5);
+        }
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        .submit-btn:disabled { 
+            opacity: 0.6; 
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Loading & Success */
+        .loading, .success { 
+            display: none; 
+            text-align: center; 
+            padding: 40px 20px;
+        }
         .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+            margin: 0 auto 20px;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .success-icon { font-size: 60px; color: #4CAF50; }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+        .success-icon { 
+            font-size: 80px; 
+            color: #4CAF50;
+            animation: scaleIn 0.5s;
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            to { transform: scale(1); }
+        }
+        .success h2 {
+            color: #4CAF50;
+            margin: 20px 0 10px;
+        }
+        .success p {
+            color: #666;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🏆 WorldSkills Uzbekistan</h1>
-        <p class="subtitle">Professional Bot</p>
+        <!-- Language Switcher -->
+        <div class="lang-switcher">
+            <button class="lang-btn active" onclick="changeLang('uz')">🇺🇿 UZ</button>
+            <button class="lang-btn" onclick="changeLang('ru')">🇷🇺 RU</button>
+            <button class="lang-btn" onclick="changeLang('en')">🇬🇧 EN</button>
+        </div>
         
+        <h1 id="title">🏆 WorldSkills Uzbekistan</h1>
+        <p class="subtitle" id="subtitle">Professional Bot</p>
+        
+        <!-- Profile Section -->
         <div class="profile" id="profileSection" style="display: none;">
             <div class="avatar" id="avatar">👤</div>
             <div class="name" id="profileName">-</div>
             <div class="profession" id="profileProfession">-</div>
-            <div class="score">🏆 <span id="profileScore">0</span> ball</div>
+            <div class="score"><span id="trophy">🏆</span> <span id="profileScore">0</span> <span id="ballText">ball</span></div>
         </div>
         
+        <!-- Registration Form -->
         <form id="registerForm">
             <div class="form-group">
-                <label>👤 Ism:</label>
+                <label id="labelFirstName">👤 Ism:</label>
                 <input type="text" id="firstName" required placeholder="Ismingizni kiriting">
             </div>
             
             <div class="form-group">
-                <label>👤 Familiya:</label>
+                <label id="labelLastName">👤 Familiya:</label>
                 <input type="text" id="lastName" required placeholder="Familiyangizni kiriting">
             </div>
             
             <div class="form-group">
-                <label>📱 Telefon raqam:</label>
+                <label id="labelPhone">📱 Telefon raqam:</label>
                 <input type="tel" id="phone" required placeholder="+998901234567">
             </div>
             
             <div class="form-group">
-                <label>🎓 Yo'nalishni tanlang:</label>
+                <label id="labelProfession">🎓 Yo'nalishni tanlang:</label>
                 <select id="profession" required>
                     <option value="">Tanlang...</option>
                     <option value="Dasturlash">💻 Dasturlash</option>
@@ -129,32 +258,173 @@
         
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Yuklanmoqda...</p>
+            <p id="loadingText">Yuklanmoqda...</p>
         </div>
         
         <div class="success" id="success">
             <div class="success-icon">✅</div>
-            <h2>Muvaffaqiyatli!</h2>
-            <p>Ro'yxatdan o'tdingiz!</p>
+            <h2 id="successTitle">Muvaffaqiyatli!</h2>
+            <p id="successText">Ro'yxatdan o'tdingiz!</p>
         </div>
     </div>
 
     <script>
+        // Translations
+        const translations = {
+            uz: {
+                title: "🏆 WorldSkills Uzbekistan",
+                subtitle: "Professional Bot",
+                labelFirstName: "👤 Ism:",
+                placeholderFirstName: "Ismingizni kiriting",
+                labelLastName: "👤 Familiya:",
+                placeholderLastName: "Familiyangizni kiriting",
+                labelPhone: "📱 Telefon raqam:",
+                placeholderPhone: "+998901234567",
+                labelProfession: "🎓 Yo'nalishni tanlang:",
+                selectProfession: "Tanlang...",
+                submitBtn: "✅ Ro'yxatdan o'tish",
+                loadingText: "Yuklanmoqda...",
+                successTitle: "Muvaffaqiyatli!",
+                successText: "Ro'yxatdan o'tdingiz!",
+                ballText: "ball",
+                trophy: "🏆"
+            },
+            ru: {
+                title: "🏆 WorldSkills Uzbekistan",
+                subtitle: "Профессиональный бот",
+                labelFirstName: "👤 Имя:",
+                placeholderFirstName: "Введите имя",
+                labelLastName: "👤 Фамилия:",
+                placeholderLastName: "Введите фамилию",
+                labelPhone: "📱 Номер телефона:",
+                placeholderPhone: "+998901234567",
+                labelProfession: "🎓 Выберите направление:",
+                selectProfession: "Выберите...",
+                submitBtn: "✅ Зарегистрироваться",
+                loadingText: "Загрузка...",
+                successTitle: "Успешно!",
+                successText: "Вы зарегистрированы!",
+                ballText: "баллов",
+                trophy: "🏆"
+            },
+            en: {
+                title: "🏆 WorldSkills Uzbekistan",
+                subtitle: "Professional Bot",
+                labelFirstName: "👤 First Name:",
+                placeholderFirstName: "Enter your name",
+                labelLastName: "👤 Last Name:",
+                placeholderLastName: "Enter your surname",
+                labelPhone: "📱 Phone Number:",
+                placeholderPhone: "+998901234567",
+                labelProfession: "🎓 Select Direction:",
+                selectProfession: "Select...",
+                submitBtn: "✅ Register",
+                loadingText: "Loading...",
+                successTitle: "Success!",
+                successText: "You are registered!",
+                ballText: "points",
+                trophy: "🏆"
+            }
+        };
+
+        let currentLang = 'uz';
         const tg = window.Telegram.WebApp;
         tg.expand();
         
         const user = tg.initDataUnsafe.user;
         const telegramId = user?.id;
         
-        console.log('Telegram ID:', telegramId);
-        console.log('User:', user);
-        
-        if (!telegramId) {
-            alert("❌ Telegram ID topilmadi! Iltimos Telegram ichida oching.");
-        } else {
-            // Pre-fill form
+        // Initialize
+        if (telegramId) {
             if (user.first_name) document.getElementById('firstName').value = user.first_name;
             if (user.last_name) document.getElementById('lastName').value = user.last_name;
+            checkRegistration();
+        }
+        
+        function changeLang(lang) {
+            currentLang = lang;
+            
+            // Update buttons
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update texts
+            const t = translations[lang];
+            document.getElementById('title').textContent = t.title;
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('labelFirstName').textContent = t.labelFirstName;
+            document.getElementById('firstName').placeholder = t.placeholderFirstName;
+            document.getElementById('labelLastName').textContent = t.labelLastName;
+            document.getElementById('lastName').placeholder = t.placeholderLastName;
+            document.getElementById('labelPhone').textContent = t.labelPhone;
+            document.getElementById('phone').placeholder = t.placeholderPhone;
+            document.getElementById('labelProfession').textContent = t.labelProfession;
+            document.getElementById('submitBtn').textContent = t.submitBtn;
+            document.getElementById('loadingText').textContent = t.loadingText;
+            document.getElementById('successTitle').textContent = t.successTitle;
+            document.getElementById('successText').textContent = t.successText;
+            document.getElementById('ballText').textContent = t.ballText;
+            document.getElementById('trophy').textContent = t.trophy;
+            
+            // Update profession options
+            const profSelect = document.getElementById('profession');
+            const selectedValue = profSelect.value;
+            
+            // Save language preference
+            localStorage.setItem('ws_lang', lang);
+        }
+        
+        async function checkRegistration() {
+            showLoading();
+            
+            try {
+                const response = await fetch(`/api/user/${telegramId}`);
+                const data = await response.json();
+                
+                if (data.success && data.registered) {
+                    showProfile(data.user);
+                } else {
+                    showForm();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showForm();
+            }
+        }
+        
+        function showProfile(user) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('profileSection').style.display = 'block';
+            
+            document.getElementById('profileName').textContent = user.fullname;
+            document.getElementById('profileProfession').textContent = '🎓 ' + user.profession;
+            document.getElementById('profileScore').textContent = user.admin_score || 0;
+            document.getElementById('avatar').textContent = user.fullname.charAt(0).toUpperCase();
+        }
+        
+        function showForm() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+        }
+        
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('profileSection').style.display = 'none';
+            document.getElementById('success').style.display = 'none';
+        }
+        
+        function showSuccess() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('success').style.display = 'block';
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
         }
         
         // Form submission
@@ -163,16 +433,15 @@
             
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('registerForm').style.display = 'none';
+            showLoading();
             
             const data = {
                 telegramId: telegramId,
                 firstName: document.getElementById('firstName').value,
                 lastName: document.getElementById('lastName').value,
                 phone: document.getElementById('phone').value,
-                profession: document.getElementById('profession').value
+                profession: document.getElementById('profession').value,
+                language: currentLang
             };
             
             console.log('Sending:', data);
@@ -188,28 +457,25 @@
                 console.log('Response:', result);
                 
                 if (result.success) {
-                    // Show success and reload to show profile
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('success').style.display = 'block';
-                    
-                    tg.showAlert("✅ Muvaffaqiyatli ro'yxatdan o'tdingiz!");
-                    
-                    // 2 seconds later, reload page to show profile
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 2000);
+                    showSuccess();
+                    tg.showAlert(translations[currentLang].successTitle + " " + translations[currentLang].successText);
                 } else {
-                    throw new Error(result.error || 'Xatolik');
+                    throw new Error(result.error || 'Error');
                 }
                 
             } catch (error) {
                 console.error('Error:', error);
-                alert("❌ Xatolik: " + error.message);
+                alert("❌ " + error.message);
                 submitBtn.disabled = false;
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('registerForm').style.display = 'block';
+                showForm();
             }
         });
+        
+        // Load saved language
+        const savedLang = localStorage.getItem('ws_lang');
+        if (savedLang && translations[savedLang]) {
+            changeLang(savedLang);
+        }
     </script>
 </body>
 </html>
