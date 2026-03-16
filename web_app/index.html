@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorldSkills Registration</title>
+    <title>WorldSkills Uzbekistan</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,9 +21,34 @@
             margin: 0 auto;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
-        h1 { color: #667eea; text-align: center; margin-bottom: 30px; font-size: 24px; }
+        h1 { color: #667eea; text-align: center; margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+        .profile { text-align: center; padding: 30px 0; }
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+        }
+        .name { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+        .profession { color: #666; margin-bottom: 20px; }
+        .score {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 30px;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 18px;
+        }
         .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; color: #333; font-weight: 600; font-size: 14px; }
+        label { display: block; margin-bottom: 8px; color: #333; font-weight: 600; }
         input, select {
             width: 100%;
             padding: 12px 15px;
@@ -31,7 +56,6 @@
             border-radius: 10px;
             font-size: 16px;
         }
-        input:focus, select:focus { outline: none; border-color: #667eea; }
         .submit-btn {
             width: 100%;
             padding: 15px;
@@ -55,12 +79,20 @@
             margin: 0 auto 10px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .success-icon { font-size: 60px; color: #4CAF50; margin-bottom: 20px; }
+        .success-icon { font-size: 60px; color: #4CAF50; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🏆 WorldSkills Uzbekistan</h1>
+        <p class="subtitle">Professional Bot</p>
+        
+        <div class="profile" id="profileSection" style="display: none;">
+            <div class="avatar" id="avatar">👤</div>
+            <div class="name" id="profileName">-</div>
+            <div class="profession" id="profileProfession">-</div>
+            <div class="score">🏆 <span id="profileScore">0</span> ball</div>
+        </div>
         
         <form id="registerForm">
             <div class="form-group">
@@ -97,7 +129,7 @@
         
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Yuborilmoqda...</p>
+            <p>Yuklanmoqda...</p>
         </div>
         
         <div class="success" id="success">
@@ -112,25 +144,31 @@
         tg.expand();
         
         const user = tg.initDataUnsafe.user;
-        if (user) {
+        const telegramId = user?.id;
+        
+        console.log('Telegram ID:', telegramId);
+        console.log('User:', user);
+        
+        if (!telegramId) {
+            alert("❌ Telegram ID topilmadi! Iltimos Telegram ichida oching.");
+        } else {
+            // Pre-fill form
             if (user.first_name) document.getElementById('firstName').value = user.first_name;
             if (user.last_name) document.getElementById('lastName').value = user.last_name;
         }
         
+        // Form submission
         document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const submitBtn = document.getElementById('submitBtn');
-            const loading = document.getElementById('loading');
-            const success = document.getElementById('success');
-            const form = document.getElementById('registerForm');
-            
             submitBtn.disabled = true;
-            loading.style.display = 'block';
-            form.style.display = 'none';
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
             
             const data = {
-                telegramId: user?.id || tg.initDataUnsafe?.user?.id,
+                telegramId: telegramId,
                 firstName: document.getElementById('firstName').value,
                 lastName: document.getElementById('lastName').value,
                 phone: document.getElementById('phone').value,
@@ -150,20 +188,26 @@
                 console.log('Response:', result);
                 
                 if (result.success) {
-                    success.style.display = 'block';
-                    loading.style.display = 'none';
+                    // Show success and reload to show profile
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('success').style.display = 'block';
+                    
                     tg.showAlert("✅ Muvaffaqiyatli ro'yxatdan o'tdingiz!");
-                    setTimeout(() => tg.close(), 2000);
+                    
+                    // 2 seconds later, reload page to show profile
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
                 } else {
                     throw new Error(result.error || 'Xatolik');
                 }
                 
             } catch (error) {
                 console.error('Error:', error);
-                tg.showAlert("❌ Xatolik: " + error.message);
+                alert("❌ Xatolik: " + error.message);
                 submitBtn.disabled = false;
-                loading.style.display = 'none';
-                form.style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'block';
             }
         });
     </script>

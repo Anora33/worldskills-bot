@@ -14,7 +14,7 @@ bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTM
 dp = Dispatcher()
 
 init_db()
-logger.info("✅ Database initialized")
+logger.info("? Database initialized")
 
 # Flask backend for Mini App
 try:
@@ -22,7 +22,16 @@ try:
     
     app = Flask(__name__)
     
-    @app.route("/")
+    
+@app.route("/api/user/<int:tid>", methods=["GET"])
+def get_user(tid):
+    from bot.database.db import get_user as get_db_user
+    user = get_db_user(tid)
+    if user:
+        return jsonify({"success": True, "registered": True, "user": user})
+    return jsonify({"success": True, "registered": False})
+
+@app.route("/")
     def health():
         return "WorldSkills Bot OK"
     
@@ -30,7 +39,7 @@ try:
     def register():
         try:
             data = request.json
-            logger.info(f"🔥 Registration: {data}")
+            logger.info(f"?? Registration: {data}")
             
             tid = data.get("telegramId")
             first_name = data.get("firstName", "")
@@ -47,31 +56,31 @@ try:
             add_user(tid, fullname, phone, profession, "uz")
             update_user_status(tid, "approved", 0)
             
-            logger.info(f"✅ User registered: {tid}")
+            logger.info(f"? User registered: {tid}")
             
             # Send message to user
             try:
                 asyncio.run(bot.send_message(
                     tid,
-                    f"🎉 <b>Muvaffaqiyatli ro'yxatdan o'tdingiz!</b>\n\n"
-                    f"👤 <b>Ism:</b> {fullname}\n"
-                    f"🎓 <b>Kompetensiya:</b> {profession}\n"
-                    f"📱 <b>Telefon:</b> {phone}\n\n"
+                    f"?? <b>Muvaffaqiyatli ro'yxatdan o'tdingiz!</b>\n\n"
+                    f"?? <b>Ism:</b> {fullname}\n"
+                    f"?? <b>Kompetensiya:</b> {profession}\n"
+                    f"?? <b>Telefon:</b> {phone}\n\n"
                     f"/start - Bosh menyu",
                     parse_mode="HTML"
                 ))
             except Exception as e:
-                logger.error(f"❌ Can't send message: {e}")
+                logger.error(f"? Can't send message: {e}")
             
             # Notify admin
             try:
                 asyncio.run(bot.send_message(
                     ADMIN_ID,
-                    f"🔔 <b>Yangi ishtirokchi (Mini App)!</b>\n\n"
-                    f"👤 ID: <code>{tid}</code>\n"
-                    f"👤 Ism: {fullname}\n"
-                    f"🎓 Kompetensiya: {profession}\n"
-                    f"📱 Telefon: {phone}",
+                    f"?? <b>Yangi ishtirokchi (Mini App)!</b>\n\n"
+                    f"?? ID: <code>{tid}</code>\n"
+                    f"?? Ism: {fullname}\n"
+                    f"?? Kompetensiya: {profession}\n"
+                    f"?? Telefon: {phone}",
                     parse_mode="HTML"
                 ))
             except: pass
@@ -79,7 +88,7 @@ try:
             return jsonify({"success": True})
             
         except Exception as e:
-            logger.error(f"❌ Registration error: {e}")
+            logger.error(f"? Registration error: {e}")
             return jsonify({"success": False, "error": str(e)}), 500
     
     # Run Flask in thread
@@ -89,23 +98,24 @@ try:
     import threading
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
-    logger.info("✅ Flask server started (port 5000)")
+    logger.info("? Flask server started (port 5000)")
     
 except Exception as e:
-    logger.warning(f"⚠️ Flask error: {e}")
+    logger.warning(f"?? Flask error: {e}")
 
 # Include routers
 dp.include_router(start.router)
 dp.include_router(ai_chat.router)
 dp.include_router(admin.router)
 dp.include_router(webapp.router)
-logger.info("✅ All handlers loaded!")
+logger.info("? All handlers loaded!")
 
 async def main():
     me = await bot.get_me()
-    logger.info(f"✅ WorldSkills Bot started! @{me.username}")
+    logger.info(f"? WorldSkills Bot started! @{me.username}")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     try: asyncio.run(main())
-    except KeyboardInterrupt: logger.info("⌨️ Bot stopped")
+    except KeyboardInterrupt: logger.info("?? Bot stopped")
+
