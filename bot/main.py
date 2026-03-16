@@ -1,5 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
-import logging, asyncio, os, json
+import logging, asyncio, os, json, threading
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -25,9 +25,24 @@ logger.info("✅ Database initialized")
 app = Flask(__name__)
 CORS(app)
 
+# Global bot reference for Flask
+flask_bot = None
+
 @app.route("/")
 def health():
     return "WorldSkills Bot is running! 🚀"
+
+def send_telegram_message_sync(chat_id, text, parse_mode="HTML"):
+    """Send message from Flask (sync wrapper)"""
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(bot.send_message(chat_id, text, parse_mode=parse_mode))
+        loop.close()
+        return True
+    except Exception as e:
+        logger.error(f"❌ Send message error: {e}")
+        return False
 
 @app.route("/api/register", methods=["POST", "OPTIONS"])
 def register():
@@ -38,7 +53,7 @@ def register():
     
     try:
         data = request.json
-        logger.info(f"🔥 Registration data: {data}")
+        logger.info(f"🔥 Registration  {data}")
         
         tid = data.get("telegramId")
         first_name = data.get("firstName", "")
@@ -57,9 +72,9 @@ def register():
         update_user_status(tid, "approved", 0)
         logger.info(f"✅ User registered: {tid} - {fullname}")
         
-        # Send message to user
+        # Send message to user (sync wrapper)
         try:
-            asyncio.run(bot.send_message(
+            send_telegram_message_sync(
                 tid,
                 f"🎉 <b>Muvaffaqiyatli ro'yxatdan o'tdingiz!</b>\n\n"
                 f"👤 <b>Ism:</b> {fullname}\n"
@@ -67,14 +82,14 @@ def register():
                 f"📱 <b>Telefon:</b> {phone}\n\n"
                 f"/start - Bosh menyu",
                 parse_mode="HTML"
-            ))
+            )
             logger.info(f"✅ Message sent to user {tid}")
         except Exception as e:
             logger.error(f"❌ Can't send message to user: {e}")
         
-        # Notify admin
+        # Notify admin (sync wrapper)
         try:
-            asyncio.run(bot.send_message(
+            send_telegram_message_sync(
                 ADMIN_ID,
                 f"🔔 <b>Yangi ishtirokchi (Mini App)!</b>\n\n"
                 f"👤 ID: <code>{tid}</code>\n"
@@ -82,7 +97,7 @@ def register():
                 f"🎓 Kompetensiya: {profession}\n"
                 f"📱 Telefon: {phone}",
                 parse_mode="HTML"
-            ))
+            )
             logger.info(f"✅ Admin notified")
         except Exception as e:
             logger.error(f"❌ Can't notify admin: {e}")
@@ -114,24 +129,24 @@ dp.include_router(webapp.router)
 logger.info("✅ All handlers loaded!")
 
 async def main():
+    global flask_bot
+    flask_bot = bot
     me = await bot.get_me()
     logger.info(f"✅ WorldSkills Bot started! @{me.username}")
     await dp.start_polling(bot)
 
+def run_flask():
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, threaded=True)
+
 if __name__ == "__main__":
-    async def start_bot_and_flask():
-        import threading
-        def run_flask():
-            port = int(os.environ.get("PORT", 5000))
-            app.run(host="0.0.0.0", port=port, threaded=True)
-        
-        flask_thread = threading.Thread(target=run_flask, daemon=True)
-        flask_thread.start()
-        logger.info(f"✅ Flask started on port {os.environ.get('PORT', 5000)}")
-        
-        await main()
+    # Start Flask in separate thread
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
+    flask_thread.start()
+    logger.info(f"✅ Flask started on port {os.environ.get('PORT', 5000)}")
     
+    # Run bot polling in main thread
     try:
-        asyncio.run(start_bot_and_flask())
+        asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("⌨️ Bot stopped")
