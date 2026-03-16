@@ -1,13 +1,74 @@
-﻿// apps.js - WorldSkills Mini App JavaScript
-
-console.log("🚀 apps.js loaded");
+﻿// ============================================
+// WorldSkills Uzbekistan - Modern JavaScript
+// ============================================
 
 // Global variables
 let tg = null;
 let telegramId = null;
+let currentLang = 'uz';
+
+// Translations
+const translations = {
+    uz: {
+        title: "Ro'yxatdan O'tish",
+        subtitle: "WorldSkills Uzbekistan",
+        labelFirstName: "👤 Ism:",
+        placeholderFirstName: "Ismingizni kiriting",
+        labelLastName: "👤 Familiya:",
+        placeholderLastName: "Familiyangizni kiriting",
+        labelPhone: "📱 Telefon:",
+        placeholderPhone: "+998901234567",
+        labelProfession: "🎓 Yo'nalish:",
+        selectProfession: "Tanlang...",
+        btnSubmit: "✅ Ro'yxatdan o'tish",
+        loading: "Yuborilmoqda...",
+        successTitle: "Muvaffaqiyatli!",
+        successText: "Ro'yxatdan o'tdingiz!",
+        errorTitle: "Xatolik!",
+        ball: "ball"
+    },
+    ru: {
+        title: "Регистрация",
+        subtitle: "WorldSkills Uzbekistan",
+        labelFirstName: "👤 Имя:",
+        placeholderFirstName: "Введите имя",
+        labelLastName: "👤 Фамилия:",
+        placeholderLastName: "Введите фамилию",
+        labelPhone: "📱 Телефон:",
+        placeholderPhone: "+998901234567",
+        labelProfession: "🎓 Направление:",
+        selectProfession: "Выберите...",
+        btnSubmit: "✅ Зарегистрироваться",
+        loading: "Отправка...",
+        successTitle: "Успешно!",
+        successText: "Вы зарегистрированы!",
+        errorTitle: "Ошибка!",
+        ball: "баллов"
+    },
+    en: {
+        title: "Registration",
+        subtitle: "WorldSkills Uzbekistan",
+        labelFirstName: "👤 First Name:",
+        placeholderFirstName: "Enter your name",
+        labelLastName: "👤 Last Name:",
+        placeholderLastName: "Enter surname",
+        labelPhone: "📱 Phone:",
+        placeholderPhone: "+998901234567",
+        labelProfession: "🎓 Direction:",
+        selectProfession: "Select...",
+        btnSubmit: "✅ Register",
+        loading: "Submitting...",
+        successTitle: "Success!",
+        successText: "You are registered!",
+        errorTitle: "Error!",
+        ball: "points"
+    }
+};
 
 // Initialize Telegram WebApp
 function initTelegram() {
+    console.log("🚀 Initializing Telegram WebApp...");
+    
     tg = window.Telegram.WebApp;
     tg.expand();
     tg.ready();
@@ -15,25 +76,58 @@ function initTelegram() {
     const user = tg.initDataUnsafe?.user;
     telegramId = user?.id;
     
-    console.log("User:", user, "ID:", telegramId);
+    console.log("User:", user);
+    console.log("Telegram ID:", telegramId);
     
     if (!telegramId) {
         showError("❌ Telegram ID topilmadi! Telegram ichida oching.");
-        showDebug(`initDataUnsafe: ${JSON.stringify(tg.initDataUnsafe)}`);
-    } else {
-        // Auto-fill form from Telegram
-        if (user.first_name) {
-            const firstNameInput = document.getElementById('firstName');
-            if (firstNameInput) firstNameInput.value = user.first_name;
-        }
-        if (user.last_name) {
-            const lastNameInput = document.getElementById('lastName');
-            if (lastNameInput) lastNameInput.value = user.last_name;
-        }
+        showDebug(`initDataUnsafe: ${JSON.stringify(tg.initDataUnsafe, null, 2)}`);
+        return false;
     }
+    
+    // Auto-fill form
+    if (user.first_name) {
+        document.getElementById('firstName').value = user.first_name;
+    }
+    if (user.last_name) {
+        document.getElementById('lastName').value = user.last_name;
+    }
+    
+    return true;
 }
 
-// Form submission handler
+// Language switcher
+function changeLang(lang) {
+    currentLang = lang;
+    
+    // Update buttons
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Update texts
+    const t = translations[lang];
+    document.getElementById('title').textContent = t.title;
+    document.querySelector('.subtitle').textContent = t.subtitle;
+    document.querySelector('[for="firstName"]').textContent = t.labelFirstName;
+    document.getElementById('firstName').placeholder = t.placeholderFirstName;
+    document.querySelector('[for="lastName"]').textContent = t.labelLastName;
+    document.getElementById('lastName').placeholder = t.placeholderLastName;
+    document.querySelector('[for="phone"]').textContent = t.labelPhone;
+    document.getElementById('phone').placeholder = t.placeholderPhone;
+    document.querySelector('[for="profession"]').textContent = t.labelProfession;
+    document.getElementById('submitBtn').textContent = t.btnSubmit;
+    document.querySelector('.loading-text').textContent = t.loading;
+    document.querySelector('.success h2').textContent = t.successTitle;
+    document.querySelector('.success p').textContent = t.successText;
+    document.querySelector('.error h2').textContent = t.errorTitle;
+    
+    // Save preference
+    localStorage.setItem('ws_lang', lang);
+}
+
+// Form submission
 function setupFormSubmit() {
     const form = document.getElementById('registerForm');
     if (!form) return;
@@ -45,9 +139,11 @@ function setupFormSubmit() {
         const submitBtn = document.getElementById('submitBtn');
         const loading = document.getElementById('loading');
         const error = document.getElementById('error');
+        const success = document.getElementById('success');
         
         // Reset UI
         if (error) error.style.display = 'none';
+        if (success) success.style.display = 'none';
         if (submitBtn) submitBtn.disabled = true;
         if (loading) loading.style.display = 'block';
         if (form) form.style.display = 'none';
@@ -64,7 +160,6 @@ function setupFormSubmit() {
         console.log("📤 Sending:", data);
         
         try {
-            // ✅ Dynamic backend URL
             const backendUrl = window.location.origin;
             console.log("🌐 Backend:", backendUrl);
             
@@ -90,12 +185,11 @@ function setupFormSubmit() {
             if (result.success) {
                 // Show success
                 if (loading) loading.style.display = 'none';
-                const success = document.getElementById('success');
                 if (success) success.style.display = 'block';
                 
-                // Show Telegram alert
+                // Telegram alert
                 if (tg?.showAlert) {
-                    tg.showAlert("✅ Muvaffaqiyatli ro'yxatdan o'tdingiz!");
+                    tg.showAlert(translations[currentLang].successTitle + " " + translations[currentLang].successText);
                 }
                 
                 // Close after 2 seconds
@@ -109,18 +203,18 @@ function setupFormSubmit() {
         } catch (err) {
             console.error("❌ Error:", err);
             
-            // Reset UI on error
+            // Reset UI
             if (loading) loading.style.display = 'none';
             if (form) form.style.display = 'block';
             if (submitBtn) submitBtn.disabled = false;
             
-            showError(`❌ ${err.message}\n\n🔍 Maslahat:\n• Internetni tekshiring\n• Qayta urinib ko'ring`);
+            showError(`${translations[currentLang].errorTitle}\n\n${err.message}`);
             showDebug(`Error: ${err.message}\nStack: ${err.stack}\nURL: ${window.location.origin}`);
         }
     });
 }
 
-// Show error message
+// Show error
 function showError(msg) {
     const errorDiv = document.getElementById('error');
     const errorMsg = document.getElementById('errorMessage');
@@ -128,7 +222,7 @@ function showError(msg) {
     if (errorDiv) errorDiv.style.display = 'block';
 }
 
-// Show debug info
+// Show debug
 function showDebug(msg) {
     const debug = document.getElementById('debugInfo');
     if (debug) {
@@ -137,16 +231,23 @@ function showDebug(msg) {
     }
 }
 
-// Run when DOM is ready
+// Initialize on load
 document.addEventListener('DOMContentLoaded', function() {
     console.log("✅ DOM loaded");
-    initTelegram();
-    setupFormSubmit();
+    
+    const initialized = initTelegram();
+    if (initialized) {
+        setupFormSubmit();
+    }
+    
+    // Load saved language
+    const savedLang = localStorage.getItem('ws_lang');
+    if (savedLang && translations[savedLang]) {
+        // Find and click the button
+        const btn = document.querySelector(`.lang-btn[onclick="changeLang('${savedLang}')"]`);
+        if (btn) btn.click();
+    }
 });
 
-// Also run if DOM already loaded
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initTelegram);
-} else {
-    initTelegram();
-}
+// Export functions
+window.changeLang = changeLang;

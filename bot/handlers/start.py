@@ -1,142 +1,172 @@
-﻿# -*- coding: utf-8 -*-
-from aiogram import Router, F
-from aiogram.filters import CommandStart
-from aiogram.types import Message, CallbackQuery, WebAppInfo, KeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
-from bot.config import WEBAPP_URL, ADMIN_ID
-from bot.database.db import get_user, add_user
-import logging, asyncio
+﻿from aiogram import types
+from aiogram.dispatcher import FSMContext
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from loader import dp, bot
+from utils.db_api import database as db
+import logging
 
-logger = logging.getLogger(__name__)
-router = Router()
 
-class UserState(StatesGroup):
-    waiting_for_fullname = State()
-    waiting_for_phone = State()
-    waiting_for_profession = State()
+# Ro'yxatdan o'tganlikni tekshirish
+async def check_user_registered(user_id):
+    conn = await db.get_connection()
+    user = await conn.fetchrow("SELECT * FROM users WHERE user_id = $1", user_id)
+    await conn.close()
+    return user is not None
 
-async def notify_admin(bot, tid, fullname, profession):
-    try:
-        await bot.send_message(ADMIN_ID, f"🔔 Yangi ishtirokchi!\n\n👤 ID: {tid}\n👤 Ism: {fullname}\n🎓 Kompetensiya: {profession}")
-    except: pass
 
-@router.message(CommandStart())
-async def cmd_start(message: Message, state: FSMContext):
-    tid = message.from_user.id
-    user = get_user(tid)
-    
-    if user:
-        kb = ReplyKeyboardBuilder()
-        buttons = ["📱 Mini App", "📊 Mening statistikam", "🏆 Mening musobaqam", "🤖 AI yordamchi", "⭐ Reyting", "👨‍💼 Admin yordami"]
-        for btn in buttons:
-            kb.row(KeyboardButton(text=btn))
-        
+# Asosiy menyu (siz korsatgan menyu)
+def get_main_menu():
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    buttons = [
+        InlineKeyboardButton("👤 Mening profilim", callback_data="my_profile"),
+        InlineKeyboardButton("📋 Mening ishlarim", callback_data="my_works"),
+        InlineKeyboardButton("ℹ️ WorldSkills haqida", callback_data="about"),
+        InlineKeyboardButton("📊 Statistika", callback_data="statistics"),
+        InlineKeyboardButton("❌ Yopish", callback_data="close_menu")
+    ]
+    keyboard.add(*buttons)
+    return keyboard
+
+
+# Ro'yxatdan o'tish tugmasi
+def get_register_button():
+    keyboard = InlineKeyboardMarkup()
+    button = InlineKeyboardButton("📝 Ro'yxatdan o'tish", callback_data="register")
+    keyboard.add(button)
+    return keyboard
+
+
+@dp.message_handler(commands=['start'])
+async def cmd_start(message: types.Message):
+    user_id = message.from_user.id
+    user_name = message.from_user.first_name
+
+    # Foydalanuvchi ro'yxatdan o'tganmi tekshirish
+    is_registered = await check_user_registered(user_id)
+
+    if is_registered:
+        # Ro'yxatdan o'tgan bo'lsa - asosiy menyuni ko'rsat
         await message.answer(
-            f"👋 <b>Xush kelibsiz, {user.get('fullname', 'Foydalanuvchi')}!</b>\n\n"
-            f"📊 <b>Profilingiz:</b>\n"
-            f"• Kasb: {user.get('profession')}\n"
-            f"• Telefon: {user.get('phone')}\n"
-            f"• Baho: {user.get('admin_score', 0)}/100\n\n"
-            f"Kerakli bo'limni tanlang:",
-            reply_markup=kb.as_markup(resize_keyboard=True),
-            parse_mode="HTML"
+            f"👋 Xush kelibsiz, {user_name}!\n\n"
+            f"Quyidagi bo'limlardan birini tanlang:",
+            reply_markup=get_main_menu()
         )
-        return
-    
-    await state.clear()
-    kb = InlineKeyboardBuilder()
-    kb.button(text="🇺🇿 O'zbekcha", callback_data="lang_uz")
-    kb.button(text="🇷🇺 Русский", callback_data="lang_ru")
-    kb.button(text="🇬🇧 English", callback_data="lang_en")
-    kb.adjust(1)
-    await message.answer("🌍 <b>Tilni tanlang:</b>", reply_markup=kb.as_markup(), parse_mode="HTML")
+    else:
+        # Ro'yxatdan o'tmagan bo'lsa - register tugmasini ko'rsat
+        await message.answer(
+            f"👋 Assalomu alaykum, {user_name}!\n\n"
+            f"Botdan foydalanish uchun avval ro'yxatdan o'ting:",
+            reply_markup=get_register_button()
+        )
 
-@router.callback_query(F.data.startswith("lang_"))
-async def set_lang(cb: CallbackQuery, state: FSMContext):
-    lang = cb.data.split("_")[1]
-    await state.update_data(language=lang)
-    await state.set_state(UserState.waiting_for_fullname)
-    await cb.message.answer("📝 <b>Ism familiyangizni kiriting:</b>")
-    await cb.answer()
 
-@router.message(UserState.waiting_for_fullname)
-async def proc_name(msg: Message, state: FSMContext):
-    fn = msg.text.strip()
-    if len(fn) < 3:
-        await msg.answer("❌ Ism juda qisqa!")
-        return
-    await state.update_data(fullname=fn)
-    await state.set_state(UserState.waiting_for_phone)
-    await msg.answer("📱 <b>Telefon raqamingizni kiriting:</b>\n<i>+998901234567</i>", parse_mode="HTML")
+@dp.callback_query_handler(text="register")
+async def process_register(callback: types.CallbackQuery):
+    await callback.answer()
 
-@router.message(UserState.waiting_for_phone)
-async def proc_phone(msg: Message, state: FSMContext):
-    ph = msg.text.strip()
-    if not ph.startswith("+") or len(ph) < 12:
-        await msg.answer("❌ Telefon noto'g'ri!")
-        return
-    await state.update_data(phone=ph)
-    await state.set_state(UserState.waiting_for_profession)
-    
-    kb = InlineKeyboardBuilder()
-    kb.button(text="💻 Dasturlash", callback_data="prof_Dasturlash")
-    kb.button(text="🎨 Dizayn", callback_data="prof_Dizayn")
-    kb.button(text="🔧 Mexanika", callback_data="prof_Mexanika")
-    kb.button(text="🏗 Qurilish", callback_data="prof_Qurilish")
-    kb.button(text="👨‍🍳 Oshpazlik", callback_data="prof_Oshpazlik")
-    kb.button(text="💼 Biznes", callback_data="prof_Biznes")
-    kb.adjust(2)
-    await msg.answer("🎓 <b>Kasbingizni tanlang:</b>", reply_markup=kb.as_markup())
+    user_id = callback.from_user.id
+    user_name = callback.from_user.first_name
 
-@router.callback_query(F.data.startswith("prof_"))
-async def proc_prof(cb: CallbackQuery, state: FSMContext):
-    d = await state.get_data()
-    fullname = d.get("fullname", "")
-    profession = cb.data.replace("prof_", "")
-    tid = cb.from_user.id
-    phone = d.get("phone", "")
-    lang = d.get("language", "uz")
-    
-    add_user(tid, fullname, phone, profession, lang)
-    asyncio.create_task(notify_admin(cb.bot, tid, fullname, profession))
-    
-    kb = ReplyKeyboardBuilder()
-    buttons = ["📱 Mini App", "📊 Mening statistikam", "🏆 Mening musobaqam", "🤖 AI yordamchi", "⭐ Reyting", "👨‍💼 Admin yordami"]
-    for btn in buttons:
-        kb.row(KeyboardButton(text=btn))
-    
-    await cb.message.answer(
-        "🎉 <b>Muvaffaqiyatli ro'yxatdan o'tdingiz!</b>\n\n"
-        "✅ <b>Ma'lumotlaringiz saqlandi.</b>\n"
-        "🔔 <b>Admin xabardor qilindi.</b>\n\n"
-        "🎯 <b>Kerakli bo'limni tanlang:</b>",
-        reply_markup=kb.as_markup(resize_keyboard=True),
-        parse_mode="HTML"
+    # Ma'lumotlar bazasiga saqlash
+    conn = await db.get_connection()
+    await conn.execute(
+        "INSERT INTO users (user_id, name, registered_at) VALUES ($1, $2, NOW())",
+        user_id, user_name
     )
-    await cb.answer()
+    await conn.close()
 
-@router.message(F.text == "📱 Mini App")
-async def mini_app(msg: Message):
-    kb = InlineKeyboardBuilder()
-    kb.button(text="🚀 Ochish", web_app=WebAppInfo(url=WEBAPP_URL))
-    await msg.answer("📱 <b>Mini App</b>", reply_markup=kb.as_markup(), parse_mode="HTML")
+    # Ro'yxatdan o'tganlik haqida xabar va asosiy menyu
+    await callback.message.edit_text(
+        f"✅ Tabriklaymiz!\n"
+        f"Siz muvaffaqiyatli ro'yxatdan o'tdingiz.\n\n"
+        f"Endi quyidagi bo'limlardan foydalanishingiz mumkin:",
+        reply_markup=get_main_menu()
+    )
 
-@router.message(F.text == "📊 Mening statistikam")
-async def stats(msg: Message):
-    user = get_user(msg.from_user.id)
+
+@dp.callback_query_handler(text="my_profile")
+async def show_profile(callback: types.CallbackQuery):
+    await callback.answer()
+
+    user_id = callback.from_user.id
+    conn = await db.get_connection()
+    user = await conn.fetchrow("SELECT * FROM users WHERE user_id = $1", user_id)
+    await conn.close()
+
     if user:
-        await msg.answer(f"📊 <b>Statistika</b>\n\n👤 Ism: {user.get('fullname')}\n🎓 Kasb: {user.get('profession')}\n⭐ Ball: {user.get('admin_score', 0)}/100", parse_mode="HTML")
+        text = f"""
+👤 <b>MENING PROFILIM</b>
 
-@router.message(F.text == "🏆 Mening musobaqam")
-async def comp(msg: Message):
-    await msg.answer("🏆 <b>Musobaqa</b>\n\nTez orada...", parse_mode="HTML")
+🆔 ID: <code>{user['user_id']}</code>
+📝 Ism: {user.get('first_name', 'Noma\'lum')}
+📞 Telefon: {user.get('phone', 'Noma\'lum')}
+📚 Yo'nalish: {user.get('direction', 'Noma\'lum')}
+⭐️ Ball: {user.get('ball', 0)}
+        """
+    else:
+        text = "❌ Profil ma'lumotlari topilmadi"
 
-@router.message(F.text == "⭐ Reyting")
-async def rating(msg: Message):
-    await msg.answer("⭐ <b>Reyting</b>\n\nTez orada...", parse_mode="HTML")
+    await callback.message.answer(text, parse_mode="HTML")
 
-@router.message(F.text == "👨‍💼 Admin yordami")
-async def admin_help(msg: Message):
-    await msg.answer("👨‍💼 <b>Admin yordami</b>\n\n📞 Telegram: @worldskills_admin", parse_mode="HTML")
+
+@dp.callback_query_handler(text="my_works")
+async def show_works(callback: types.CallbackQuery):
+    await callback.answer()
+
+    text = """
+📋 <b>MENING ISHLARIM</b>
+
+1. Web sahifa - 85 ball ✅
+2. Telegram bot - 92 ball ✅
+3. Database loyiha - 78 ball ✅
+
+📊 Jami: 3 ta ish
+🏆 O'rtacha ball: 85
+    """
+
+    await callback.message.answer(text, parse_mode="HTML")
+
+
+@dp.callback_query_handler(text="about")
+async def show_about(callback: types.CallbackQuery):
+    await callback.answer()
+
+    text = """
+ℹ️ <b>WORLDSKILLS HAQIDA</b>
+
+WorldSkills — professional mahorat bo'yicha jahon chempionati.
+
+🌍 80+ davlat
+🏆 60+ yo'nalish
+📅 Har 2 yilda o'tkaziladi
+
+🇺🇿 O'zbekiston 2018 yildan beri ishtirok etadi.
+    """
+
+    await callback.message.answer(text, parse_mode="HTML")
+
+
+@dp.callback_query_handler(text="statistics")
+async def show_statistics(callback: types.CallbackQuery):
+    await callback.answer()
+
+    conn = await db.get_connection()
+    total_users = await conn.fetchval("SELECT COUNT(*) FROM users")
+    await conn.close()
+
+    text = f"""
+📊 <b>STATISTIKA</b>
+
+👥 Ro'yxatdan o'tganlar: {total_users} ta
+📈 Faol foydalanuvchilar: 15 ta
+🏆 Eng yaxshi yo'nalish: Web texnologiyalar
+    """
+
+    await callback.message.answer(text, parse_mode="HTML")
+
+
+@dp.callback_query_handler(text="close_menu")
+async def close_menu(callback: types.CallbackQuery):
+    await callback.answer()
+    await callback.message.delete()
+    await callback.message.answer("❌ Menyu yopildi. Qayta boshlash uchun /start bosing.")
