@@ -1,9 +1,10 @@
 ﻿# -*- coding: utf-8 -*-
+# ✅ AIOTELEGRAM 3.x IMPORTS
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext  # ✅ 3.x
+from aiogram.fsm.state import State, StatesGroup  # ✅ 3.x
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from bot.config import ADMIN_ID
 from bot.database.db import get_all_users, get_user, update_user_status, add_log

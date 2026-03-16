@@ -1,7 +1,8 @@
 ﻿# -*- coding: utf-8 -*-
+# ✅ AIOTELEGRAM 3.x IMPORTS
 from aiogram import Router, F
 from aiogram.types import Message
-from aiogram.fsm.context import FSMContext
+from aiogram.fsm.context import FSMContext  # ✅ 3.x
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, KeyboardButton
 import logging, random
 
