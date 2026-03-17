@@ -3,53 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WorldSkills Uzbekistan - Ro'yxatdan O'tish</title>
+    <title>WorldSkills Uzbekistan - Yomg'ir Effekti</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        /* Telegram bo'lmaganda ko'rsatish */
-        .telegram-warning {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            display: none;
-        }
-        .telegram-warning.show {
-            display: block;
-        }
-        .demo-mode {
-            background: #d1ecf1;
-            border: 2px solid #17a2b8;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-            display: none;
-        }
-        .demo-mode.show {
-            display: block;
-        }
-    </style>
 </head>
 <body>
+    <!-- Rain Container -->
+    <div class="rain-container"></div>
+    
+    <!-- Lightning Effect -->
+    <div class="lightning"></div>
+    
+    <!-- Main Container -->
     <div class="container">
         <div class="card">
-            <!-- Telegram Warning -->
-            <div class="telegram-warning" id="telegramWarning">
-                <h2>⚠️ Diqqat!</h2>
-                <p>Bu Mini App faqat <b>Telegram ichida</b> to'liq ishlaydi.</p>
-                <p><b>Telegram'da oching:</b> @worldskills_uzbekistan_bot</p>
-            </div>
-            
-            <!-- Demo Mode Info -->
-            <div class="demo-mode" id="demoMode">
-                <h3>🧪 Demo Mode</h3>
-                <p>Brauzerda test qilayapsiz. Test ID ishlatiladi.</p>
-            </div>
-            
             <!-- Header -->
             <div class="header">
                 <div class="logo">🏆</div>
@@ -64,7 +31,7 @@
                 <button class="lang-btn" onclick="changeLang('en')">🇬🇧 EN</button>
             </div>
             
-            <!-- Registration Form -->
+            <!-- Form -->
             <form id="registerForm" class="form" style="display: none;">
                 <div class="form-group">
                     <label for="firstName">👤 Ism:</label>
@@ -123,151 +90,6 @@
         </div>
     </div>
     
-    <script>
-        console.log("🚀 Mini App started");
-        
-        let tg = null;
-        let telegramId = null;
-        let isDemoMode = false;
-        
-        // Check if running in Telegram
-        function checkTelegram() {
-            try {
-                tg = window.Telegram.WebApp;
-                tg.expand();
-                tg.ready();
-                
-                const user = tg.initDataUnsafe?.user;
-                telegramId = user?.id;
-                
-                console.log("Telegram User:", user);
-                console.log("Telegram ID:", telegramId);
-                
-                if (!telegramId) {
-                    // Not in Telegram - show warning and demo mode
-                    document.getElementById('telegramWarning').classList.add('show');
-                    document.getElementById('demoMode').classList.add('show');
-                    
-                    // Use demo ID
-                    telegramId = 999999999;
-                    isDemoMode = true;
-                    
-                    console.log("⚠️ Demo mode activated (ID: 999999999)");
-                }
-                
-                // Auto-fill if available
-                if (user?.first_name) {
-                    document.getElementById('firstName').value = user.first_name;
-                }
-                if (user?.last_name) {
-                    document.getElementById('lastName').value = user.last_name;
-                }
-                
-                // Show form
-                document.getElementById('registerForm').style.display = 'block';
-                
-                return true;
-            } catch (error) {
-                console.error("❌ Telegram error:", error);
-                document.getElementById('telegramWarning').classList.add('show');
-                document.getElementById('demoMode').classList.add('show');
-                
-                // Demo mode
-                telegramId = 999999999;
-                isDemoMode = true;
-                document.getElementById('registerForm').style.display = 'block';
-                
-                return false;
-            }
-        }
-        
-        // Form submission
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            console.log("📝 Form submitted");
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const loading = document.getElementById('loading');
-            const form = document.getElementById('registerForm');
-            const error = document.getElementById('error');
-            const success = document.getElementById('success');
-            
-            // Reset UI
-            error.style.display = 'none';
-            success.style.display = 'none';
-            submitBtn.disabled = true;
-            loading.style.display = 'block';
-            form.style.display = 'none';
-            
-            const data = {
-                telegramId: telegramId,
-                firstName: document.getElementById('firstName').value,
-                lastName: document.getElementById('lastName').value,
-                phone: document.getElementById('phone').value,
-                profession: document.getElementById('profession').value
-            };
-            
-            console.log("📤 Sending:", data);
-            console.log("🌐 Backend:", window.location.origin);
-            
-            try {
-                const response = await fetch(`${window.location.origin}/api/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    mode: 'cors',
-                    body: JSON.stringify(data)
-                });
-                
-                console.log("📥 Status:", response.status);
-                
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
-                
-                const result = await response.json();
-                console.log("📥 Result:", result);
-                
-                if (result.success) {
-                    loading.style.display = 'none';
-                    success.style.display = 'block';
-                    
-                    if (tg?.showAlert) {
-                        tg.showAlert("✅ Muvaffaqiyatli ro'yxatdan o'tdingiz!");
-                    } else {
-                        alert("✅ Muvaffaqiyatli! (Demo mode)");
-                    }
-                    
-                    setTimeout(() => {
-                        if (tg?.close) tg.close();
-                    }, 2000);
-                } else {
-                    throw new Error(result.error || 'Registration failed');
-                }
-                
-            } catch (err) {
-                console.error("❌ Error:", err);
-                
-                loading.style.display = 'none';
-                form.style.display = 'block';
-                submitBtn.disabled = false;
-                
-                error.style.display = 'block';
-                document.getElementById('errorMessage').textContent = `❌ ${err.message}`;
-                
-                document.getElementById('debugInfo').style.display = 'block';
-                document.getElementById('debugInfo').textContent = `Error: ${err.message}\nURL: ${window.location.origin}\nDemo: ${isDemoMode}`;
-            }
-        });
-        
-        // Language switcher
-        window.changeLang = function(lang) {
-            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            // Add translation logic here if needed
-        };
-        
-        // Initialize
-        checkTelegram();
-    </script>
+    <script src="js/apps.js"></script>
 </body>
 </html>
