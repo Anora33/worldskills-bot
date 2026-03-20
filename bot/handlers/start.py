@@ -1,11 +1,14 @@
 ﻿# -*- coding: utf-8 -*-
+# ✅ AIOTELEGRAM 3.x IMPORTS - FIXED
 from aiogram import Router, F
 from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery, WebAppInfo, KeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from bot.config import WEBAPP_URL, ADMIN_ID, WORLDSKILLS_INFO, PROFESSIONS, ALL_PROFESSIONS
+
+# ✅ YANGI IMPORTLAR - PROFESSION_MAP va CATEGORY_MAP ishlatamiz
+from bot.config import WEBAPP_URL, ADMIN_ID, WORLDSKILLS_INFO, PROFESSION_MAP, CATEGORY_MAP, PROFESSIONS_BY_CATEGORY
 from bot.database.db import get_user, add_user
 import logging, asyncio
 
@@ -44,15 +47,7 @@ async def cmd_start(message: Message, state: FSMContext):
     
     if user:
         kb = ReplyKeyboardBuilder()
-        buttons = [
-            "📱 WorldSkills App",
-            "📊 Mening Natijalarim",
-            "🏆 Musobaqalar",
-            "🤖 AI Yordamchi",
-            "📊 Reyting",
-            "👨‍💼 Admin Yordami",
-            "ℹ️ WorldSkills Haqida"
-        ]
+        buttons = ["📱 WorldSkills App", "📊 Mening Natijalarim", "🏆 Musobaqalar", "🤖 AI Yordamchi", "📊 Reyting", "👨‍💼 Admin Yordami", "ℹ️ WorldSkills Haqida"]
         for btn in buttons:
             kb.row(KeyboardButton(text=btn))
         
@@ -91,11 +86,7 @@ async def set_lang(cb: CallbackQuery, state: FSMContext):
     lang = cb.data.split("_")[1]
     await state.update_data(language=lang)
     await state.set_state(UserState.waiting_for_fullname)
-    await cb.message.answer(
-        "📝 <b>Ro'yxatdan o'tish</b>\n\n"
-        "<b>Ism va familiyangizni kiriting:</b>",
-        parse_mode="HTML"
-    )
+    await cb.message.answer("📝 <b>Ro'yxatdan o'tish</b>\n\n<b>Ism va familiyangizni kiriting:</b>", parse_mode="HTML")
     await cb.answer()
 
 @router.message(UserState.waiting_for_fullname)
@@ -106,12 +97,7 @@ async def proc_name(msg: Message, state: FSMContext):
         return
     await state.update_data(fullname=fn)
     await state.set_state(UserState.waiting_for_phone)
-    await msg.answer(
-        f"✅ <b>{fn}</b>\n\n"
-        f"📱 <b>Telefon raqamingizni kiriting:</b>\n"
-        f"<i>Masalan: +998 90 123 45 67</i>",
-        parse_mode="HTML"
-    )
+    await msg.answer(f"✅ <b>{fn}</b>\n\n📱 <b>Telefon raqamingizni kiriting:</b>\n<i>Masalan: +998 90 123 45 67</i>", parse_mode="HTML")
 
 @router.message(UserState.waiting_for_phone)
 async def proc_phone(msg: Message, state: FSMContext):
@@ -122,36 +108,35 @@ async def proc_phone(msg: Message, state: FSMContext):
     await state.update_data(phone=ph)
     await state.set_state(UserState.waiting_for_category)
     
-    # Show categories
+    # Show categories with SHORT callback_data (✅ 7 bytes: cat_001)
     kb = InlineKeyboardBuilder()
-    for category in PROFESSIONS.keys():
-        kb.button(text=category, callback_data=f"cat_{category}")
+    for cat_id, cat_name in CATEGORY_MAP.items():
+        kb.button(text=cat_name, callback_data=cat_id)
     kb.adjust(1)
     kb.button(text="🔙 Orqaga", callback_data="back_to_lang")
     
-    await msg.answer(
-        "✅ <b>Telefon qabul qilindi</b>\n\n"
-        "🎓 <b>Kompetensiya kategoriyasini tanlang:</b>",
-        reply_markup=kb.as_markup(),
-        parse_mode="HTML"
-    )
+    await msg.answer("✅ <b>Telefon qabul qilindi</b>\n\n🎓 <b>Kompetensiya kategoriyasini tanlang:</b>", reply_markup=kb.as_markup(), parse_mode="HTML")
 
 @router.callback_query(F.data.startswith("cat_"))
 async def select_category(cb: CallbackQuery, state: FSMContext):
-    category = cb.data.replace("cat_", "")
-    await state.update_data(category=category)
+    category_id = cb.data  # ✅ cat_001 (7 bytes - SAFE!)
+    category_name = CATEGORY_MAP.get(category_id, "Unknown")
+    await state.update_data(category_id=category_id, category_name=category_name)
     
+    # Show professions with SHORT callback_data (✅ 9 bytes: prof_001)
     kb = InlineKeyboardBuilder()
-    for prof in PROFESSIONS[category]:
-        # Shorten display text
-        display = prof.split(" | ")[0] if " | " in prof else prof
-        kb.button(text=display, callback_data=f"prof_{prof}")
+    prof_ids = PROFESSIONS_BY_CATEGORY.get(category_id, [])
+    
+    for prof_id in prof_ids:
+        prof_full = PROFESSION_MAP.get(prof_id, "Unknown")
+        display_name = prof_full.split(" | ")[0]  # Show only English name for button
+        kb.button(text=display_name, callback_data=prof_id)  # ✅ prof_001 (9 bytes - SAFE!)
+    
     kb.adjust(1)
     kb.button(text="🔙 Kategoriyaga qaytish", callback_data="back_to_category")
     
     await cb.message.edit_text(
-        f"🎓 <b>{category}</b>\n\n"
-        f"<b>Kompetensiyani tanlang:</b>",
+        f"🎓 <b>{category_name}</b>\n\n<b>Kompetensiyani tanlang:</b>",
         reply_markup=kb.as_markup(),
         parse_mode="HTML"
     )
@@ -159,37 +144,34 @@ async def select_category(cb: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data.startswith("prof_"))
 async def proc_prof(cb: CallbackQuery, state: FSMContext):
+    prof_id = cb.data  # ✅ prof_001 (9 bytes - SAFE!)
+    profession_full = PROFESSION_MAP.get(prof_id, "Unknown")  # Get FULL name from mapping
+    
     d = await state.get_data()
     fullname = d.get("fullname", "")
-    profession = cb.data.replace("prof_", "")
     tid = cb.from_user.id
     phone = d.get("phone", "")
     lang = d.get("language", "uz")
     
-    # Save to database
-    add_user(tid, fullname, phone, profession, lang)
+    # ✅ Save to database with FULL profession name
+    add_user(tid, fullname, phone, profession_full, lang)
     
-    # Notify admin
-    asyncio.create_task(notify_admin(cb.bot, tid, fullname, profession, phone))
+    # ✅ Notify admin with full info
+    asyncio.create_task(notify_admin(cb.bot, tid, fullname, profession_full, phone))
     
     # Professional menu
     kb = ReplyKeyboardBuilder()
-    buttons = [
-        "📱 WorldSkills App",
-        "📊 Mening Natijalarim",
-        "🏆 Musobaqalar",
-        "🤖 AI Yordamchi",
-        "📊 Reyting",
-        "👨‍💼 Admin Yordami",
-        "ℹ️ WorldSkills Haqida"
-    ]
+    buttons = ["📱 WorldSkills App", "📊 Mening Natijalarim", "🏆 Musobaqalar", "🤖 AI Yordamchi", "📊 Reyting", "👨‍💼 Admin Yordami", "ℹ️ WorldSkills Haqida"]
     for btn in buttons:
         kb.row(KeyboardButton(text=btn))
+    
+    # Show short name to user
+    display_prof = profession_full.split(" | ")[0]
     
     await cb.message.answer(
         f"🎉 <b>Muvaffaqiyatli Ro'yxatdan O'tdingiz!</b>\n\n"
         f"✅ <b>Ma'lumotlaringiz qabul qilindi</b>\n"
-        f"🎓 <b>Kompetensiya:</b> {profession}\n"
+        f"🎓 <b>Kompetensiya:</b> {display_prof}\n"
         f"🔔 <b>Admin xabardor qilindi</b>\n"
         f"🌏 <b>{WORLDSKILLS_INFO['name']}</b>\n\n"
         f"<i>Tasdiqlangandan so'ng SMS xabar yuboriladi</i>\n\n"
@@ -203,26 +185,20 @@ async def proc_prof(cb: CallbackQuery, state: FSMContext):
 async def back_to_category(cb: CallbackQuery, state: FSMContext):
     await state.set_state(UserState.waiting_for_category)
     kb = InlineKeyboardBuilder()
-    for category in PROFESSIONS.keys():
-        kb.button(text=category, callback_data=f"cat_{category}")
+    for cat_id, cat_name in CATEGORY_MAP.items():
+        kb.button(text=cat_name, callback_data=cat_id)
     kb.adjust(1)
     kb.button(text="🔙 Orqaga", callback_data="back_to_lang")
-    await cb.message.edit_text(
-        "🎓 <b>Kompetensiya kategoriyasini tanlang:</b>",
-        reply_markup=kb.as_markup(),
-        parse_mode="HTML"
-    )
+    await cb.message.edit_text("🎓 <b>Kompetensiya kategoriyasini tanlang:</b>", reply_markup=kb.as_markup(), parse_mode="HTML")
     await cb.answer()
 
 @router.callback_query(F.data == "back_to_lang")
 async def back_to_lang(cb: CallbackQuery, state: FSMContext):
     await state.set_state(UserState.waiting_for_phone)
-    await cb.message.answer(
-        "📱 <b>Telefon raqamingizni kiriting:</b>\n"
-        f"<i>Masalan: +998 90 123 45 67</i>",
-        parse_mode="HTML"
-    )
+    await cb.message.answer("📱 <b>Telefon raqamingizni kiriting:</b>\n<i>Masalan: +998 90 123 45 67</i>", parse_mode="HTML")
     await cb.answer()
+
+# ========== MENU HANDLERS ==========
 
 @router.message(F.text == "📱 WorldSkills App")
 async def mini_app(msg: Message):
@@ -243,10 +219,11 @@ async def stats(msg: Message):
     user = get_user(msg.from_user.id)
     if user:
         status_emoji = {"pending":"⏳","approved":"✅","rejected":"❌"}.get(user.get("status"),"⏳")
+        prof_display = user.get('profession', '').split(' | ')[0]
         await msg.answer(
             f"📊 <b>Sizning Natijalaringiz</b>\n\n"
             f"👤 <b>To'liq ism:</b> {user.get('fullname')}\n"
-            f"🎓 <b>Kompetensiya:</b> {user.get('profession')}\n"
+            f"🎓 <b>Kompetensiya:</b> {prof_display}\n"
             f"📅 <b>Ro'yxatdan o'tgan:</b> {user.get('registered_at', 'Noma\\lum')}\n"
             f"📊 <b>Status:</b> {status_emoji} {user.get('status', 'pending').title()}\n"
             f"⭐ <b>Ball:</b> {user.get('admin_score', 0)}/100\n\n"
