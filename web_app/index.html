@@ -3,91 +3,865 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorldSkills Shanghai 2026 - Registration</title>
+    <title>WorldSkills Shanghai 2026</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding-bottom: 90px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            font-size: 26px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(30, 60, 114, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .nav-item.active {
+            color: #fff;
+        }
+
+        .nav-item.active .nav-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+        }
+
+        .nav-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 4px;
+            transition: all 0.3s;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Content Sections */
+        .section {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.3s;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* PDF Upload */
+        .upload-area {
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        /* File List */
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .file-icon {
+            font-size: 32px;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .file-size {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* History Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 25px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .timeline-year {
+            font-size: 18px;
+            font-weight: 700;
+            color: #4CAF50;
+            margin-bottom: 8px;
+        }
+
+        .timeline-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .timeline-desc {
+            font-size: 13px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        /* Categories List */
+        .category-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category-item:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateX(5px);
+        }
+
+        .category-icon {
+            font-size: 32px;
+        }
+
+        .category-info {
+            flex: 1;
+        }
+
+        .category-name {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .category-count {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        /* Info Cards */
+        .info-card {
+            background: linear-gradient(135deg, rgba(102,126,234,0.3) 0%, rgba(118,75,162,0.3) 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .info-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .info-text {
+            font-size: 14px;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            background: rgba(255,255,255,0.1);
+            height: 8px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s;
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102,126,234,0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Hidden file input */
+        #fileInput {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="rain-container"></div>
-    
-    <div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>🏆 WorldSkills Shanghai 2026</h1>
+        <p>48-chi Jahon Kasb Chempionati</p>
+    </div>
+
+    <!-- Kasblar Section -->
+    <div id="section-professions" class="section active">
         <div class="card">
-            <div class="header">
-                <div class="logo">🏆</div>
-                <h1 class="title" id="title">Ro'yxatdan O'tish</h1>
-                <p class="subtitle">WorldSkills Shanghai 2026</p>
-            </div>
-            
-            <div class="lang-switcher">
-                <button class="lang-btn active" onclick="changeLang('uz')">UZ</button>
-                <button class="lang-btn" onclick="changeLang('ru')">RU</button>
-                <button class="lang-btn" onclick="changeLang('en')">EN</button>
-            </div>
-            
-            <!-- Category Selection -->
-            <div id="categoryStep" style="display: none;">
-                <h3 style="margin-bottom: 20px; text-align: center;">🎓 Kompetensiya Kategoriyasi</h3>
-                <div id="categoryList" style="display: flex; flex-direction: column; gap: 10px;"></div>
-                <button class="btn" style="margin-top: 20px;" onclick="showFormStep()">🔙 Orqaga</button>
-            </div>
-            
-            <!-- Profession Selection -->
-            <div id="professionStep" style="display: none;">
-                <h3 style="margin-bottom: 20px; text-align: center;" id="categoryTitle">🎓 Kompetensiya</h3>
-                <div id="professionList" style="display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto;"></div>
-                <button class="btn" style="margin-top: 20px;" onclick="showCategoryStep()">🔙 Kategoriyaga qaytish</button>
-            </div>
-            
-            <!-- Registration Form -->
-            <form id="registerForm" class="form" style="display: none;">
-                <div class="form-group">
-                    <label for="firstName">👤 Ism</label>
-                    <input type="text" id="firstName" required placeholder="Ismingizni kiriting">
+            <div class="card-title">📊 Jami Kompetensiyalar</div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number">64</div>
+                    <div class="stat-label">Jami Kasblar</div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="lastName">👤 Familiya</label>
-                    <input type="text" id="lastName" required placeholder="Familiyangizni kiriting">
+                <div class="stat-box">
+                    <div class="stat-number">6</div>
+                    <div class="stat-label">Kategoriyalar</div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="phone">📱 Telefon Raqam</label>
-                    <input type="tel" id="phone" required placeholder="+998 90 123 45 67">
+            </div>
+        </div>
+
+        <div id="categoriesContainer"></div>
+    </div>
+
+    <!-- Statistika Section -->
+    <div id="section-statistics" class="section">
+        <div class="card">
+            <div class="card-title">📈 Mening Statistikam</div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="uploadedFiles">0</div>
+                    <div class="stat-label">Yuklangan Fayllar</div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="profession">🎓 Kompetensiya</label>
-                    <input type="text" id="profession" readonly placeholder="Kategoriyadan tanlang..." style="cursor: pointer;" onclick="showCategoryStep()">
+                <div class="stat-box">
+                    <div class="stat-number" id="totalSize">0 MB</div>
+                    <div class="stat-label">Jami Hajm</div>
                 </div>
-                
-                <button type="submit" class="btn" id="submitBtn">Ro'yxatdan O'tish</button>
-            </form>
-            
-            <!-- Loading -->
-            <div class="loading" id="loading" style="display: none;">
-                <div class="spinner"></div>
-                <p class="loading-text">Yuborilmoqda...</p>
             </div>
-            
-            <!-- Success -->
-            <div class="success" id="success" style="display: none;">
-                <div class="success-icon">✅</div>
-                <h2>Muvaffaqiyatli!</h2>
-                <p>Ro'yxatdan o'tdingiz!</p>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📄 PDF Ishlaringizni Yuklang</div>
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📎</div>
+                <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">
+                    PDF faylni bu yerga tashlang
+                </div>
+                <div style="opacity: 0.8; font-size: 13px;">
+                    yoki bosing va tanlang
+                </div>
+                <button class="upload-btn">Fayl Tanlash</button>
             </div>
-            
-            <!-- Error -->
-            <div class="error" id="error" style="display: none;">
-                <div class="error-icon">❌</div>
-                <h2>Xatolik!</h2>
-                <p id="errorMessage">-</p>
+            <input type="file" id="fileInput" accept=".pdf" onchange="handleFileSelect(event)">
+
+            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-top: 15px;">
+                <div style="font-size: 13px; margin-bottom: 8px;">
+                    <strong>📌 Qabul qilinadigan fayllar:</strong>
+                </div>
+                <ul style="font-size: 12px; opacity: 0.9; padding-left: 20px; line-height: 1.8;">
+                    <li>PDF format (max 10 MB)</li>
+                    <li>Loyihalar, portfoliolar</li>
+                    <li>Sertifikatlar</li>
+                    <li>Ish namunalari</li>
+                </ul>
             </div>
-            
-            <div class="debug" id="debugInfo"></div>
+
+            <div class="file-list" id="fileList"></div>
         </div>
     </div>
-    
-    <script src="js/apps.js"></script>
+
+    <!-- Tarix Section -->
+    <div id="section-history" class="section">
+        <div class="card">
+            <div class="card-title">📜 WorldSkills Tarixi</div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-year">1950</div>
+                    <div class="timeline-title">WorldSkills Tashkil Topdi</div>
+                    <div class="timeline-desc">
+                        Ispaniyada birinchi milliy kasb mahorati musobaqasi o'tkazildi.
+                        Keyinchalik bu xalqaro harakatga aylandi.
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-year">1953</div>
+                    <div class="timeline-title">Birinchi Xalqaro Musobaqa</div>
+                    <div class="timeline-desc">
+                        Madrid, Ispaniyada birinchi xalqaro WorldSkills chempionati
+                        12 mamlakat ishtirokida o'tkazildi.
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-year">2001</div>
+                    <div class="timeline-title">WorldSkills International</div>
+                    <div class="timeline-desc">
+                        Tashkilot rasman "WorldSkills International" nomini oldi va
+                        dunyoning 50 dan ortiq mamlakatini qamrab oldi.
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-year">2022</div>
+                    <div class="timeline-title">O'zbekiston A'zo Bo'ldi</div>
+                    <div class="timeline-desc">
+                        O'zbekiston WorldSkills International tashkilotiga rasman
+                        a'zo bo'ldi va milliy chempionatlarni o'tkaza boshladi.
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-year">2026</div>
+                    <div class="timeline-title">Shanghai 2026</div>
+                    <div class="timeline-desc">
+                        48-chi Jahon Kasb Chempionati Xitoyning Shanxay shahrida
+                        o'tkaziladi. 64 ta kompetensiya bo'yicha musobaqalar.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-title">🌍 WorldSkills Haqida</div>
+            <div class="info-text">
+                WorldSkills - dunyodagi eng yirik kasbiy mahorat musobaqasi bo'lib,
+                18-22 yoshli yoshlarning kasbiy ko'nikmalarini rivojlantirish va
+                namoyish etish uchun mo'ljallangan. Har ikki yilda bir marta o'tkaziladi.
+            </div>
+        </div>
+    </div>
+
+    <!-- Ma'lumot Section -->
+    <div id="section-info" class="section">
+        <div class="card">
+            <div class="card-title">📅 Musobaqa Tafsilotlari</div>
+
+            <div class="info-card">
+                <div class="info-title">🏆 Chempionat</div>
+                <div class="info-text">
+                    <strong>Nomi:</strong> WorldSkills Shanghai 2026<br>
+                    <strong>Nashri:</strong> 48-chi Jahon Kasb Chempionati<br>
+                    <strong>Sana:</strong> 2026-yil<br>
+                    <strong>Joy:</strong> Shanxay, Xitoy
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-title">📋 Qatnashish Shartlari</div>
+                <div class="info-text">
+                    • Yosh: 18-22 yosh<br>
+                    • Kasb: 64 ta kompetensiyadan biri<br>
+                    • Tajriba: Professional daraja<br>
+                    • Til: Ingliz tili (musobaqa tili)
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-title">🎯 Bosqichlar</div>
+                <div class="info-text">
+                    1. Mintaqaviy saralash<br>
+                    2. Milliy chempionat<br>
+                    3. Xalqaro chempionat (Shanghai)<br>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 25%"></div>
+                    </div>
+                    <div style="text-align: center; margin-top: 5px; font-size: 12px;">
+                        25% - Hozirgi bosqich
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-title">🏆 Mukofotlar</div>
+                <div class="info-text">
+                    🥇 Oltin medal - 1-o'rin<br>
+                    🥈 Kumush medal - 2-o'rin<br>
+                    🥉 Bronza medal - 3-o'rin<br>
+                    🏅 Medallion of Excellence - 4-o'rin
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📞 Aloqa</div>
+            <div style="line-height: 2;">
+                📧 Email: info@worldskills.uz<br>
+                📱 Telefon: +998 71 123 45 67<br>
+                🌐 Telegram: @worldskills_admin<br>
+                🕐 Ish vaqti: Dush-Juma 9:00-18:00
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('professions')">
+            <div class="nav-icon">💼</div>
+            <div class="nav-label">Kasblar</div>
+        </div>
+        <div class="nav-item" onclick="switchTab('statistics')">
+            <div class="nav-icon">📊</div>
+            <div class="nav-label">Statistika</div>
+        </div>
+        <div class="nav-item" onclick="switchTab('history')">
+            <div class="nav-icon">📜</div>
+            <div class="nav-label">Tarix</div>
+        </div>
+        <div class="nav-item" onclick="switchTab('info')">
+            <div class="nav-icon">ℹ️</div>
+            <div class="nav-label">Ma'lumot</div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const professions = {
+            "cat_001": {
+                icon: "🏭",
+                name_uz: "Ishlab chiqarish va Muhandislik",
+                name_en: "Manufacturing & Engineering",
+                count: 17,
+                professions: [
+                    { en: "Industrial Mechanics", uz: "Sanoat mexanikasi" },
+                    { en: "Mechatronics", uz: "Mexatronika" },
+                    { en: "Mechanical Engineering CAD", uz: "Mexanik muhandislik CAD" },
+                    { en: "CNC Turning", uz: "CNC tokarlik ishlovi" },
+                    { en: "CNC Milling", uz: "CNC frezalash" },
+                    { en: "Welding", uz: "Payvandlash" },
+                    { en: "Electronics", uz: "Elektronika" },
+                    { en: "Industrial Control", uz: "Sanoat boshqaruvi" },
+                    { en: "Autonomous Mobile Robotics", uz: "Avtonom mobil robototexnika" },
+                    { en: "Industry 4.0", uz: "Sanoat 4.0" },
+                    { en: "Chemical Laboratory Technology", uz: "Kimyo laboratoriya" },
+                    { en: "Water Technology", uz: "Suv texnologiyasi" },
+                    { en: "Additive Manufacturing", uz: "3D chop etish" },
+                    { en: "Industrial Design Technology", uz: "Sanoat dizayni" },
+                    { en: "Optoelectronic Technology", uz: "Optoelektronika" },
+                    { en: "Renewable Energy", uz: "Qayta tiklanuvchi energiya" },
+                    { en: "Robot Systems Integration", uz: "Robot tizimlari" }
+                ]
+            },
+            "cat_002": {
+                icon: "💻",
+                name_uz: "Axborot va Kommunikatsiya",
+                name_en: "Information & Communication",
+                count: 8,
+                professions: [
+                    { en: "ICT Network Infrastructure", uz: "Tarmoq infratuzilmasi" },
+                    { en: "Mobile Applications", uz: "Mobil ilovalar" },
+                    { en: "Software Development", uz: "Dasturiy ta'minot" },
+                    { en: "Web Technologies", uz: "Veb texnologiyalar" },
+                    { en: "IT Network Administration", uz: "Tarmoq boshqaruvi" },
+                    { en: "Cloud Computing", uz: "Bulutli hisoblash" },
+                    { en: "Cyber Security", uz: "Kiberxavfsizlik" },
+                    { en: "Software Testing", uz: "Dasturiy sinov" }
+                ]
+            },
+            "cat_003": {
+                icon: "🏗️",
+                name_uz: "Qurilish",
+                name_en: "Construction",
+                count: 14,
+                professions: [
+                    { en: "Wall and Floor Tiling", uz: "Plitkalash" },
+                    { en: "Plumbing and Heating", uz: "Santexnika" },
+                    { en: "Electrical Installations", uz: "Elektr o'rnatish" },
+                    { en: "Bricklaying", uz: "G'isht terish" },
+                    { en: "Plastering", uz: "Suvoq" },
+                    { en: "Painting", uz: "Bo'yash" },
+                    { en: "Cabinetmaking", uz: "Duradgorlik" },
+                    { en: "Joinery", uz: "Yig'ish ishlari" },
+                    { en: "Carpentry", uz: "Yog'och ishlari" },
+                    { en: "Landscape Gardening", uz: "Landshaft" },
+                    { en: "Refrigeration", uz: "Sovutish" },
+                    { en: "Concrete Work", uz: "Beton ishlari" },
+                    { en: "Digital Construction", uz: "Raqamli qurilish" },
+                    { en: "Security Technology", uz: "Xavfsizlik" }
+                ]
+            },
+            "cat_004": {
+                icon: "🚚",
+                name_uz: "Transport",
+                name_en: "Transportation",
+                count: 8,
+                professions: [
+                    { en: "Autobody Repair", uz: "Kuzov ta'mirlash" },
+                    { en: "Aircraft Maintenance", uz: "Samolyot xizmati" },
+                    { en: "Automobile Technology", uz: "Avtomobil" },
+                    { en: "Car Painting", uz: "Avtomobil bo'yash" },
+                    { en: "Heavy Vehicle", uz: "Og'ir transport" },
+                    { en: "Logistics", uz: "Logistika" },
+                    { en: "Rail Vehicle", uz: "Temiryo'l" },
+                    { en: "UAV Systems", uz: "Uchuvchisiz apparatlar" }
+                ]
+            },
+            "cat_005": {
+                icon: "🎨",
+                name_uz: "Ijodiy San'at",
+                name_en: "Creative Arts",
+                count: 7,
+                professions: [
+                    { en: "Jewellery", uz: "Zargarlik" },
+                    { en: "Floristry", uz: "Gulchilik" },
+                    { en: "Fashion Technology", uz: "Moda" },
+                    { en: "Graphic Design", uz: "Grafik dizayn" },
+                    { en: "Visual Merchandising", uz: "Vizual savdo" },
+                    { en: "3D Game Art", uz: "3D o'yin san'ati" },
+                    { en: "Media Design", uz: "Media dizayn" }
+                ]
+            },
+            "cat_006": {
+                icon: "👥",
+                name_uz: "Xizmatlar",
+                name_en: "Social Services",
+                count: 10,
+                professions: [
+                    { en: "Hairdressing", uz: "Sartaroshlik" },
+                    { en: "Beauty Therapy", uz: "Go'zallik" },
+                    { en: "Pâtisserie", uz: "Qandolatchilik" },
+                    { en: "Cooking", uz: "Oshpazlik" },
+                    { en: "Restaurant Service", uz: "Restoran" },
+                    { en: "Health Care", uz: "Sog'liqni saqlash" },
+                    { en: "Bakery", uz: "Nonvoychilik" },
+                    { en: "Hotel Reception", uz: "Mehmonxona" },
+                    { en: "Dental Prosthetics", uz: "Tish protezi" },
+                    { en: "Retail Sales", uz: "Savdo" }
+                ]
+            }
+        };
+
+        let uploadedFiles = [];
+        let currentLang = 'uz';
+
+        // Tab Switching
+        function switchTab(tabName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            // Show selected
+            document.getElementById(`section-${tabName}`).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            // Render if needed
+            if (tabName === 'professions') renderCategories();
+        }
+
+        // Render Categories
+        function renderCategories() {
+            const container = document.getElementById('categoriesContainer');
+            if (container.children.length > 0) return; // Already rendered
+
+            Object.keys(professions).forEach(catId => {
+                const cat = professions[catId];
+                const catDiv = document.createElement('div');
+                catDiv.className = 'category-item';
+
+                const profList = cat.professions.map((prof, idx) =>
+                    `${idx + 1}. ${currentLang === 'uz' ? prof.uz : prof.en}`
+                ).join('<br>');
+
+                catDiv.innerHTML = `
+                    <div class="category-icon">${cat.icon}</div>
+                    <div class="category-info">
+                        <div class="category-name">${currentLang === 'uz' ? cat.name_uz : cat.name_en}</div>
+                        <div class="category-count">${cat.count} ${currentLang === 'uz' ? 'ta kasb' : 'skills'}</div>
+                        <div style="margin-top: 8px; font-size: 12px; opacity: 0.8;">
+                            ${profList}
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(catDiv);
+            });
+        }
+
+        // File Upload
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.type !== 'application/pdf') {
+                alert('Faqat PDF fayllar qabul qilinadi!');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                alert('Fayl hajmi 10 MB dan oshmasligi kerak!');
+                return;
+            }
+
+            // Add to list
+            uploadedFiles.push({
+                name: file.name,
+                size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+                date: new Date().toLocaleDateString()
+            });
+
+            updateFileList();
+            updateStats();
+
+            // Show success
+            alert('✅ Fayl muvaffaqiyatli yuklandi!');
+        }
+
+        function updateFileList() {
+            const list = document.getElementById('fileList');
+            if (uploadedFiles.length === 0) {
+                list.innerHTML = '';
+                return;
+            }
+
+            list.innerHTML = '<div style="font-weight: 600; margin-bottom: 10px;">📄 Yuklangan fayllar:</div>';
+
+            uploadedFiles.forEach((file, idx) => {
+                const fileDiv = document.createElement('div');
+                fileDiv.className = 'file-item';
+                fileDiv.innerHTML = `
+                    <div class="file-icon">📄</div>
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${file.size} • ${file.date}</div>
+                    </div>
+                    <div class="file-actions">
+                        <button class="btn-icon" onclick="downloadFile(${idx})" title="Yuklab olish">⬇️</button>
+                        <button class="btn-icon" onclick="deleteFile(${idx})" title="O'chirish">🗑️</button>
+                    </div>
+                `;
+                list.appendChild(fileDiv);
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('uploadedFiles').textContent = uploadedFiles.length;
+            const totalSize = uploadedFiles.reduce((acc, f) => acc + parseFloat(f.size), 0);
+            document.getElementById('totalSize').textContent = totalSize.toFixed(2) + ' MB';
+        }
+
+        function downloadFile(idx) {
+            alert('📥 Fayl yuklab olinmoqda: ' + uploadedFiles[idx].name);
+        }
+
+        function deleteFile(idx) {
+            if (confirm('Bu faylni o\'chirmoqchimisiz?')) {
+                uploadedFiles.splice(idx, 1);
+                updateFileList();
+                updateStats();
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+            }
+        });
+    </script>
 </body>
 </html>
