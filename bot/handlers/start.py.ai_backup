@@ -1,5 +1,4 @@
-﻿from bot.services.ai_service import GroqAIService
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 from aiogram import Router, F
 from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery, WebAppInfo, KeyboardButton
@@ -12,9 +11,7 @@ from bot.database.db import get_user, add_user
 import logging, asyncio, re
 
 logger = logging.getLogger(__name__)
-router = Router(name="start")
-groq_ai = GroqAIService()
-  # ✅ Router nomini qo'shish
+router = Router(name="start")  # ✅ Router nomini qo'shish
 
 class UserState(StatesGroup):
     waiting_for_fullname = State()
@@ -585,5 +582,3 @@ async def ai_answer(msg: Message, state: FSMContext):
             "<i>Masalan: \"WorldSkills nima?\" yoki \"Qanday ro'yxatdan o'taman?\"</i>",
             parse_mode="HTML"
         )
-
-
