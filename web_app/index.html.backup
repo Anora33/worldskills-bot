@@ -1,0 +1,458 @@
+﻿<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorldSkills Shanghai 2026</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
+            --bg-card: #111111;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border: #222222;
+            --accent: #ffffff;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 90px;
+        }
+        .header {
+            background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+            padding: 40px 20px;
+            text-align: center;
+            animation: slideDown 0.6s ease-out;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #000;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+            color: #000;
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            z-index: 1000;
+        }
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+        }
+        .nav-item.active {
+            color: var(--text-primary);
+        }
+        .nav-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 4px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+        }
+        .nav-item.active .nav-icon {
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .section {
+            display: none;
+            padding: 20px;
+        }
+        .section.active {
+            display: block;
+        }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .stat-box {
+            background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+            padding: 30px 20px;
+            border-radius: 20px;
+            text-align: center;
+            color: #000;
+        }
+        .stat-number {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            font-size: 13px;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 20px;
+            padding: 50px 20px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 25px;
+            background: var(--bg-secondary);
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+        }
+        .upload-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .upload-btn {
+            background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+            color: #000;
+            padding: 14px 35px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        #fileInput { display: none; }
+        .file-list { margin-top: 25px; }
+        .file-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 18px;
+            border-radius: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .file-icon { font-size: 40px; }
+        .file-info { flex: 1; }
+        .file-name { font-weight: 600; margin-bottom: 4px; }
+        .file-size { font-size: 12px; color: var(--text-secondary); }
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .timeline {
+            position: relative;
+            padding-left: 35px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--accent), var(--border));
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -29px;
+            top: 30px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 3px solid var(--bg-primary);
+        }
+        .timeline-year {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        .timeline-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .timeline-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+        .category-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 12px;
+        }
+        .category-icon { font-size: 40px; margin-bottom: 10px; }
+        .category-name { font-weight: 700; margin-bottom: 5px; }
+        .category-count { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; }
+        .profession-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 8px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+        .profession-item {
+            font-size: 13px;
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+        .info-card {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        .info-title { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+        .info-text { font-size: 14px; line-height: 1.8; color: var(--text-secondary); }
+        .progress-bar {
+            background: var(--bg-secondary);
+            height: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-fill {
+            background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s;
+        }
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .stat-number { font-size: 36px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏆 WorldSkills Shanghai 2026</h1>
+        <p>48-chi Jahon Kasb Chempionati</p>
+    </div>
+
+    <div id="section-professions" class="section active">
+        <div class="card">
+            <div style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">📊 Jami Kompetensiyalar</div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number">64</div>
+                    <div class="stat-label">Jami Kasblar</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">6</div>
+                    <div class="stat-label">Kategoriyalar</div>
+                </div>
+            </div>
+        </div>
+        <div id="categoriesContainer"></div>
+    </div>
+
+    <div id="section-statistics" class="section">
+        <div class="card">
+            <div style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">📈 Mening Statistikam</div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="uploadedFiles">0</div>
+                    <div class="stat-label">Yuklangan Fayllar</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="totalSize">0</div>
+                    <div class="stat-label">Jami Hajm (MB)</div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">📄 PDF Yuklash</div>
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📎</div>
+                <div style="font-size: 18px; font-weight: 700; margin-bottom: 10px;">PDF faylni tanlang</div>
+                <button class="upload-btn">Fayl Tanlash</button>
+            </div>
+            <input type="file" id="fileInput" accept=".pdf" onchange="handleFileSelect(event)">
+            <div class="file-list" id="fileList"></div>
+        </div>
+    </div>
+
+    <div id="section-history" class="section">
+        <div class="card">
+            <div style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">📜 WorldSkills Tarixi</div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-year">1950</div>
+                    <div class="timeline-title">WorldSkills Tashkil Topdi</div>
+                    <div class="timeline-desc">Ispaniyada birinchi milliy kasb mahorati musobaqasi.</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2026</div>
+                    <div class="timeline-title">Shanghai 2026</div>
+                    <div class="timeline-desc">48-chi Jahon Kasb Chempionati.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="section-info" class="section">
+        <div class="card">
+            <div style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">📅 Tafsilotlar</div>
+            <div class="info-card">
+                <div class="info-title">🏆 Chempionat</div>
+                <div class="info-text">
+                    <strong>Nomi:</strong> WorldSkills Shanghai 2026<br>
+                    <strong>Sana:</strong> 2026-yil<br>
+                    <strong>Joy:</strong> Shanxay, Xitoy
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('professions')">
+            <div class="nav-icon">💼</div>
+            <div class="nav-label">Kasblar</div>
+        </div>
+        <div class="nav-item" onclick="switchTab('statistics')">
+            <div class="nav-icon">📊</div>
+            <div class="nav-label">Statistika</div>
+        </div>
+        <div class="nav-item" onclick="switchTab('history')">
+            <div class="nav-icon">📜</div>
+            <div class="nav-label">Tarix</div>
+        </div>
+        <div class="nav-item" onclick="switchTab('info')">
+            <div class="nav-icon">ℹ️</div>
+            <div class="nav-label">Ma'lumot</div>
+        </div>
+    </div>
+
+    <script>
+        const professions = {
+            "cat_001": { icon: "🏭", name: "Ishlab chiqarish", count: 17, list: ["Sanoat mexanikasi", "Mexatronika", "CNC tokarlik", "Payvandlash"] },
+            "cat_002": { icon: "💻", name: "Axborot", count: 8, list: ["Dasturlash", "Veb texnologiyalar", "Kiberxavfsizlik"] },
+            "cat_003": { icon: "🏗️", name: "Qurilish", count: 14, list: ["Elektr o'rnatish", "Santexnika", "Bo'yash"] },
+            "cat_004": { icon: "🚚", name: "Transport", count: 8, list: ["Avtomobil", "Logistika"] },
+            "cat_005": { icon: "🎨", name: "Ijodiy", count: 7, list: ["Dizayn", "Zargarlik"] },
+            "cat_006": { icon: "👥", name: "Xizmatlar", count: 10, list: ["Oshpazlik", "Sartaroshlik"] }
+        };
+
+        let uploadedFiles = [];
+
+        function switchTab(tab) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('section-' + tab).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if (tab === 'professions') renderCategories();
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoriesContainer');
+            if (container.children.length > 0) return;
+            Object.keys(professions).forEach(catId => {
+                const cat = professions[catId];
+                const div = document.createElement('div');
+                div.className = 'category-item';
+                div.innerHTML = `
+                    <div class="category-icon">${cat.icon}</div>
+                    <div class="category-name">${cat.name}</div>
+                    <div class="category-count">${cat.count} ta kasb</div>
+                    <div class="profession-list">${cat.list.map(p => `<div class="profession-item">${p}</div>`).join('')}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                uploadedFiles.push({ name: file.name, size: (file.size/1024/1024).toFixed(2) });
+                updateFileList();
+                updateStats();
+                alert('✅ Fayl yuklandi!');
+            }
+        }
+
+        function updateFileList() {
+            const list = document.getElementById('fileList');
+            list.innerHTML = uploadedFiles.map((f, i) => `
+                <div class="file-item">
+                    <div class="file-icon">📄</div>
+                    <div class="file-info">
+                        <div class="file-name">${f.name}</div>
+                        <div class="file-size">${f.size} MB</div>
+                    </div>
+                    <button class="btn-icon" onclick="uploadedFiles.splice(${i},1);updateFileList();updateStats()">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('uploadedFiles').textContent = uploadedFiles.length;
+            document.getElementById('totalSize').textContent = uploadedFiles.reduce((a, f) => a + parseFloat(f.size), 0).toFixed(2);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+            }
+        });
+    </script>
+</body>
+</html>
