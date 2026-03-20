@@ -1,0 +1,21 @@
+﻿@router.message(F.text == "📱 WorldSkills App")
+async def mini_app(msg: Message):
+    timestamp = int(datetime.now().timestamp())
+    
+    # Inline button with WebAppInfo - yangi versiyani ochadi!
+    kb = InlineKeyboardBuilder()
+    kb.button(
+        text="🚀 Mini App'ni Ochish",
+        web_app=WebAppInfo(url=f"{WEBAPP_URL}?t={timestamp}&v=2")
+    )
+    kb.adjust(1)
+    
+    await msg.answer(
+        "📱 <b>WorldSkills Mobile App</b>\n\n"
+        "📸 <b>Portfolio yuklash:</b> Ishlaringizni yuklang\n"
+        "📊 <b>Natijalar:</b> Yutuqlaringizni ko'ring\n"
+        "🏆 <b>Sertifikatlar:</b> Yutuq sertifikatlari\n\n"
+        "<i>Quyidagi tugmani bosing - yangi versiya ochiladi:</i>",
+        reply_markup=kb.as_markup(),
+        parse_mode="HTML"
+    )
