@@ -43,17 +43,15 @@ async def cmd_start(message: Message, state: FSMContext):
     user = get_user(tid)
     
     if user:
+        # Mini App button with timestamp to bypass cache
         timestamp = int(datetime.now().timestamp())
-        
-        # Menu button (pastdagi ko'k tugma)
-        kb_menu = InlineKeyboardBuilder()
-        kb_menu.button(
-            text="🚀 Mini App",
+        kb = InlineKeyboardBuilder()
+        kb.button(
+            text="🚀 Mini App'ni Ochish",
             web_app=WebAppInfo(url=f"{WEBAPP_URL}?t={timestamp}")
         )
-        kb_menu.adjust(1)
+        kb.adjust(1)
         
-        # Text keyboard
         keyboard = ReplyKeyboardBuilder()
         buttons = [
             "📱 WorldSkills App",
@@ -77,7 +75,7 @@ async def cmd_start(message: Message, state: FSMContext):
             f"🌏 <b>{WORLDSKILLS_INFO['name']}</b>\n"
             f"<i>{WORLDSKILLS_INFO['edition']}</i>\n\n"
             f"<b>Mini App'ni ochish uchun quyidagi tugmani bosing:</b>",
-            reply_markup=kb_menu.as_markup(),
+            reply_markup=kb.as_markup(),
             parse_mode="HTML"
         )
         
@@ -216,8 +214,6 @@ async def back_to_lang(cb: CallbackQuery, state: FSMContext):
 @router.message(F.text == "📱 WorldSkills App")
 async def mini_app(msg: Message):
     timestamp = int(datetime.now().timestamp())
-    
-    # Inline button with WebAppInfo - bu Mini App'ni ochadi!
     kb = InlineKeyboardBuilder()
     kb.button(
         text="🚀 Mini App'ni Ochish",
@@ -230,7 +226,7 @@ async def mini_app(msg: Message):
         "📸 <b>Portfolio yuklash:</b> Ishlaringizni yuklang\n"
         "📊 <b>Natijalar:</b> Yutuqlaringizni ko'ring\n"
         "🏆 <b>Sertifikatlar:</b> Yutuq sertifikatlari\n\n"
-        "<i>Quyidagi tugmani bosing:</i>",
+        f"<i>{WORLDSKILLS_INFO['name']} uchun tayyorlaning!</i>",
         reply_markup=kb.as_markup(),
         parse_mode="HTML"
     )
