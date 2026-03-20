@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorldSkills Uzbekistan - Registration</title>
+    <title>WorldSkills Shanghai 2026 - Registration</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
             <div class="header">
                 <div class="logo">🏆</div>
                 <h1 class="title" id="title">Ro'yxatdan O'tish</h1>
-                <p class="subtitle">WorldSkills Uzbekistan</p>
+                <p class="subtitle">WorldSkills Shanghai 2026</p>
             </div>
             
             <div class="lang-switcher">
@@ -25,6 +25,21 @@
                 <button class="lang-btn" onclick="changeLang('en')">EN</button>
             </div>
             
+            <!-- Category Selection -->
+            <div id="categoryStep" style="display: none;">
+                <h3 style="margin-bottom: 20px; text-align: center;">🎓 Kompetensiya Kategoriyasi</h3>
+                <div id="categoryList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                <button class="btn" style="margin-top: 20px;" onclick="showFormStep()">🔙 Orqaga</button>
+            </div>
+            
+            <!-- Profession Selection -->
+            <div id="professionStep" style="display: none;">
+                <h3 style="margin-bottom: 20px; text-align: center;" id="categoryTitle">🎓 Kompetensiya</h3>
+                <div id="professionList" style="display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto;"></div>
+                <button class="btn" style="margin-top: 20px;" onclick="showCategoryStep()">🔙 Kategoriyaga qaytish</button>
+            </div>
+            
+            <!-- Registration Form -->
             <form id="registerForm" class="form" style="display: none;">
                 <div class="form-group">
                     <label for="firstName">👤 Ism</label>
@@ -42,33 +57,27 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="profession">🎓 Yo'nalish</label>
-                    <select id="profession" required>
-                        <option value="">Tanlang...</option>
-                        <option value="Dasturlash">💻 Dasturlash</option>
-                        <option value="Web texnologiyalar">💻 Web texnologiyalar</option>
-                        <option value="Dizayn">🎨 Dizayn</option>
-                        <option value="Mexanika">🔧 Mexanika</option>
-                        <option value="Qurilish">🏗 Qurilish</option>
-                        <option value="Oshpazlik">👨‍🍳 Oshpazlik</option>
-                        <option value="Biznes">💼 Biznes</option>
-                    </select>
+                    <label for="profession">🎓 Kompetensiya</label>
+                    <input type="text" id="profession" readonly placeholder="Kategoriyadan tanlang..." style="cursor: pointer;" onclick="showCategoryStep()">
                 </div>
                 
                 <button type="submit" class="btn" id="submitBtn">Ro'yxatdan O'tish</button>
             </form>
             
+            <!-- Loading -->
             <div class="loading" id="loading" style="display: none;">
                 <div class="spinner"></div>
                 <p class="loading-text">Yuborilmoqda...</p>
             </div>
             
+            <!-- Success -->
             <div class="success" id="success" style="display: none;">
                 <div class="success-icon">✅</div>
                 <h2>Muvaffaqiyatli!</h2>
                 <p>Ro'yxatdan o'tdingiz!</p>
             </div>
             
+            <!-- Error -->
             <div class="error" id="error" style="display: none;">
                 <div class="error-icon">❌</div>
                 <h2>Xatolik!</h2>

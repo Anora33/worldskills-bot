@@ -5,7 +5,7 @@ from aiogram.types import Message, CallbackQuery, WebAppInfo, KeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from bot.config import WEBAPP_URL, ADMIN_ID
+from bot.config import WEBAPP_URL, ADMIN_ID, WORLDSKILLS_INFO, PROFESSIONS, ALL_PROFESSIONS
 from bot.database.db import get_user, add_user
 import logging, asyncio
 
@@ -15,6 +15,7 @@ router = Router()
 class UserState(StatesGroup):
     waiting_for_fullname = State()
     waiting_for_phone = State()
+    waiting_for_category = State()
     waiting_for_profession = State()
 
 async def notify_admin(bot, tid, fullname, profession, phone):
@@ -22,11 +23,12 @@ async def notify_admin(bot, tid, fullname, profession, phone):
     try:
         await bot.send_message(
             ADMIN_ID,
-            f"🔔 <b>YANGI ISHTIROKCHI!</b>\n\n"
+            f"🔔 <b>🏆 YANGI ISHTIROKCHI!</b>\n\n"
             f"👤 <b>To'liq ism:</b> {fullname}\n"
             f"📱 <b>Telefon:</b> {phone}\n"
             f"🎓 <b>Kompetensiya:</b> {profession}\n"
-            f"🆔 <b>ID:</b> <code>{tid}</code>\n\n"
+            f"🆔 <b>ID:</b> <code>{tid}</code>\n"
+            f"🌏 <b>Chempionat:</b> {WORLDSKILLS_INFO['name']}\n\n"
             f"⏳ <b>Status:</b> Kutilmoqda\n\n"
             f"<i>Admin panel: /admin</i>",
             parse_mode="HTML"
@@ -41,15 +43,15 @@ async def cmd_start(message: Message, state: FSMContext):
     user = get_user(tid)
     
     if user:
-        # Professional menu buttons
         kb = ReplyKeyboardBuilder()
         buttons = [
             "📱 WorldSkills App",
-            "📊 Mening Natijalarim", 
+            "📊 Mening Natijalarim",
             "🏆 Musobaqalar",
             "🤖 AI Yordamchi",
             "📊 Reyting",
-            "👨‍💼 Admin Yordami"
+            "👨‍💼 Admin Yordami",
+            "ℹ️ WorldSkills Haqida"
         ]
         for btn in buttons:
             kb.row(KeyboardButton(text=btn))
@@ -61,13 +63,14 @@ async def cmd_start(message: Message, state: FSMContext):
             f"• Kompetensiya: {user.get('profession')}\n"
             f"• Telefon: {user.get('phone')}\n"
             f"• Ball: {user.get('admin_score', 0)}/100\n\n"
+            f"🌏 <b>{WORLDSKILLS_INFO['name']}</b>\n"
+            f"<i>{WORLDSKILLS_INFO['edition']}</i>\n\n"
             f"Kerakli bo'limni tanlang:",
             reply_markup=kb.as_markup(resize_keyboard=True),
             parse_mode="HTML"
         )
         return
     
-    # New user registration
     await state.clear()
     kb = InlineKeyboardBuilder()
     kb.button(text="🇺🇿 O'zbekcha", callback_data="lang_uz")
@@ -76,8 +79,9 @@ async def cmd_start(message: Message, state: FSMContext):
     kb.adjust(1)
     
     await message.answer(
-        "🏆 <b>WorldSkills Uzbekistan</b>\n\n"
-        "<i>Kasbiy mahorat musobaqasida ishtirok etish uchun ro'yxatdan o'ting</i>",
+        f"🏆 <b>{WORLDSKILLS_INFO['name']}</b>\n\n"
+        f"<i>{WORLDSKILLS_INFO['description']}</i>\n\n"
+        f"🎯 <b>Kasbiy mahorat musobaqasida ishtirok etish uchun ro'yxatdan o'ting:</b>",
         reply_markup=kb.as_markup(),
         parse_mode="HTML"
     )
@@ -98,7 +102,7 @@ async def set_lang(cb: CallbackQuery, state: FSMContext):
 async def proc_name(msg: Message, state: FSMContext):
     fn = msg.text.strip()
     if len(fn) < 3:
-        await msg.answer("❌ <b>Ism juda qisqa!</b>\n\nIsm va familiyangizni to'liq kiriting.", parse_mode="HTML")
+        await msg.answer("❌ <b>Ism juda qisqa!</b>", parse_mode="HTML")
         return
     await state.update_data(fullname=fn)
     await state.set_state(UserState.waiting_for_phone)
@@ -113,37 +117,51 @@ async def proc_name(msg: Message, state: FSMContext):
 async def proc_phone(msg: Message, state: FSMContext):
     ph = msg.text.strip()
     if not ph.startswith("+") or len(ph.replace(" ", "")) < 12:
-        await msg.answer("❌ <b>Telefon noto'g'ri!</b>\n\nMasalan: +998 90 123 45 67", parse_mode="HTML")
+        await msg.answer("❌ <b>Telefon noto'g'ri!</b>", parse_mode="HTML")
         return
     await state.update_data(phone=ph)
-    await state.set_state(UserState.waiting_for_profession)
+    await state.set_state(UserState.waiting_for_category)
     
+    # Show categories
     kb = InlineKeyboardBuilder()
-    professions = [
-        "💻 Dasturlash",
-        "💻 Web texnologiyalar",
-        "🎨 Dizayn",
-        "🔧 Mexanika",
-        "🏗 Qurilish",
-        "👨‍🍳 Oshpazlik",
-        "💼 Biznes"
-    ]
-    for prof in professions:
-        kb.button(text=prof, callback_data=f"prof_{prof.replace(' ', '_')}")
-    kb.adjust(2)
+    for category in PROFESSIONS.keys():
+        kb.button(text=category, callback_data=f"cat_{category}")
+    kb.adjust(1)
+    kb.button(text="🔙 Orqaga", callback_data="back_to_lang")
     
     await msg.answer(
         "✅ <b>Telefon qabul qilindi</b>\n\n"
-        "🎓 <b>Kompetensiyangizni tanlang:</b>",
+        "🎓 <b>Kompetensiya kategoriyasini tanlang:</b>",
         reply_markup=kb.as_markup(),
         parse_mode="HTML"
     )
+
+@router.callback_query(F.data.startswith("cat_"))
+async def select_category(cb: CallbackQuery, state: FSMContext):
+    category = cb.data.replace("cat_", "")
+    await state.update_data(category=category)
+    
+    kb = InlineKeyboardBuilder()
+    for prof in PROFESSIONS[category]:
+        # Shorten display text
+        display = prof.split(" | ")[0] if " | " in prof else prof
+        kb.button(text=display, callback_data=f"prof_{prof}")
+    kb.adjust(1)
+    kb.button(text="🔙 Kategoriyaga qaytish", callback_data="back_to_category")
+    
+    await cb.message.edit_text(
+        f"🎓 <b>{category}</b>\n\n"
+        f"<b>Kompetensiyani tanlang:</b>",
+        reply_markup=kb.as_markup(),
+        parse_mode="HTML"
+    )
+    await cb.answer()
 
 @router.callback_query(F.data.startswith("prof_"))
 async def proc_prof(cb: CallbackQuery, state: FSMContext):
     d = await state.get_data()
     fullname = d.get("fullname", "")
-    profession = cb.data.replace("prof_", "").replace("_", " ")
+    profession = cb.data.replace("prof_", "")
     tid = cb.from_user.id
     phone = d.get("phone", "")
     lang = d.get("language", "uz")
@@ -151,7 +169,7 @@ async def proc_prof(cb: CallbackQuery, state: FSMContext):
     # Save to database
     add_user(tid, fullname, phone, profession, lang)
     
-    # Notify admin with full info
+    # Notify admin
     asyncio.create_task(notify_admin(cb.bot, tid, fullname, profession, phone))
     
     # Professional menu
@@ -162,19 +180,46 @@ async def proc_prof(cb: CallbackQuery, state: FSMContext):
         "🏆 Musobaqalar",
         "🤖 AI Yordamchi",
         "📊 Reyting",
-        "👨‍💼 Admin Yordami"
+        "👨‍💼 Admin Yordami",
+        "ℹ️ WorldSkills Haqida"
     ]
     for btn in buttons:
         kb.row(KeyboardButton(text=btn))
     
     await cb.message.answer(
-        "🎉 <b>Muvaffaqiyatli Ro'yxatdan O'tdingiz!</b>\n\n"
-        "✅ <b>Ma'lumotlaringiz qabul qilindi</b>\n"
-        "🔔 <b>Admin xabardor qilindi</b>\n"
-        "⏳ <b>Admin tasdiqini kuting</b>\n\n"
-        "📌 <i>Tasdiqlangandan so'ng SMS xabar yuboriladi</i>\n\n"
-        "🎯 <b>Kerakli bo'limni tanlang:</b>",
+        f"🎉 <b>Muvaffaqiyatli Ro'yxatdan O'tdingiz!</b>\n\n"
+        f"✅ <b>Ma'lumotlaringiz qabul qilindi</b>\n"
+        f"🎓 <b>Kompetensiya:</b> {profession}\n"
+        f"🔔 <b>Admin xabardor qilindi</b>\n"
+        f"🌏 <b>{WORLDSKILLS_INFO['name']}</b>\n\n"
+        f"<i>Tasdiqlangandan so'ng SMS xabar yuboriladi</i>\n\n"
+        f"🎯 <b>Kerakli bo'limni tanlang:</b>",
         reply_markup=kb.as_markup(resize_keyboard=True),
+        parse_mode="HTML"
+    )
+    await cb.answer()
+
+@router.callback_query(F.data == "back_to_category")
+async def back_to_category(cb: CallbackQuery, state: FSMContext):
+    await state.set_state(UserState.waiting_for_category)
+    kb = InlineKeyboardBuilder()
+    for category in PROFESSIONS.keys():
+        kb.button(text=category, callback_data=f"cat_{category}")
+    kb.adjust(1)
+    kb.button(text="🔙 Orqaga", callback_data="back_to_lang")
+    await cb.message.edit_text(
+        "🎓 <b>Kompetensiya kategoriyasini tanlang:</b>",
+        reply_markup=kb.as_markup(),
+        parse_mode="HTML"
+    )
+    await cb.answer()
+
+@router.callback_query(F.data == "back_to_lang")
+async def back_to_lang(cb: CallbackQuery, state: FSMContext):
+    await state.set_state(UserState.waiting_for_phone)
+    await cb.message.answer(
+        "📱 <b>Telefon raqamingizni kiriting:</b>\n"
+        f"<i>Masalan: +998 90 123 45 67</i>",
         parse_mode="HTML"
     )
     await cb.answer()
@@ -188,7 +233,7 @@ async def mini_app(msg: Message):
         "📸 <b>Portfolio yuklash:</b> Ishlaringizni yuklang\n"
         "📊 <b>Natijalar:</b> Yutuqlaringizni ko'ring\n"
         "🏆 <b>Sertifikatlar:</b> Yutuq sertifikatlari\n\n"
-        "<i>Barcha imkoniyatlardan foydalanish uchun App'ni oching:</i>",
+        f"<i>{WORLDSKILLS_INFO['name']} uchun tayyorlaning!</i>",
         reply_markup=kb.as_markup(),
         parse_mode="HTML"
     )
@@ -212,13 +257,39 @@ async def stats(msg: Message):
 @router.message(F.text == "🏆 Musobaqalar")
 async def comp(msg: Message):
     await msg.answer(
-        "🏆 <b>WorldSkills Musobaqalari</b>\n\n"
-        "📅 <b>Keyingi bosqichlar:</b>\n"
-        "• Mintaqaviy bosqich: Tez orada\n"
-        "• Milliy bosqich: Tez orada\n"
-        "• Xalqaro bosqich: Tez orada\n\n"
-        "📌 <i>Ro'yxatdan o'tgan ishtirokchilarga SMS orqali xabar yuboriladi</i>\n\n"
-        "🎯 <b>Tayyorgarlik ko'ring!</b>",
+        f"🏆 <b>{WORLDSKILLS_INFO['name']}</b>\n\n"
+        f"📋 <b>{WORLDSKILLS_INFO['edition']}</b>\n"
+        f"🔄 <b>Davriyligi:</b> {WORLDSKILLS_INFO['frequency']}\n\n"
+        f"🏢 <b>Tashkilotchilar:</b>\n"
+        f"• {WORLDSKILLS_INFO['organizers'][0]}\n"
+        f"• {WORLDSKILLS_INFO['organizers'][1]}\n\n"
+        f"📅 <b>Keyingi bosqichlar:</b>\n"
+        f"• Mintaqaviy bosqich: Tez orada\n"
+        f"• Milliy bosqich: Tez orada\n"
+        f"• Xalqaro bosqich (Shanghai): 2026\n\n"
+        f"<i>Ro'yxatdan o'tgan ishtirokchilarga SMS orqali xabar yuboriladi</i>",
+        parse_mode="HTML"
+    )
+
+@router.message(F.text == "ℹ️ WorldSkills Haqida")
+async def ws_info(msg: Message):
+    await msg.answer(
+        f"🏆 <b>{WORLDSKILLS_INFO['name']}</b>\n\n"
+        f"📖 <b>Ta'rif:</b>\n{WORLDSKILLS_INFO['description']}\n\n"
+        f"🌍 <b>Ahamiyati:</b>\n{WORLDSKILLS_INFO['significance']}\n\n"
+        f"📋 <b>{WORLDSKILLS_INFO['edition']}</b>\n"
+        f"🔄 <b>Davriyligi:</b> {WORLDSKILLS_INFO['frequency']}\n\n"
+        f"🏢 <b>Tashkilotchilar:</b>\n"
+        f"• {WORLDSKILLS_INFO['organizers'][0]}\n"
+        f"• {WORLDSKILLS_INFO['organizers'][1]}\n\n"
+        f"🎓 <b>64 ta Kompetensiya:</b>\n"
+        f"• 🏭 Ishlab chiqarish va Muhandislik (17 ta)\n"
+        f"• 💻 Axborot va Kommunikatsiya (8 ta)\n"
+        f"• 🏗️ Qurilish va Bino Texnologiyalari (14 ta)\n"
+        f"• 🚚 Transport va Logistika (8 ta)\n"
+        f"• 🎨 Ijodiy San'at va Moda (7 ta)\n"
+        f"• 👥 Ijtimoiy va Shaxsiy Xizmatlar (10 ta)\n\n"
+        f"<i>Rivojlangan davlatlar ushbu chempionatga alohida e'tibor qaratadilar!</i>",
         parse_mode="HTML"
     )
 
@@ -230,8 +301,8 @@ async def ai_start(msg: Message, state: FSMContext):
     await msg.answer(
         "🤖 <b>WorldSkills AI Yordamchisi</b>\n\n"
         "🎯 <b>Men sizga quyidagilarda yordam bera olaman:</b>\n\n"
-        "• WorldSkills haqida ma'lumot\n"
-        "• Kompetensiyalar bo'yicha maslahat\n"
+        "• WorldSkills Shanghai 2026 haqida ma'lumot\n"
+        "• 64 ta kompetensiya bo'yicha maslahat\n"
         "• Tayyorgarlik rejasi\n"
         "• Baholash mezonlari\n"
         "• Umumiy savollar\n\n"
@@ -245,7 +316,7 @@ async def ai_exit(msg: Message, state: FSMContext):
     await state.update_data(ai_active=False)
     await state.clear()
     kb = ReplyKeyboardBuilder()
-    buttons = ["📱 WorldSkills App", "📊 Mening Natijalarim", "🏆 Musobaqalar", "🤖 AI Yordamchi", "📊 Reyting", "👨‍💼 Admin Yordami"]
+    buttons = ["📱 WorldSkills App", "📊 Mening Natijalarim", "🏆 Musobaqalar", "🤖 AI Yordamchi", "📊 Reyting", "👨‍💼 Admin Yordami", "ℹ️ WorldSkills Haqida"]
     for btn in buttons:
         kb.row(KeyboardButton(text=btn))
     await msg.answer(
