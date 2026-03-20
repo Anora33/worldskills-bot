@@ -1,4 +1,5 @@
-﻿# -*- coding: utf-8 -*-
+﻿
+# -*- coding: utf-8 -*-
 from aiogram import Router, F
 from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery, WebAppInfo, KeyboardButton
@@ -45,17 +46,18 @@ async def cmd_start(message: Message, state: FSMContext):
     if user:
         timestamp = int(datetime.now().timestamp())
         
-        # ✅ Menu button (pastdagi ko'k tugma) - YANGI VERSIYA
+        # Menu button (pastdagi ko'k tugma)
         kb_menu = InlineKeyboardBuilder()
         kb_menu.button(
-            text="🚀 Mini App'ni Ochish",
+            text="🚀 Mini App",
             web_app=WebAppInfo(url=f"{WEBAPP_URL}?t={timestamp}")
         )
         kb_menu.adjust(1)
         
-        # Text keyboard - "📱 WorldSkills App" O'CHIRILDI ✅
+        # Text keyboard
         keyboard = ReplyKeyboardBuilder()
         buttons = [
+          
             "📊 Mening Natijalarim",
             "🏆 Musobaqalar",
             "🤖 AI Yordamchi",
@@ -75,7 +77,7 @@ async def cmd_start(message: Message, state: FSMContext):
             f"• Ball: {user.get('admin_score', 0)}/100\n\n"
             f"🌏 <b>{WORLDSKILLS_INFO['name']}</b>\n"
             f"<i>{WORLDSKILLS_INFO['edition']}</i>\n\n"
-            f"<b>Mini App'ni ochish uchun pastdagi ko'k tugmani bosing:</b>",
+            f"<b>Mini App'ni ochish uchun quyidagi tugmani bosing:</b>",
             reply_markup=kb_menu.as_markup(),
             parse_mode="HTML"
         )
@@ -87,7 +89,6 @@ async def cmd_start(message: Message, state: FSMContext):
         )
         return
     
-    # Ro'yxatdan o'tmagan foydalanuvchi
     await state.clear()
     kb = InlineKeyboardBuilder()
     kb.button(text="🇺🇿 O'zbekcha", callback_data="lang_uz")
@@ -176,16 +177,8 @@ async def proc_prof(cb: CallbackQuery, state: FSMContext):
     add_user(tid, fullname, phone, profession_full, lang)
     asyncio.create_task(notify_admin(cb.bot, tid, fullname, profession_full, phone))
     
-    # ✅ Ro'yxatdan o'tgach - "📱 WorldSkills App" tugmasi YO'Q
     kb = ReplyKeyboardBuilder()
-    buttons = [
-        "📊 Mening Natijalarim",
-        "🏆 Musobaqalar",
-        "🤖 AI Yordamchi",
-        "📊 Reyting",
-        "👨‍💼 Admin Yordami",
-        "ℹ️ WorldSkills Haqida"
-    ]
+    buttons = ["📱 WorldSkills App", "📊 Mening Natijalarim", "🏆 Musobaqalar", "🤖 AI Yordamchi", "📊 Reyting", "👨‍💼 Admin Yordami", "ℹ️ WorldSkills Haqida"]
     for btn in buttons:
         kb.row(KeyboardButton(text=btn))
     
@@ -198,7 +191,7 @@ async def proc_prof(cb: CallbackQuery, state: FSMContext):
         f"🔔 <b>Admin xabardor qilindi</b>\n"
         f"🌏 <b>{WORLDSKILLS_INFO['name']}</b>\n\n"
         f"<i>Tasdiqlangandan so'ng SMS xabar yuboriladi</i>\n\n"
-        f"🎯 <b>Mini App orqali ishlaringizni yuklang:</b>",
+        f"🎯 <b>Kerakli bo'limni tanlang:</b>",
         reply_markup=kb.as_markup(resize_keyboard=True),
         parse_mode="HTML"
     )
@@ -221,7 +214,27 @@ async def back_to_lang(cb: CallbackQuery, state: FSMContext):
     await cb.message.answer("📱 <b>Telefon raqamingizni kiriting:</b>\n<i>Masalan: +998 90 123 45 67</i>", parse_mode="HTML")
     await cb.answer()
 
-# ❌ "📱 WorldSkills App" HANDLER O'CHIRILDI - faqat Mini App tugmasi ishlaydi!
+@router.message(F.text == "📱 WorldSkills App")
+async def mini_app(msg: Message):
+    timestamp = int(datetime.now().timestamp())
+    
+    # Inline button with WebAppInfo - bu Mini App'ni ochadi!
+    kb = InlineKeyboardBuilder()
+    kb.button(
+        text="🚀 Mini App'ni Ochish",
+        web_app=WebAppInfo(url=f"{WEBAPP_URL}?t={timestamp}")
+    )
+    kb.adjust(1)
+    
+    await msg.answer(
+        "📱 <b>WorldSkills Mobile App</b>\n\n"
+        "📸 <b>Portfolio yuklash:</b> Ishlaringizni yuklang\n"
+        "📊 <b>Natijalar:</b> Yutuqlaringizni ko'ring\n"
+        "🏆 <b>Sertifikatlar:</b> Yutuq sertifikatlari\n\n"
+        "<i>Quyidagi tugmani bosing:</i>",
+        reply_markup=kb.as_markup(),
+        parse_mode="HTML"
+    )
 
 @router.message(F.text == "📊 Mening Natijalarim")
 async def stats(msg: Message):
@@ -302,14 +315,7 @@ async def ai_exit(msg: Message, state: FSMContext):
     await state.update_data(ai_active=False)
     await state.clear()
     kb = ReplyKeyboardBuilder()
-    buttons = [
-        "📊 Mening Natijalarim",
-        "🏆 Musobaqalar",
-        "🤖 AI Yordamchi",
-        "📊 Reyting",
-        "👨‍💼 Admin Yordami",
-        "ℹ️ WorldSkills Haqida"
-    ]
+    buttons = ["📱 WorldSkills App", "📊 Mening Natijalarim", "🏆 Musobaqalar", "🤖 AI Yordamchi", "📊 Reyting", "👨‍💼 Admin Yordami", "ℹ️ WorldSkills Haqida"]
     for btn in buttons:
         kb.row(KeyboardButton(text=btn))
     await msg.answer(
