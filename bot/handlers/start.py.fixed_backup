@@ -1,7 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 from aiogram import Router, F
 from aiogram.filters import CommandStart
-from aiogram.types import Message, CallbackQuery, WebAppInfo, KeyboardButton
+from aiogram.types import Message, CallbackQuery, WebAppInfo, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -11,7 +11,7 @@ from bot.database.db import get_user, add_user
 import logging, asyncio, re
 
 logger = logging.getLogger(__name__)
-router = Router(name="start")  # ✅ Router nomini qo'shish
+router = Router()
 
 class UserState(StatesGroup):
     waiting_for_fullname = State()
@@ -22,7 +22,7 @@ class UserState(StatesGroup):
 # AI Yordamchi bilimlar bazasi
 AI_KNOWLEDGE_BASE = {
     "worldskills": {
-        "keywords": ["worldskills", "world skills", "chempionat", "musobaqa", "nima", "qanday", "haqida"],
+        "keywords": ["worldskills", "world skills", "chempionat", "musobaqa", "nima", "qanday"],
         "answer": """🏆 <b>WorldSkills</b> - bu jahon kasb mahorati chempionati!
 
 📋 <b>Asosiy ma'lumotlar:</b>
@@ -197,6 +197,7 @@ async def cmd_start(message: Message, state: FSMContext):
     if user:
         timestamp = int(datetime.now().timestamp())
         
+        # Menu button (Mini App)
         kb_menu = InlineKeyboardBuilder()
         kb_menu.button(
             text="🚀 Mini App'ni Ochish",
@@ -204,6 +205,7 @@ async def cmd_start(message: Message, state: FSMContext):
         )
         kb_menu.adjust(1)
         
+        # Text keyboard
         keyboard = ReplyKeyboardBuilder()
         buttons = [
             "📊 Mening Natijalarim",
@@ -237,8 +239,10 @@ async def cmd_start(message: Message, state: FSMContext):
         )
         return
     
+    # Ro'yxatdan o'tmagan foydalanuvchi - Ism so'rash
     await state.clear()
     
+    # Tugma bilan ism yuborish
     kb = ReplyKeyboardBuilder()
     kb.row(KeyboardButton(text="📱 Telefon raqamimni yuborish", request_contact=True))
     kb.row(KeyboardButton(text="✏️ Qo'lda kiritish"))
@@ -255,6 +259,7 @@ async def cmd_start(message: Message, state: FSMContext):
 
 @router.message(UserState.waiting_for_fullname)
 async def proc_name(msg: Message, state: FSMContext):
+    # Agar kontakt bo'lsa
     if msg.contact:
         fullname = msg.contact.first_name
         if msg.contact.last_name:
@@ -268,6 +273,7 @@ async def proc_name(msg: Message, state: FSMContext):
     
     await state.update_data(fullname=fullname)
     
+    # Telefon raqam so'rash - tugma bilan
     kb = ReplyKeyboardBuilder()
     kb.row(KeyboardButton(text="📱 Telefon raqamimni yuborish", request_contact=True))
     kb.row(KeyboardButton(text="✏️ Qo'lda kiritish"))
@@ -285,11 +291,14 @@ async def proc_name(msg: Message, state: FSMContext):
 
 @router.message(UserState.waiting_for_phone)
 async def proc_phone(msg: Message, state: FSMContext):
+    # Agar kontakt bo'lsa
     if msg.contact:
         phone = f"+{msg.contact.phone_number}"
     else:
+        # Qo'lda kiritish
         phone = msg.text.strip()
     
+    # Telefon raqamni tekshirish
     phone_clean = phone.replace(" ", "").replace("-", "")
     if not phone_clean.startswith("+") or len(phone_clean) < 12:
         await msg.answer(
@@ -304,6 +313,7 @@ async def proc_phone(msg: Message, state: FSMContext):
     await state.update_data(phone=phone)
     await state.set_state(UserState.waiting_for_category)
     
+    # Kategoriya tanlash
     kb = InlineKeyboardBuilder()
     for cat_id, cat_name in CATEGORY_MAP.items():
         kb.button(text=cat_name, callback_data=cat_id)
@@ -323,23 +333,29 @@ async def select_category(cb: CallbackQuery, state: FSMContext):
     category_name = CATEGORY_MAP.get(category_id, "Noma'lum")
     await state.update_data(category_id=category_id, category_name=category_name)
     
+    # Kasblarni ko'rsatish (EN + UZ)
     kb = InlineKeyboardBuilder()
     prof_ids = PROFESSIONS_BY_CATEGORY.get(category_id, [])
     
     for prof_id in prof_ids:
         prof_full = PROFESSION_MAP.get(prof_id, "Noma'lum")
+        # Inglizcha va o'zbekcha ko'rsatish
         parts = prof_full.split(" | ")
         if len(parts) == 2:
-            display_text = f"{parts[0]}\n{parts[1]}"
+            en_name = parts[0]
+            uz_name = parts[1]
+            display_text = f"{en_name}\n{uz_name}"
         else:
             display_text = prof_full
+        
         kb.button(text=display_text, callback_data=prof_id)
     
     kb.adjust(1)
     kb.button(text="🔙 Kategoriyaga qaytish", callback_data="back_to_category")
     
     await cb.message.edit_text(
-        f"🎓 <b>{category_name}</b>\n\n<b>Kasbni tanlang (Ingliz + O'zbek):</b>",
+        f"🎓 <b>{category_name}</b>\n\n"
+        f"<b>Kasbni tanlang (Ingliz + O'zbek):</b>",
         reply_markup=kb.as_markup(),
         parse_mode="HTML"
     )
@@ -358,6 +374,7 @@ async def proc_prof(cb: CallbackQuery, state: FSMContext):
     add_user(tid, fullname, phone, profession_full, "uz")
     asyncio.create_task(notify_admin(cb.bot, tid, fullname, profession_full, phone))
     
+    # Asosiy menyu - "WorldSkills App" O'CHIRILDI
     kb = ReplyKeyboardBuilder()
     buttons = [
         "📊 Mening Natijalarim",
@@ -370,6 +387,7 @@ async def proc_prof(cb: CallbackQuery, state: FSMContext):
     for btn in buttons:
         kb.row(KeyboardButton(text=btn))
     
+    # Kasb nomini ko'rsatish
     parts = profession_full.split(" | ")
     display_prof = parts[1] if len(parts) == 2 else parts[0]
     
@@ -406,98 +424,8 @@ async def back_to_name(cb: CallbackQuery, state: FSMContext):
     await cb.message.answer("📱 <b>Telefon raqamingizni kiriting:</b>", reply_markup=kb.as_markup(resize_keyboard=True), parse_mode="HTML")
     await cb.answer()
 
-# ✅ MUKAMMAL HANDLERS - Text.strip() bilan
-
-@router.message(lambda msg: msg.text and msg.text.strip() == "📊 Mening Natijalarim")
-async def stats(msg: Message):
-    try:
-        user = get_user(msg.from_user.id)
-        if user:
-            status_emoji = {"pending":"⏳","approved":"✅","rejected":"❌"}.get(user.get("status"),"⏳")
-            prof_parts = user.get('profession', '').split(' | ')
-            prof_display = prof_parts[1] if len(prof_parts) == 2 else prof_parts[0]
-            
-            await msg.answer(
-                f"📊 <b>Sizning Natijalaringiz</b>\n\n"
-                f"👤 <b>To'liq ism:</b> {user.get('fullname')}\n"
-                f"🎓 <b>Kompetensiya:</b> {prof_display}\n"
-                f"📅 <b>Ro'yxatdan o'tgan:</b> {user.get('registered_at', 'Noma\\lum')}\n"
-                f"📊 <b>Status:</b> {status_emoji} {user.get('status', 'pending').title()}\n"
-                f"⭐ <b>Ball:</b> {user.get('admin_score', 0)}/100\n\n"
-                f"<i>Mini App orqali ishlaringizni yuklang!</i>",
-                parse_mode="HTML"
-            )
-        else:
-            await msg.answer("❌ Foydalanuvchi topilmadi. Iltimos, ro'yxatdan o'ting.", parse_mode="HTML")
-    except Exception as e:
-        logger.error(f"Stats error: {e}")
-        await msg.answer("❌ Xatolik yuz berdi. Keyinroq urinib ko'ring.", parse_mode="HTML")
-
-@router.message(lambda msg: msg.text and msg.text.strip() == "🏆 Musobaqalar")
-async def comp(msg: Message):
-    await msg.answer(
-        f"🏆 <b>{WORLDSKILLS_INFO['name']}</b>\n\n"
-        f"📋 <b>{WORLDSKILLS_INFO['edition']}</b>\n"
-        f"🔄 <b>Davriyligi:</b> {WORLDSKILLS_INFO['frequency']}\n\n"
-        f"🏢 <b>Tashkilotchilar:</b>\n"
-        f"• {WORLDSKILLS_INFO['organizers'][0]}\n"
-        f"• {WORLDSKILLS_INFO['organizers'][1]}\n\n"
-        f"📅 <b>Keyingi bosqichlar:</b>\n"
-        f"• Mintaqaviy bosqich: Tez orada\n"
-        f"• Milliy bosqich: Tez orada\n"
-        f"• Xalqaro bosqich (Shanghai): 2026\n\n"
-        f"<i>Ro'yxatdan o'tgan ishtirokchilarga SMS orqali xabar yuboriladi</i>",
-        parse_mode="HTML"
-    )
-
-@router.message(lambda msg: msg.text and msg.text.strip() == "ℹ️ WorldSkills Haqida")
-async def ws_info(msg: Message):
-    await msg.answer(
-        f"🏆 <b>{WORLDSKILLS_INFO['name']}</b>\n\n"
-        f"📖 <b>Ta'rif:</b>\n{WORLDSKILLS_INFO['description']}\n\n"
-        f"🌍 <b>Ahamiyati:</b>\n{WORLDSKILLS_INFO['significance']}\n\n"
-        f"📋 <b>{WORLDSKILLS_INFO['edition']}</b>\n"
-        f"🔄 <b>Davriyligi:</b> {WORLDSKILLS_INFO['frequency']}\n\n"
-        f"🏢 <b>Tashkilotchilar:</b>\n"
-        f"• {WORLDSKILLS_INFO['organizers'][0]}\n"
-        f"• {WORLDSKILLS_INFO['organizers'][1]}\n\n"
-        f"🎓 <b>64 ta Kompetensiya:</b>\n"
-        f"• 🏭 Ishlab chiqarish va Muhandislik (17 ta)\n"
-        f"• 💻 Axborot va Kommunikatsiya (8 ta)\n"
-        f"• 🏗️ Qurilish va Bino Texnologiyalari (14 ta)\n"
-        f"• 🚚 Transport va Logistika (8 ta)\n"
-        f"• 🎨 Ijodiy San'at va Moda (7 ta)\n"
-        f"• 👥 Ijtimoiy va Shaxsiy Xizmatlar (10 ta)\n\n"
-        f"<i>Rivojlangan davlatlar ushbu chempionatga alohida e'tibor qaratadilar!</i>",
-        parse_mode="HTML"
-    )
-
-@router.message(lambda msg: msg.text and msg.text.strip() == "📊 Reyting")
-async def rating(msg: Message):
-    await msg.answer(
-        "📊 <b>Ishtirokchilar Reytingi</b>\n\n"
-        "🥇 1. Ishtirokchi - 95 ball\n"
-        "🥈 2. Ishtirokchi - 92 ball\n"
-        "🥉 3. Ishtirokchi - 89 ball\n\n"
-        "<i>Reyting admin tomonidan yangilanadi</i>",
-        parse_mode="HTML"
-    )
-
-@router.message(lambda msg: msg.text and msg.text.strip() == "👨‍💼 Admin Yordami")
-async def admin_help(msg: Message):
-    await msg.answer(
-        "👨‍💼 <b>Admin Yordami</b>\n\n"
-        "📞 <b>Aloqa:</b>\n"
-        "• Telegram: @worldskills_admin\n"
-        "• Telefon: +998 71 123 45 67\n"
-        "• Email: info@worldskills.uz\n\n"
-        "🕐 <b>Ish vaqti:</b>\n"
-        "Dushanba - Juma: 9:00 - 18:00\n\n"
-        "<i>Savollaringiz bo'lsa, murojaat qiling!</i>",
-        parse_mode="HTML"
-    )
-
-@router.message(lambda msg: msg.text and msg.text.strip() == "🤖 AI Yordamchi")
+# AI Yordamchi - Mukammal javoblar
+@router.message(F.text == "🤖 AI Yordamchi")
 async def ai_start(msg: Message, state: FSMContext):
     await state.update_data(ai_active=True)
     
@@ -521,7 +449,7 @@ async def ai_start(msg: Message, state: FSMContext):
         parse_mode="HTML"
     )
 
-@router.message(lambda msg: msg.text and msg.text.strip() == "🔙 Bosh Menyu")
+@router.message(F.text == "🔙 Bosh Menyu")
 async def ai_exit(msg: Message, state: FSMContext):
     await state.update_data(ai_active=False)
     await state.clear()
@@ -546,28 +474,31 @@ async def ai_exit(msg: Message, state: FSMContext):
     )
 
 # AI Yordamchi - Savollarga javob berish
-@router.message(lambda msg: msg.text and not msg.text.startswith("/"))
+@router.message(lambda msg: True)
 async def ai_answer(msg: Message, state: FSMContext):
+    # Agar AI yordamchi aktiv bo'lsa
     data = await state.get_data()
     if not data.get("ai_active", False):
         return
     
-    user_text = msg.text.lower().strip()
+    user_text = msg.text.lower()
     
+    # AI bilimlar bazasidan qidirish
     best_match = None
     best_score = 0
     
     for topic, info in AI_KNOWLEDGE_BASE.items():
         for keyword in info["keywords"]:
             if keyword in user_text:
-                score = len(keyword) / max(len(user_text), 1)
+                score = len(keyword) / len(user_text)
                 if score > best_score:
                     best_score = score
                     best_match = info["answer"]
     
-    if best_match and best_score > 0.2:
+    if best_match and best_score > 0.3:
         await msg.answer(best_match, parse_mode="HTML")
     else:
+        # Agar topilmasa
         await msg.answer(
             "🤔 <b>Savolingizni to'liqroq yozing!</b>\n\n"
             "Men quyidagi mavzularda yordam bera olaman:\n\n"
@@ -582,3 +513,86 @@ async def ai_answer(msg: Message, state: FSMContext):
             "<i>Masalan: \"WorldSkills nima?\" yoki \"Qanday ro'yxatdan o'taman?\"</i>",
             parse_mode="HTML"
         )
+
+@router.message(F.text == "📊 Mening Natijalarim")
+async def stats(msg: Message):
+    user = get_user(msg.from_user.id)
+    if user:
+        status_emoji = {"pending":"⏳","approved":"✅","rejected":"❌"}.get(user.get("status"),"⏳")
+        prof_parts = user.get('profession', '').split(' | ')
+        prof_display = prof_parts[1] if len(prof_parts) == 2 else prof_parts[0]
+        
+        await msg.answer(
+            f"📊 <b>Sizning Natijalaringiz</b>\n\n"
+            f"👤 <b>To'liq ism:</b> {user.get('fullname')}\n"
+            f"🎓 <b>Kompetensiya:</b> {prof_display}\n"
+            f"📅 <b>Ro'yxatdan o'tgan:</b> {user.get('registered_at', 'Noma\\lum')}\n"
+            f"📊 <b>Status:</b> {status_emoji} {user.get('status', 'pending').title()}\n"
+            f"⭐ <b>Ball:</b> {user.get('admin_score', 0)}/100\n\n"
+            f"<i>Mini App orqali ishlaringizni yuklang!</i>",
+            parse_mode="HTML"
+        )
+
+@router.message(F.text == "🏆 Musobaqalar")
+async def comp(msg: Message):
+    await msg.answer(
+        f"🏆 <b>{WORLDSKILLS_INFO['name']}</b>\n\n"
+        f"📋 <b>{WORLDSKILLS_INFO['edition']}</b>\n"
+        f"🔄 <b>Davriyligi:</b> {WORLDSKILLS_INFO['frequency']}\n\n"
+        f"🏢 <b>Tashkilotchilar:</b>\n"
+        f"• {WORLDSKILLS_INFO['organizers'][0]}\n"
+        f"• {WORLDSKILLS_INFO['organizers'][1]}\n\n"
+        f"📅 <b>Keyingi bosqichlar:</b>\n"
+        f"• Mintaqaviy bosqich: Tez orada\n"
+        f"• Milliy bosqich: Tez orada\n"
+        f"• Xalqaro bosqich (Shanghai): 2026\n\n"
+        f"<i>Ro'yxatdan o'tgan ishtirokchilarga SMS orqali xabar yuboriladi</i>",
+        parse_mode="HTML"
+    )
+
+@router.message(F.text == "ℹ️ WorldSkills Haqida")
+async def ws_info(msg: Message):
+    await msg.answer(
+        f"🏆 <b>{WORLDSKILLS_INFO['name']}</b>\n\n"
+        f"📖 <b>Ta'rif:</b>\n{WORLDSKILLS_INFO['description']}\n\n"
+        f"🌍 <b>Ahamiyati:</b>\n{WORLDSKILLS_INFO['significance']}\n\n"
+        f"📋 <b>{WORLDSKILLS_INFO['edition']}</b>\n"
+        f"🔄 <b>Davriyligi:</b> {WORLDSKILLS_INFO['frequency']}\n\n"
+        f"🏢 <b>Tashkilotchilar:</b>\n"
+        f"• {WORLDSKILLS_INFO['organizers'][0]}\n"
+        f"• {WORLDSKILLS_INFO['organizers'][1]}\n\n"
+        f"🎓 <b>64 ta Kompetensiya:</b>\n"
+        f"• 🏭 Ishlab chiqarish va Muhandislik (17 ta)\n"
+        f"• 💻 Axborot va Kommunikatsiya (8 ta)\n"
+        f"• 🏗️ Qurilish va Bino Texnologiyalari (14 ta)\n"
+        f"• 🚚 Transport va Logistika (8 ta)\n"
+        f"• 🎨 Ijodiy San'at va Moda (7 ta)\n"
+        f"• 👥 Ijtimoiy va Shaxsiy Xizmatlar (10 ta)\n\n"
+        f"<i>Rivojlangan davlatlar ushbu chempionatga alohida e'tibor qaratadilar!</i>",
+        parse_mode="HTML"
+    )
+
+@router.message(F.text == "📊 Reyting")
+async def rating(msg: Message):
+    await msg.answer(
+        "📊 <b>Ishtirokchilar Reytingi</b>\n\n"
+        "🥇 1. Ishtirokchi - 95 ball\n"
+        "🥈 2. Ishtirokchi - 92 ball\n"
+        "🥉 3. Ishtirokchi - 89 ball\n\n"
+        "<i>Reyting admin tomonidan yangilanadi</i>",
+        parse_mode="HTML"
+    )
+
+@router.message(F.text == "👨‍💼 Admin Yordami")
+async def admin_help(msg: Message):
+    await msg.answer(
+        "👨‍💼 <b>Admin Yordami</b>\n\n"
+        "📞 <b>Aloqa:</b>\n"
+        "• Telegram: @worldskills_admin\n"
+        "• Telefon: +998 71 123 45 67\n"
+        "• Email: info@worldskills.uz\n\n"
+        "🕐 <b>Ish vaqti:</b>\n"
+        "Dushanba - Juma: 9:00 - 18:00\n\n"
+        "<i>Savollaringiz bo'lsa, murojaat qiling!</i>",
+        parse_mode="HTML"
+    )
