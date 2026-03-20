@@ -22,15 +22,11 @@ dp = Dispatcher()
 init_db()
 logger.info("✅ Database initialized")
 
-# Base directory for web_app - works on Render and local
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-WEB_APP_DIR = os.path.join(BASE_DIR, "web_app")
-
-# Flask app with correct static folder
-app = Flask(__name__, static_folder=WEB_APP_DIR, static_url_path="/web_app")
+# Flask app
+app = Flask(__name__)
 CORS(app)
 
-# Health check endpoint for Render
+# Health check endpoint (Render uchun) ✅
 @app.route("/health")
 def health():
     return jsonify({
@@ -39,17 +35,17 @@ def health():
         "timestamp": datetime.now().isoformat()
     }), 200
 
-# Home page - serve index.html from web_app
+# Home page
 @app.route("/")
 def home():
-    return send_from_directory(WEB_APP_DIR, "index.html")
+    return "WorldSkills Bot is running! 🚀"
 
-# Serve web_app static files
+# Web App
 @app.route("/web_app/<path:filename>")
 def serve_web_app(filename):
-    return send_from_directory(WEB_APP_DIR, filename)
+    return send_from_directory("web_app", filename)
 
-# API Register endpoint
+# API Register
 @app.route("/api/register", methods=["POST", "OPTIONS"])
 def register():
     logger.info("🔥 /api/register called")
