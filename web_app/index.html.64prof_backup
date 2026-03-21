@@ -1,0 +1,325 @@
+﻿<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorldSkills Shanghai 2026</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000; color: #fff; padding-bottom: 80px;
+        }
+        .header { 
+            background: linear-gradient(135deg, #fff 0%, #888 100%); 
+            color: #000; padding: 20px; text-align: center; 
+        }
+        .header h1 { font-size: 18px; margin-bottom: 5px; }
+        .header p { font-size: 11px; opacity: 0.9; }
+        .content { padding: 12px; }
+        .card { 
+            background: #111; border: 1px solid #222; 
+            border-radius: 12px; padding: 14px; margin-bottom: 12px; 
+        }
+        .card-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+        .progress-bar { 
+            height: 6px; background: #222; border-radius: 3px; 
+            overflow: hidden; margin-bottom: 10px; 
+        }
+        .progress-fill { 
+            height: 100%; background: linear-gradient(135deg, #fff, #888); 
+            border-radius: 3px; transition: width 0.3s; 
+        }
+        .stats-grid { 
+            display: grid; grid-template-columns: repeat(4, 1fr); 
+            gap: 6px; margin-top: 10px; 
+        }
+        .stat { 
+            background: #0a0a0a; padding: 8px; border-radius: 8px; 
+            text-align: center; 
+        }
+        .stat-num { font-size: 16px; font-weight: 800; display: block; }
+        .stat-num.approved { color: #4CAF50; }
+        .stat-num.pending { color: #FFC107; }
+        .stat-num.rejected { color: #f44336; }
+        .stat-label { font-size: 8px; color: #a0a0a0; }
+        .doc-item { 
+            background: #0a0a0a; border: 1px solid #222; 
+            border-radius: 10px; padding: 12px; margin-bottom: 8px; 
+            cursor: pointer; 
+        }
+        .doc-item:hover { border-color: #444; }
+        .doc-header { 
+            display: flex; justify-content: space-between; 
+            align-items: center; margin-bottom: 6px; 
+        }
+        .doc-title { font-size: 12px; font-weight: 600; }
+        .doc-status { 
+            font-size: 9px; padding: 2px 6px; border-radius: 6px; 
+            background: #111; color: #a0a0a0; 
+        }
+        .doc-status.pending { background: rgba(255,193,7,0.2); color: #FFC107; }
+        .doc-status.approved { background: rgba(76,175,80,0.2); color: #4CAF50; }
+        .doc-meta { font-size: 10px; color: #a0a0a0; margin-bottom: 8px; }
+        .doc-link { 
+            color: #fff; text-decoration: none; font-size: 10px; 
+            display: inline-flex; align-items: center; gap: 3px; 
+        }
+        .doc-btn { 
+            width: 100%; padding: 8px; border: none; 
+            border-radius: 6px; font-size: 10px; font-weight: 600; 
+            cursor: pointer; margin-top: 6px; 
+        }
+        .doc-btn.primary { 
+            background: linear-gradient(135deg, #fff, #888); color: #000; 
+        }
+        .doc-btn.secondary { 
+            background: #111; color: #fff; border: 1px solid #222; 
+        }
+        .info-box { 
+            background: linear-gradient(135deg, #1a1a2e, #16213e); 
+            border: 1px solid #333; padding: 12px; border-radius: 10px; 
+        }
+        .info-box-title { 
+            color: #FFC107; font-size: 13px; font-weight: 700; 
+            margin-bottom: 8px; 
+        }
+        .info-list { 
+            list-style: none; font-size: 10px; color: #a0a0a0; 
+        }
+        .info-list li { 
+            padding: 4px 0; border-bottom: 1px solid #222; 
+        }
+        .info-list li:last-child { border-bottom: none; }
+        .info-list li::before { content: "• "; color: #fff; }
+        .bottom-nav { 
+            position: fixed; bottom: 0; left: 0; right: 0; 
+            background: #0a0a0a; border-top: 1px solid #222; 
+            display: flex; justify-content: space-around; 
+            padding: 8px 5px; 
+        }
+        .nav-item { 
+            flex: 1; display: flex; flex-direction: column; 
+            align-items: center; padding: 5px; cursor: pointer; 
+            color: #a0a0a0; 
+        }
+        .nav-item.active { color: #fff; }
+        .nav-icon { font-size: 18px; margin-bottom: 2px; }
+        .nav-label { font-size: 9px; font-weight: 600; }
+        .section { display: none; }
+        .section.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏆 WorldSkills Shanghai 2026</h1>
+        <p>48-chi Jahon Kasb Chempionati</p>
+        <p id="userGreeting" style="font-size: 10px; margin-top: 5px;">Hujjatlar va Portfolio</p>
+    </div>
+    
+    <div class="content">
+        <!-- Documents Section -->
+        <div id="section-documents" class="section active">
+            <div class="card">
+                <div class="card-title">📄 Rasmiy Hujjatlar</div>
+                <div class="progress-bar"><div class="progress-fill" id="docProgress" style="width: 0%"></div></div>
+                <div class="stats-grid">
+                    <div class="stat"><span class="stat-num approved" id="docApproved">0</span><span class="stat-label">Tasdiq</span></div>
+                    <div class="stat"><span class="stat-num pending" id="docPending">0</span><span class="stat-label">Kutish</span></div>
+                    <div class="stat"><span class="stat-num rejected" id="docRejected">0</span><span class="stat-label">Rad</span></div>
+                    <div class="stat"><span class="stat-num" id="docTotal">9</span><span class="stat-label">Jami</span></div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">📄 my.gov.uz Hujjatlari</div>
+                <div id="docList">
+                    <!-- Hujjatlar shu yerga yuklanadi -->
+                </div>
+            </div>
+            
+            <div class="card info-box">
+                <div class="info-box-title">💡 Muhim</div>
+                <ul class="info-list">
+                    <li>Barcha hujjatlar <b>A4 formatda PDF</b> bo'lishi kerak</li>
+                    <li>my.gov.uz hujjatlarida <b>QR kod</b> bo'lishi shart</li>
+                    <li>Hujjat muddati <b>30 kundan kam</b> qolmagan bo'lsin</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Portfolio Section -->
+        <div id="section-portfolio" class="section">
+            <div class="card">
+                <div class="card-title">💼 Portfolio (Kasb Ishlari)</div>
+                <p style="font-size: 11px; color: #a0a0a0; text-align: center; padding: 20px;">
+                    🎓 Avval kasbingizni tanlang<br><br>
+                    <button class="doc-btn primary" onclick="alert('Kasb tanlash tez orada qo\'shiladi')">
+                        🔍 Kasblar Ro'yxati
+                    </button>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Stats Section -->
+        <div id="section-stats" class="section">
+            <div class="card">
+                <div class="card-title">📊 Umumiy Statistika</div>
+                <p style="font-size: 11px; color: #a0a0a0; text-align: center; padding: 20px;">
+                    Tez orada yangilanadi...
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="showSection('section-documents', this)">
+            <div class="nav-icon">📄</div>
+            <div class="nav-label">Hujjatlar</div>
+        </div>
+        <div class="nav-item" onclick="showSection('section-portfolio', this)">
+            <div class="nav-icon">💼</div>
+            <div class="nav-label">Ishlar</div>
+        </div>
+        <div class="nav-item" onclick="showSection('section-stats', this)">
+            <div class="nav-icon">📊</div>
+            <div class="nav-label">Statistika</div>
+        </div>
+    </div>
+
+    <script>
+        console.log('✅ Script yuklandi!');
+        
+        // Hujjatlar ro'yxati
+        const officialDocuments = [
+            { id: 'doc_1', icon: '🧾', title: 'Sudlanganlik haqida', link: 'https://my.gov.uz/uz/service/135', format: 'PDF, A4', maxAge: 30 },
+            { id: 'doc_2', icon: '🏠', title: 'Yashash joyi', link: 'https://my.gov.uz/uz/service/367', format: 'PDF, A4', maxAge: 30 },
+            { id: 'doc_3', icon: '💼', title: 'Mehnat faoliyati (inglizcha)', link: 'https://my.gov.uz/uz/service/496', format: 'PDF, A4', maxAge: 30 },
+            { id: 'doc_4', icon: '🎓', title: "O'qish joyidan", link: 'https://my.gov.uz/uz/service/323', format: 'PDF, A4', maxAge: 30 },
+            { id: 'doc_5', icon: '🚫', title: 'Chiqishga cheklov yo\'q', link: 'https://my.gov.uz/uz/service/412', format: 'PDF, A4', maxAge: 7 },
+            { id: 'doc_6', icon: '💰', title: 'Daromad (inglizcha)', link: 'https://my.gov.uz/uz/service/263', format: 'PDF, A4', maxAge: 30 },
+            { id: 'doc_7', icon: '🧾', title: 'PNFL (Soliq ID)', link: 'https://my.gov.uz/uz/service/65', format: 'PDF, A4', maxAge: null },
+            { id: 'doc_8', icon: '📑', title: 'Nikoh/ajrashish', link: 'https://my.gov.uz/uz/service/112', format: 'PDF, A4', maxAge: 30 },
+            { id: 'doc_9', icon: '🆔', title: 'ID karta', link: 'https://id.gov.uz', format: 'PDF, A4', maxAge: null }
+        ];
+        
+        console.log('✅ Hujjatlar soni:', officialDocuments.length);
+        
+        let userData = {
+            fullName: '',
+            phone: '',
+            documents: {}
+        };
+        
+        // Sahifa yuklanganda
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ DOM yuklandi!');
+            try {
+                const tg = window.Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+                
+                loadUserData();
+                renderDocuments();
+                updateProgress();
+                
+                console.log('✅ Barcha funksiyalar ishladi!');
+            } catch(err) {
+                console.error('❌ Xatolik:', err);
+            }
+        });
+        
+        function loadUserData() {
+            try {
+                const saved = localStorage.getItem('worldskills_user');
+                if(saved) {
+                    userData = JSON.parse(saved);
+                    if(userData.fullName) {
+                        document.getElementById('userGreeting').textContent = userData.fullName;
+                    }
+                }
+            } catch(err) {
+                console.error('loadUserData xatosi:', err);
+            }
+        }
+        
+        function renderDocuments() {
+            console.log('📄 renderDocuments ishga tushdi');
+            try {
+                const container = document.getElementById('docList');
+                if(!container) {
+                    console.error('❌ docList elementi topilmadi!');
+                    return;
+                }
+                
+                let html = '';
+                officialDocuments.forEach(doc => {
+                    const docData = userData.documents[doc.id] || {};
+                    const status = docData.status || 'upload';
+                    const statusText = {
+                        'upload': '⏹️ Yuklash',
+                        'pending': '⏳ Ko\'rib chiqilmoqda',
+                        'approved': '✅ Tasdiqlandi',
+                        'rejected': '❌ Qayta yuklang'
+                    }[status];
+                    
+                    html += `
+                    <div class="doc-item" onclick="openDocModal('${doc.id}')">
+                        <div class="doc-header">
+                            <div class="doc-title">${doc.icon} ${doc.title}</div>
+                            <div class="doc-status ${status}">${statusText}</div>
+                        </div>
+                        <div class="doc-meta">
+                            📄 ${doc.format} ${doc.maxAge ? '• ⏱️ ' + doc.maxAge + ' kun' : '• ♾️ Muddatsiz'}
+                        </div>
+                        <a href="${doc.link}" class="doc-link" target="_blank" onclick="event.stopPropagation()">
+                            🔗 my.gov.uz dan olish →
+                        </a>
+                        <button class="doc-btn ${status === 'upload' ? 'primary' : 'secondary'}" onclick="event.stopPropagation(); openDocModal('${doc.id}')">
+                            ${status === 'upload' ? '📎 Yuklash' : '👁️ Ko\'rish'}
+                        </button>
+                    </div>`;
+                });
+                
+                container.innerHTML = html;
+                console.log('✅ Hujjatlar render qilindi:', html.length, 'belgi');
+            } catch(err) {
+                console.error('❌ renderDocuments xatosi:', err);
+            }
+        }
+        
+        function updateProgress() {
+            try {
+                const total = officialDocuments.length;
+                const approved = Object.values(userData.documents).filter(d => d.status === 'approved').length;
+                const percent = Math.round((approved / total) * 100);
+                
+                document.getElementById('docProgress').style.width = percent + '%';
+                document.getElementById('docApproved').textContent = approved;
+                document.getElementById('docTotal').textContent = total;
+            } catch(err) {
+                console.error('updateProgress xatosi:', err);
+            }
+        }
+        
+        function showSection(sectionId, navItem) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if(navItem) navItem.classList.add('active');
+        }
+        
+        function openDocModal(docId) {
+            const doc = officialDocuments.find(d => d.id === docId);
+            if(!doc) return;
+            
+            alert(`${doc.title}\n\nLink: ${doc.link}\n\nTez orada upload modal ochiladi!`);
+        }
+        
+        console.log('✅ Barcha funksiyalar yuklandi!');
+    </script>
+</body>
+</html>
