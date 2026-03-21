@@ -2,11 +2,11 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WorldSkills Shanghai 2026</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --bg-primary: #000000; --bg-secondary: #0a0a0a; --bg-card: #111111;
             --text-primary: #ffffff; --text-secondary: #a0a0a0; --border: #222222;
@@ -16,429 +16,77 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-primary); color: var(--text-primary);
-            min-height: 100vh; overflow-x: hidden; position: relative;
-            font-size: 14px; line-height: 1.5;
+            min-height: 100vh; overflow-x: hidden; position: relative; font-size: 14px;
         }
         .rain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.08; }
         .raindrop { position: absolute; width: 1px; height: 15px; background: linear-gradient(to bottom, transparent, var(--accent)); animation: fall linear infinite; }
         @keyframes fall { to { transform: translateY(100vh); } }
-        
-        /* Header */
         .header { background: var(--gradient); color: #000; padding: 30px 20px; text-align: center; position: relative; z-index: 1; }
         .header h1 { font-size: 22px; margin-bottom: 5px; font-weight: 800; }
         .header p { opacity: 0.9; font-size: 12px; }
-        .header-subtitle { font-size: 11px; opacity: 0.8; margin-top: 8px; }
-        
-        /* Content */
         .content { position: relative; z-index: 1; padding: 15px; padding-bottom: 90px; }
-        
-        /* Cards */
-        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 15px; animation: slideUp 0.5s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .card-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        
-        /* Progress */
-        .progress-container { margin-bottom: 20px; }
-        .progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; }
-        .progress-bar { height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--gradient); border-radius: 4px; transition: width 0.5s ease; }
-        .progress-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
-        .progress-stat { text-align: center; padding: 10px 5px; background: var(--bg-secondary); border-radius: 10px; }
-        .progress-stat-number { font-size: 18px; font-weight: 800; display: block; }
-        .progress-stat-label { font-size: 9px; color: var(--text-secondary); }
-        .progress-stat.approved .progress-stat-number { color: var(--success); }
-        .progress-stat.pending .progress-stat-number { color: var(--warning); }
-        .progress-stat.rejected .progress-stat-number { color: var(--error); }
-        
-        /* Document List */
-        .doc-list { display: flex; flex-direction: column; gap: 10px; }
-        .doc-item { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 14px; cursor: pointer; transition: all 0.2s; }
-        .doc-item:hover { border-color: #444; transform: translateX(4px); }
-        .doc-item.completed { border-left: 3px solid var(--success); }
-        .doc-item.pending { border-left: 3px solid var(--warning); }
-        .doc-item.rejected { border-left: 3px solid var(--error); }
-        .doc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-        .doc-title { font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px; }
-        .doc-status { font-size: 10px; padding: 3px 8px; border-radius: 10px; font-weight: 600; }
-        .doc-status.pending { background: rgba(255,193,7,0.2); color: var(--warning); }
-        .doc-status.approved { background: rgba(76,175,80,0.2); color: var(--success); }
-        .doc-status.rejected { background: rgba(244,67,54,0.2); color: var(--error); }
-        .doc-status.upload { background: var(--bg-card); color: var(--text-secondary); }
-        .doc-meta { font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; }
-        .doc-link { color: var(--accent); text-decoration: none; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; }
-        .doc-link:hover { text-decoration: underline; }
-        .doc-actions { display: flex; gap: 8px; }
-        .doc-btn { flex: 1; padding: 8px 12px; border: none; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .doc-btn.primary { background: var(--gradient); color: #000; }
-        .doc-btn.secondary { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); }
-        .doc-btn:active { transform: scale(0.98); }
-        .doc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        /* Modal */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: flex-end; }
-        .modal.active { display: flex; }
-        .modal-content { background: var(--bg-card); border-radius: 20px 20px 0 0; width: 100%; max-height: 90vh; overflow-y: auto; padding: 20px; animation: slideUp 0.3s ease; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
-        .modal-title { font-size: 16px; font-weight: 700; }
-        .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; padding: 5px; }
-        .modal-section { margin-bottom: 20px; }
-        .modal-section-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: var(--text-secondary); }
-        .sample-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .sample-item { background: var(--bg-secondary); border-radius: 10px; padding: 10px; text-align: center; }
-        .sample-img { width: 100%; height: 80px; background: var(--bg-primary); border-radius: 6px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
-        .sample-label { font-size: 10px; font-weight: 600; }
-        .sample-label.good { color: var(--success); }
-        .sample-label.bad { color: var(--error); }
-        .requirements-list { list-style: none; }
-        .requirements-list li { font-size: 12px; padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 8px; }
-        .requirements-list li:last-child { border-bottom: none; }
-        .requirements-list li::before { content: "•"; color: var(--accent); font-weight: bold; }
-        .upload-area { border: 2px dashed var(--border); border-radius: 12px; padding: 25px 15px; text-align: center; cursor: pointer; transition: all 0.2s; margin: 15px 0; }
-        .upload-area:hover { border-color: var(--accent); background: rgba(255,255,255,0.05); }
-        .upload-icon { font-size: 40px; margin-bottom: 10px; animation: bounce 2s infinite; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-        .upload-text { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-        .upload-hint { font-size: 10px; color: var(--text-secondary); }
-        #fileInput { display: none; }
-        .file-preview { margin-top: 15px; padding: 12px; background: var(--bg-secondary); border-radius: 10px; display: none; }
-        .file-preview.active { display: block; }
-        .file-preview-name { font-size: 12px; font-weight: 600; margin-bottom: 4px; word-break: break-all; }
-        .file-preview-size { font-size: 10px; color: var(--text-secondary); }
-        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-        .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; }
-        .modal-btn.primary { background: var(--gradient); color: #000; }
-        .modal-btn.secondary { background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border); }
-        
-        /* Bottom Nav */
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 15px; }
+        .card-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-secondary); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 5px; z-index: 1000; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 6px 2px; cursor: pointer; color: var(--text-secondary); transition: all 0.2s; }
         .nav-item.active { color: var(--text-primary); }
         .nav-icon { font-size: 20px; margin-bottom: 3px; }
         .nav-label { font-size: 10px; font-weight: 600; }
-        
-        /* Sections */
         .section { display: none; }
-        .section.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        /* Responsive */
-        @media (min-width: 600px) {
-            .sample-grid { grid-template-columns: repeat(4, 1fr); }
-            .progress-stats { grid-template-columns: repeat(4, 1fr); }
-        }
-        
-        /* Animations */
-        .pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-        .shake { animation: shake 0.5s ease; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+        .section.active { display: block; }
     </style>
 </head>
 <body>
-    <!-- Rain Effect -->
     <div class="rain" id="rain"></div>
-
-    <!-- Header -->
     <div class="header">
         <h1>🏆 WorldSkills Shanghai 2026</h1>
-        <p>48-chi Jahon Kasb Chempionati</p>
-        <div class="header-subtitle" id="userGreeting">Chet elga chiqish hujjatlari</div>
+        <p id="userGreeting">Chet elga chiqish va portfolio</p>
     </div>
-
-    <!-- Content -->
     <div class="content">
         <!-- Documents Section -->
-        <div id="section-documents" class="section active">
-            <!-- Progress -->
-            <div class="card progress-container">
-                <div class="progress-header">
-                    <span>📋 Hujjatlar to'liqligi</span>
-                    <span id="progressPercent">0%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-                </div>
-                <div class="progress-stats">
-                    <div class="progress-stat approved">
-                        <span class="progress-stat-number" id="countApproved">0</span>
-                        <span class="progress-stat-label">✅ Tasdiq</span>
-                    </div>
-                    <div class="progress-stat pending">
-                        <span class="progress-stat-number" id="countPending">0</span>
-                        <span class="progress-stat-label">⏳ Kutish</span>
-                    </div>
-                    <div class="progress-stat rejected">
-                        <span class="progress-stat-number" id="countRejected">0</span>
-                        <span class="progress-stat-label">❌ Rad</span>
-                    </div>
-                    <div class="progress-stat">
-                        <span class="progress-stat-number" id="countTotal">9</span>
-                        <span class="progress-stat-label">📄 Jami</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Document List -->
+        <div id="section-documents" class="section">
             <div class="card">
-                <div class="card-title">📄 Kerakli Hujjatlar (my.gov.uz)</div>
-                <div class="doc-list" id="docList"></div>
-            </div>
-
-            <!-- Info Card -->
-            <div class="card" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-color: #333;">
-                <div class="card-title" style="color: var(--warning);">💡 Muhim Maslahatlar</div>
-                <ul class="requirements-list" style="font-size: 11px; color: var(--text-secondary);">
-                    <li>Barcha hujjatlar <b>A4 formatda</b> va <b>PDF</b> bo'lishi kerak</li>
-                    <li>Skanerlangan nusxalar <b>aniq o'qiladigan</b> bo'lsin</li>
-                    <li>Hujjat muddati <b>30 kundan kam</b> qolmagan bo'lsin</li>
-                    <li>my.gov.uz dan olingan hujjatlarda <b>QR kod</b> bo'lishi shart</li>
-                </ul>
+                <div class="card-title">📄 Rasmiy Hujjatlar (my.gov.uz)</div>
+                <p style="color:var(--text-secondary);font-size:12px;">9 ta rasmiy hujjat ro'yxati...</p>
             </div>
         </div>
-
-        <!-- Registration Section (existing) -->
-        <div id="section-register" class="section">
+        <!-- Portfolio Section -->
+        <div id="section-portfolio" class="section active">
             <div class="card">
-                <div class="card-title">📝 Ro'yxatdan O'tish</div>
-                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px;">
-                    Ism va telefon raqamingizni kiriting
-                </div>
-                <input type="text" class="form-input" id="fullName" placeholder="To'liq ism" style="width:100%;padding:12px;margin-bottom:10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);">
-                <input type="tel" class="form-input" id="phone" placeholder="+998 90 123 45 67" style="width:100%;padding:12px;margin-bottom:15px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);">
-                <button class="btn" onclick="registerUser()" style="width:100%;padding:14px;background:var(--gradient);color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer;">Ro'yxatdan O'tish</button>
+                <div class="card-title">💼 Kasb Ishlari (Portfolio)</div>
+                <p style="color:var(--text-secondary);font-size:12px;">Tanlangan kasb bo'yicha ish namunalari...</p>
+                <div id="portfolioList"></div>
             </div>
         </div>
-
-        <!-- Statistics Section (existing) -->
-        <div id="section-statistics" class="section">
+        <!-- Stats Section -->
+        <div id="section-stats" class="section">
             <div class="card">
-                <div class="card-title">📈 Statistikangiz</div>
-                <div style="text-align:center;padding:20px;color:var(--text-secondary);">
-                    Tez orada yangilanadi...
-                </div>
+                <div class="card-title">📊 Umumiy Statistika</div>
+                <p style="color:var(--text-secondary);font-size:12px;">Hujjatlar + Portfolio progress...</p>
             </div>
         </div>
     </div>
-
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav" id="bottomNav">
-        <div class="nav-item active" onclick="showSection('section-documents')">
+    <!-- ✅ 3 TA BOTTOM NAVIGATION -->
+    <div class="bottom-nav">
+        <div class="nav-item" onclick="showSection('section-documents')">
             <div class="nav-icon">📄</div>
             <div class="nav-label">Hujjatlar</div>
         </div>
-        <div class="nav-item" onclick="showSection('section-statistics')">
+        <div class="nav-item active" onclick="showSection('section-portfolio')">
+            <div class="nav-icon">💼</div>
+            <div class="nav-label">Ishlar</div>
+        </div>
+        <div class="nav-item" onclick="showSection('section-stats')">
             <div class="nav-icon">📊</div>
             <div class="nav-label">Statistika</div>
         </div>
-        <div class="nav-item" onclick="Telegram.WebApp.openLink('https://worldskills-bot.onrender.com')">
-            <div class="nav-icon">🏠</div>
-            <div class="nav-label">Bosh Sahifa</div>
-        </div>
     </div>
-
-    <!-- Document Modal -->
-    <div class="modal" id="docModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title" id="modalDocTitle">Hujjat</div>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
-            </div>
-            
-            <div class="modal-section">
-                <div class="modal-section-title">🔗 Qayerdan olish</div>
-                <a href="#" id="modalDocLink" class="doc-link" target="_blank" style="font-size:12px;">
-                    my.gov.uz ga o'tish →
-                </a>
-            </div>
-            
-            <div class="modal-section">
-                <div class="modal-section-title">📋 Talablar</div>
-                <ul class="requirements-list" id="modalRequirements"></ul>
-            </div>
-            
-            <div class="modal-section">
-                <div class="modal-section-title">📸 Namuna (qanday bo'lishi kerak)</div>
-                <div class="sample-grid">
-                    <div class="sample-item">
-                        <div class="sample-img" style="background:linear-gradient(135deg,#1a472a,#2d5a3d);">✅</div>
-                        <div class="sample-label good">To'g'ri</div>
-                    </div>
-                    <div class="sample-item">
-                        <div class="sample-img" style="background:linear-gradient(135deg,#471a1a,#5a2d2d);">❌</div>
-                        <div class="sample-label bad">Noto'g'ri</div>
-                    </div>
-                </div>
-                <div style="font-size:10px;color:var(--text-secondary);margin-top:8px;text-align:center;">
-                    ✅ Aniq, A4, barcha ma'lumotlar ko'rinadi<br>
-                    ❌ Xira, qirqilgan, o'qib bo'lmaydi
-                </div>
-            </div>
-            
-            <div class="modal-section">
-                <div class="modal-section-title">📎 Hujjatni yuklash (PDF)</div>
-                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                    <div class="upload-icon">📎</div>
-                    <div class="upload-text">PDF faylni tanlang</div>
-                    <div class="upload-hint">Max 10 MB • Faqat PDF</div>
-                </div>
-                <input type="file" id="fileInput" accept=".pdf" onchange="handleFileSelect(event)">
-                <div class="file-preview" id="filePreview">
-                    <div class="file-preview-name" id="fileName">file.pdf</div>
-                    <div class="file-preview-size" id="fileSize">0 MB</div>
-                </div>
-            </div>
-            
-            <div class="modal-actions">
-                <button class="modal-btn secondary" onclick="closeModal()">Bekor qilish</button>
-                <button class="modal-btn primary" id="uploadBtn" onclick="uploadDocument()" disabled>Yuklash</button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // ====== DATA ======
-        const documents = [
-            {
-                id: 'doc_1',
-                icon: '🧾',
-                title: 'Sudlanganlik haqida ma\'lumotnoma',
-                link: 'https://my.gov.uz/uz/service/135',
-                requirements: [
-                    'OneID orqali kirish kerak',
-                    'Ingliz tilida so\'rashingiz mumkin',
-                    'Muddati: 30 kun',
-                    'QR kod bo\'lishi shart'
-                ],
-                format: 'PDF, A4',
-                maxAge: 30
-            },
-            {
-                id: 'doc_2',
-                icon: '🏠',
-                title: 'Yashash joyi bo\'yicha ma\'lumotnoma',
-                link: 'https://my.gov.uz/uz/service/367',
-                requirements: [
-                    'Pasport ma\'lumotlari kerak',
-                    'Doimiy yashash manzili ko\'rsatilishi kerak',
-                    'Muddati: 30 kun'
-                ],
-                format: 'PDF, A4',
-                maxAge: 30
-            },
-            {
-                id: 'doc_3',
-                icon: '💼',
-                title: 'Mehnаt faoliyati (inglizcha)',
-                link: 'https://my.gov.uz/uz/service/496',
-                requirements: [
-                    'Ingliz tilida so\'rang',
-                    'Barcha ish joylari ko\'rsatilishi kerak',
-                    'Imzo va muhr bo\'lishi kerak'
-                ],
-                format: 'PDF, A4',
-                maxAge: 30
-            },
-            {
-                id: 'doc_4',
-                icon: '🎓',
-                title: 'O\'qish joyidan ma\'lumotnoma',
-                link: 'https://my.gov.uz/uz/service/323',
-                requirements: [
-                    'O\'quv yurti muhri va imzosi',
-                    'Talaba ekanligi tasdiqlangan bo\'lishi kerak',
-                    'Muddati: 30 kun'
-                ],
-                format: 'PDF, A4',
-                maxAge: 30
-            },
-            {
-                id: 'doc_5',
-                icon: '🚫',
-                title: 'Chiqishga cheklov yo\'qligi',
-                link: 'https://my.gov.uz/uz/service/412',
-                requirements: [
-                    'Pasport ma\'lumotlari bilan tekshiriladi',
-                    'Darhol beriladi',
-                    'QR kod bo\'lishi kerak'
-                ],
-                format: 'PDF, A4',
-                maxAge: 7
-            },
-            {
-                id: 'doc_6',
-                icon: '💰',
-                title: 'Daromad ma\'lumotnomasi (inglizcha)',
-                link: 'https://my.gov.uz/uz/service/263',
-                requirements: [
-                    'Ingliz tilida so\'rang (INCOME STATEMENT)',
-                    'Oxirgi 6 oylik ma\'lumot',
-                    'Rasmiy muhr va imzo'
-                ],
-                format: 'PDF, A4',
-                maxAge: 30
-            },
-            {
-                id: 'doc_7',
-                icon: '🧾',
-                title: 'PNFL (Soliq ID raqami)',
-                link: 'https://my.gov.uz/uz/service/65',
-                requirements: [
-                    'Shaxsiy kabinetdan yuklab olish',
-                    'QR kod bilan tasdiqlangan',
-                    'Muddatsiz'
-                ],
-                format: 'PDF, A4',
-                maxAge: null
-            },
-            {
-                id: 'doc_8',
-                icon: '📑',
-                title: 'Nikoh/ajrashish ma\'lumotnomasi',
-                link: 'https://my.gov.uz/uz/service/112',
-                requirements: [
-                    'FHDYo dan olingan bo\'lishi kerak',
-                    'Muhrlangan va imzolangan',
-                    'Muddati: 30 kun'
-                ],
-                format: 'PDF, A4',
-                maxAge: 30
-            },
-            {
-                id: 'doc_9',
-                icon: '🆔',
-                title: 'ID karta (ikki tomoni)',
-                link: 'https://id.gov.uz',
-                requirements: [
-                    'Old va orqa tomoni alohida A4 da',
-                    'Barcha ma\'lumotlar o\'qiladigan',
-                    'Muddati o\'tmagan bo\'lishi kerak'
-                ],
-                format: 'PDF, A4 (2 sahifa)',
-                maxAge: null
-            }
-        ];
-
-        let userData = {
-            fullName: '',
-            phone: '',
-            documents: {} // { docId: { status: 'pending'|'approved'|'rejected', file: {...}, uploadedAt: '' } }
-        };
-        let currentDocId = null;
-        let selectedFile = null;
-
-        // ====== INIT ======
         document.addEventListener('DOMContentLoaded', () => {
             const tg = window.Telegram.WebApp;
-            tg.ready();
-            tg.expand();
-            tg.enableClosingConfirmation();
-            
+            tg.ready(); tg.expand();
             createRain();
-            loadUserData();
-            renderDocuments();
-            updateProgress();
         });
-
         function createRain() {
             const rain = document.getElementById('rain');
             for(let i=0; i<40; i++) {
@@ -446,208 +94,15 @@
                 drop.className = 'raindrop';
                 drop.style.left = Math.random()*100+'%';
                 drop.style.animationDuration = (Math.random()*2+1)+'s';
-                drop.style.animationDelay = Math.random()*2+'s';
                 rain.appendChild(drop);
             }
         }
-
-        function loadUserData() {
-            const saved = localStorage.getItem('worldskills_user');
-            if(saved) {
-                userData = JSON.parse(saved);
-                if(userData.fullName) {
-                    document.getElementById('userGreeting').textContent = `${userData.fullName} • Hujjatlar`;
-                    document.getElementById('bottomNav').style.display = 'flex';
-                    document.getElementById('section-register').classList.remove('active');
-                    document.getElementById('section-documents').classList.add('active');
-                }
-            }
-        }
-
-        function saveUserData() {
-            localStorage.setItem('worldskills_user', JSON.stringify(userData));
-        }
-
-        // ====== RENDER ======
-        function renderDocuments() {
-            const container = document.getElementById('docList');
-            container.innerHTML = documents.map(doc => {
-                const docData = userData.documents[doc.id] || {};
-                const status = docData.status || 'upload';
-                const statusText = {
-                    'upload': '⏹️ Yuklash',
-                    'pending': '⏳ Ko\'rib chiqilmoqda',
-                    'approved': '✅ Tasdiqlandi',
-                    'rejected': '❌ Qayta yuklang'
-                }[status];
-                
-                return `
-                <div class="doc-item ${status}" onclick="openDocModal('${doc.id}')">
-                    <div class="doc-header">
-                        <div class="doc-title">${doc.icon} ${doc.title}</div>
-                        <div class="doc-status ${status}">${statusText}</div>
-                    </div>
-                    <div class="doc-meta">
-                        <div>📄 Format: ${doc.format}</div>
-                        ${doc.maxAge ? `<div>⏱️ Muddati: ${doc.maxAge} kun</div>` : '<div>♾️ Muddatsiz</div>'}
-                    </div>
-                    <a href="${doc.link}" class="doc-link" target="_blank" onclick="event.stopPropagation()">
-                        🔗 my.gov.uz dan olish →
-                    </a>
-                    <div class="doc-actions" style="margin-top:10px;">
-                        <button class="doc-btn secondary" onclick="event.stopPropagation(); openDocModal('${doc.id}')">
-                            ${status === 'upload' ? '📎 Yuklash' : '👁️ Ko\'rish'}
-                        </button>
-                        ${status === 'rejected' ? `<button class="doc-btn primary" onclick="event.stopPropagation(); openDocModal('${doc.id}')">🔄 Qayta yuklash</button>` : ''}
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function updateProgress() {
-            const total = documents.length;
-            const approved = Object.values(userData.documents).filter(d => d.status === 'approved').length;
-            const pending = Object.values(userData.documents).filter(d => d.status === 'pending').length;
-            const rejected = Object.values(userData.documents).filter(d => d.status === 'rejected').length;
-            
-            const percent = Math.round((approved / total) * 100);
-            
-            document.getElementById('progressFill').style.width = percent + '%';
-            document.getElementById('progressPercent').textContent = percent + '%';
-            document.getElementById('countApproved').textContent = approved;
-            document.getElementById('countPending').textContent = pending;
-            document.getElementById('countRejected').textContent = rejected;
-            document.getElementById('countTotal').textContent = total;
-        }
-
-        // ====== MODAL ======
-        function openDocModal(docId) {
-            const doc = documents.find(d => d.id === docId);
-            if(!doc) return;
-            
-            currentDocId = docId;
-            selectedFile = null;
-            
-            document.getElementById('modalDocTitle').textContent = doc.title;
-            document.getElementById('modalDocLink').href = doc.link;
-            document.getElementById('modalRequirements').innerHTML = doc.requirements.map(r => `<li>${r}</li>`).join('');
-            document.getElementById('filePreview').classList.remove('active');
-            document.getElementById('uploadBtn').disabled = true;
-            
-            // Show current status
-            const docData = userData.documents[docId];
-            if(docData?.status === 'approved') {
-                document.getElementById('uploadBtn').textContent = '✅ Tasdiqlandi';
-                document.getElementById('uploadBtn').disabled = true;
-            } else if(docData?.status === 'pending') {
-                document.getElementById('uploadBtn').textContent = '⏳ Ko\'rib chiqilmoqda';
-                document.getElementById('uploadBtn').disabled = true;
-            } else {
-                document.getElementById('uploadBtn').textContent = '📤 Yuklash';
-                document.getElementById('uploadBtn').disabled = true;
-            }
-            
-            document.getElementById('docModal').classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('docModal').classList.remove('active');
-            currentDocId = null;
-            selectedFile = null;
-        }
-
-        // ====== FILE UPLOAD ======
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if(!file) return;
-            
-            if(file.type !== 'application/pdf') {
-                alert('❌ Faqat PDF fayllar qabul qilinadi!');
-                event.target.value = '';
-                return;
-            }
-            if(file.size > 10 * 1024 * 1024) {
-                alert('❌ Fayl hajmi 10 MB dan oshmasligi kerak!');
-                event.target.value = '';
-                return;
-            }
-            
-            selectedFile = file;
-            document.getElementById('fileName').textContent = file.name;
-            document.getElementById('fileSize').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
-            document.getElementById('filePreview').classList.add('active');
-            document.getElementById('uploadBtn').disabled = false;
-            document.getElementById('uploadBtn').textContent = '📤 Yuklash';
-        }
-
-        async function uploadDocument() {
-            if(!currentDocId || !selectedFile) return;
-            
-            const btn = document.getElementById('uploadBtn');
-            btn.disabled = true;
-            btn.textContent = '⏳ Yuklanmoqda...';
-            
-            try {
-                // Simulate upload to backend
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                // Save to local storage (in production: send to server)
-                userData.documents[currentDocId] = {
-                    status: 'pending',
-                    fileName: selectedFile.name,
-                    fileSize: selectedFile.size,
-                    uploadedAt: new Date().toISOString()
-                };
-                saveUserData();
-                
-                // Update UI
-                renderDocuments();
-                updateProgress();
-                closeModal();
-                
-                // Show success
-                Telegram.WebApp.showPopup({
-                    title: '✅ Muvaffaqiyatli!',
-                    message: 'Hujjatingiz yuklandi va admin ko\'rib chiqadi. Natija 1-3 kun ichida ma\'lum bo\'ladi.',
-                    buttons: [{ type: 'ok' }]
-                });
-                
-            } catch(err) {
-                console.error('Upload error:', err);
-                alert('❌ Yuklashda xatolik yuz berdi. Qaytadan urinib ko\'ring.');
-                btn.disabled = false;
-                btn.textContent = '📤 Yuklash';
-            }
-        }
-
-        // ====== NAVIGATION ======
-        function showSection(sectionId) {
+        function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(sectionId).classList.add('active');
+            document.getElementById(id).classList.add('active');
             event.currentTarget.classList.add('active');
         }
-
-        function registerUser() {
-            const fullName = document.getElementById('fullName').value.trim();
-            const phone = document.getElementById('phone').value.trim();
-            if(!fullName || !phone) { alert('Iltimos, barcha maydonlarni to\'ldiring!'); return; }
-            
-            userData.fullName = fullName;
-            userData.phone = phone;
-            saveUserData();
-            
-            document.getElementById('userGreeting').textContent = `${fullName} • Hujjatlar`;
-            document.getElementById('bottomNav').style.display = 'flex';
-            document.getElementById('section-register').classList.remove('active');
-            document.getElementById('section-documents').classList.add('active');
-            renderDocuments();
-        }
-
-        // Close modal on outside click
-        document.getElementById('docModal').addEventListener('click', (e) => {
-            if(e.target.id === 'docModal') closeModal();
-        });
     </script>
 </body>
 </html>
