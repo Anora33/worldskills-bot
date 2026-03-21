@@ -1,0 +1,751 @@
+﻿<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorldSkills Shanghai 2026</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
+            --bg-card: #111111;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border: #222222;
+            --accent: #ffffff;
+            --success: #4CAF50;
+            --error: #f44336;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Rain Effect */
+        .rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.1;
+        }
+
+        .raindrop {
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: linear-gradient(to bottom, transparent, var(--accent));
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh); }
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+            color: #000;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        /* Content */
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255,255,255,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            color: #000;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* Categories */
+        .category-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category-item:hover {
+            border-color: #444;
+            transform: translateX(8px);
+        }
+
+        .category-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .category-name {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .category-count {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Professions */
+        .profession-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .profession-item:hover {
+            border-color: var(--success);
+            transform: translateX(5px);
+        }
+
+        .profession-en {
+            font-weight: 600;
+            color: var(--success);
+            margin-bottom: 3px;
+        }
+
+        .profession-uz {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Upload */
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .upload-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* File List */
+        .file-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .file-icon {
+            font-size: 40px;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .file-status {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .file-status.pending { color: #FFC107; }
+        .file-status.approved { color: var(--success); }
+        .file-status.rejected { color: var(--error); }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+        }
+
+        .nav-item.active {
+            color: var(--text-primary);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Rain Effect -->
+    <div class="rain" id="rain"></div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>🏆 WorldSkills Shanghai 2026</h1>
+        <p>48-chi Jahon Kasb Chempionati</p>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Registration Section -->
+        <div id="section-register" class="section active">
+            <div class="card">
+                <div class="card-title">📝 Ro'yxatdan O'tish</div>
+                <div class="form-group">
+                    <label class="form-label">To'liq Ism</label>
+                    <input type="text" class="form-input" id="fullName" placeholder="Ism Familiya">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Telefon Raqam</label>
+                    <input type="tel" class="form-input" id="phone" placeholder="+998 90 123 45 67">
+                </div>
+                <button class="btn" onclick="registerUser()">Ro'yxatdan O'tish</button>
+            </div>
+        </div>
+
+        <!-- Categories Section -->
+        <div id="section-categories" class="section">
+            <div class="card">
+                <div class="card-title">📊 Kategoriya Tanlang</div>
+                <div id="categoriesList"></div>
+            </div>
+        </div>
+
+        <!-- Professions Section -->
+        <div id="section-professions" class="section">
+            <div class="card">
+                <div class="card-title">🎓 Kasb Tanlang</div>
+                <div id="professionsList"></div>
+            </div>
+        </div>
+
+        <!-- Statistics Section -->
+        <div id="section-statistics" class="section">
+            <div class="card">
+                <div class="card-title">📈 Mening Statistikam</div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-number" id="uploadedCount">0</div>
+                        <div class="stat-label">Yuklangan Ishlar</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="totalScore">0</div>
+                        <div class="stat-label">O'rtacha Ball</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📄 Ishlarni Yuklash (PDF)</div>
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📎</div>
+                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">
+                        PDF faylni bu yerga tashlang
+                    </div>
+                    <div style="opacity: 0.8; font-size: 13px;">
+                        yoki bosing va tanlang
+                    </div>
+                </div>
+                <input type="file" id="fileInput" accept=".pdf" style="display: none;" onchange="handleFileUpload(event)">
+                
+                <div class="file-list" id="fileList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav" id="bottomNav" style="display: none;">
+        <div class="nav-item active" onclick="showSection('section-categories')">
+            <div class="nav-icon">💼</div>
+            <div class="nav-label">Kasblar</div>
+        </div>
+        <div class="nav-item" onclick="showSection('section-statistics')">
+            <div class="nav-icon">📊</div>
+            <div class="nav-label">Statistika</div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const categories = [
+            { id: 1, icon: "🏭", name_uz: "Ishlab chiqarish va Muhandislik", name_en: "Manufacturing & Engineering", count: 17 },
+            { id: 2, icon: "💻", name_uz: "Axborot va Kommunikatsiya", name_en: "Information & Communication", count: 8 },
+            { id: 3, icon: "🏗️", name_uz: "Qurilish va Bino Texnologiyalari", name_en: "Construction & Building", count: 14 },
+            { id: 4, icon: "🚚", name_uz: "Transport va Logistika", name_en: "Transportation & Logistics", count: 8 },
+            { id: 5, icon: "🎨", name_uz: "Ijodiy San'at va Moda", name_en: "Creative Arts & Fashion", count: 7 },
+            { id: 6, icon: "👥", name_uz: "Ijtimoiy va Shaxsiy Xizmatlar", name_en: "Social & Personal Services", count: 10 }
+        ];
+
+        const professions = {
+            1: [
+                { en: "Industrial Mechanics", uz: "Sanoat mexanikasi" },
+                { en: "Mechatronics", uz: "Mexatronika" },
+                { en: "Mechanical Engineering CAD", uz: "Mexanik muhandislik CAD" },
+                { en: "CNC Turning", uz: "CNC tokarlik ishlovi" },
+                { en: "CNC Milling", uz: "CNC frezalash" },
+                { en: "Welding", uz: "Payvandlash" },
+                { en: "Electronics", uz: "Elektronika" },
+                { en: "Industrial Control", uz: "Sanoat boshqaruvi" },
+                { en: "Autonomous Mobile Robotics", uz: "Avtonom mobil robototexnika" },
+                { en: "Industry 4.0", uz: "Sanoat 4.0" },
+                { en: "Chemical Laboratory Technology", uz: "Kimyo laboratoriya" },
+                { en: "Water Technology", uz: "Suv texnologiyasi" },
+                { en: "Additive Manufacturing", uz: "3D chop etish" },
+                { en: "Industrial Design Technology", uz: "Sanoat dizayni" },
+                { en: "Optoelectronic Technology", uz: "Optoelektronika" },
+                { en: "Renewable Energy", uz: "Qayta tiklanuvchi energiya" },
+                { en: "Robot Systems Integration", uz: "Robot tizimlari" }
+            ],
+            2: [
+                { en: "ICT Network Infrastructure", uz: "Tarmoq infratuzilmasi" },
+                { en: "Mobile Applications", uz: "Mobil ilovalar" },
+                { en: "Software Development", uz: "Dasturiy ta'minot" },
+                { en: "Web Technologies", uz: "Veb texnologiyalar" },
+                { en: "IT Network Administration", uz: "Tarmoq boshqaruvi" },
+                { en: "Cloud Computing", uz: "Bulutli hisoblash" },
+                { en: "Cyber Security", uz: "Kiberxavfsizlik" },
+                { en: "Software Testing", uz: "Dasturiy sinov" }
+            ],
+            3: [
+                { en: "Wall and Floor Tiling", uz: "Plitkalash" },
+                { en: "Plumbing and Heating", uz: "Santexnika" },
+                { en: "Electrical Installations", uz: "Elektr o'rnatish" },
+                { en: "Bricklaying", uz: "G'isht terish" },
+                { en: "Plastering", uz: "Suvoq" },
+                { en: "Painting", uz: "Bo'yash" },
+                { en: "Cabinetmaking", uz: "Duradgorlik" },
+                { en: "Joinery", uz: "Yig'ish ishlari" },
+                { en: "Carpentry", uz: "Yog'och ishlari" },
+                { en: "Landscape Gardening", uz: "Landshaft" },
+                { en: "Refrigeration", uz: "Sovutish" },
+                { en: "Concrete Work", uz: "Beton ishlari" },
+                { en: "Digital Construction", uz: "Raqamli qurilish" },
+                { en: "Security Technology", uz: "Xavfsizlik" }
+            ],
+            4: [
+                { en: "Autobody Repair", uz: "Kuzov ta'mirlash" },
+                { en: "Aircraft Maintenance", uz: "Samolyot xizmati" },
+                { en: "Automobile Technology", uz: "Avtomobil" },
+                { en: "Car Painting", uz: "Avtomobil bo'yash" },
+                { en: "Heavy Vehicle", uz: "Og'ir transport" },
+                { en: "Logistics", uz: "Logistika" },
+                { en: "Rail Vehicle", uz: "Temiryo'l" },
+                { en: "UAV Systems", uz: "Uchuvchisiz apparatlar" }
+            ],
+            5: [
+                { en: "Jewellery", uz: "Zargarlik" },
+                { en: "Floristry", uz: "Gulchilik" },
+                { en: "Fashion Technology", uz: "Moda" },
+                { en: "Graphic Design", uz: "Grafik dizayn" },
+                { en: "Visual Merchandising", uz: "Vizual savdo" },
+                { en: "3D Game Art", uz: "3D o'yin san'ati" },
+                { en: "Media Design", uz: "Media dizayn" }
+            ],
+            6: [
+                { en: "Hairdressing", uz: "Sartaroshlik" },
+                { en: "Beauty Therapy", uz: "Go'zallik" },
+                { en: "Pâtisserie", uz: "Qandolatchilik" },
+                { en: "Cooking", uz: "Oshpazlik" },
+                { en: "Restaurant Service", uz: "Restoran" },
+                { en: "Health Care", uz: "Sog'liqni saqlash" },
+                { en: "Bakery", uz: "Nonvoychilik" },
+                { en: "Hotel Reception", uz: "Mehmonxona" },
+                { en: "Dental Prosthetics", uz: "Tish protezi" },
+                { en: "Retail Sales", uz: "Savdo" }
+            ]
+        };
+
+        let userData = {
+            fullName: '',
+            phone: '',
+            profession: '',
+            files: []
+        };
+
+        let currentCategory = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
+            
+            createRain();
+            loadUserData();
+        });
+
+        // Create Rain Effect
+        function createRain() {
+            const rainContainer = document.getElementById('rain');
+            for (let i = 0; i < 50; i++) {
+                const drop = document.createElement('div');
+                drop.className = 'raindrop';
+                drop.style.left = Math.random() * 100 + '%';
+                drop.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                drop.style.animationDelay = Math.random() * 2 + 's';
+                rainContainer.appendChild(drop);
+            }
+        }
+
+        // Load User Data
+        function loadUserData() {
+            const saved = localStorage.getItem('worldskills_user');
+            if (saved) {
+                userData = JSON.parse(saved);
+                if (userData.fullName && userData.phone) {
+                    showSection('section-categories');
+                    document.getElementById('bottomNav').style.display = 'flex';
+                    renderCategories();
+                }
+            }
+        }
+
+        // Register User
+        function registerUser() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            if (!fullName || !phone) {
+                alert('Iltimos, barcha maydonlarni to\'ldiring!');
+                return;
+            }
+
+            userData.fullName = fullName;
+            userData.phone = phone;
+            saveUserData();
+
+            showSection('section-categories');
+            document.getElementById('bottomNav').style.display = 'flex';
+            renderCategories();
+        }
+
+        // Save User Data
+        function saveUserData() {
+            localStorage.setItem('worldskills_user', JSON.stringify(userData));
+        }
+
+        // Render Categories
+        function renderCategories() {
+            const container = document.getElementById('categoriesList');
+            container.innerHTML = categories.map(cat => `
+                <div class="category-item" onclick="selectCategory(${cat.id})">
+                    <div class="category-icon">${cat.icon}</div>
+                    <div class="category-name">${cat.name_uz}</div>
+                    <div class="category-count">${cat.name_en} • ${cat.count} ta kasb</div>
+                </div>
+            `).join('');
+        }
+
+        // Select Category
+        function selectCategory(categoryId) {
+            currentCategory = categoryId;
+            const category = categories.find(c => c.id === categoryId);
+            
+            document.getElementById('professionsList').innerHTML = professions[categoryId].map((prof, idx) => `
+                <div class="profession-item" onclick="selectProfession('${prof.en}', '${prof.uz}')">
+                    <div class="profession-en">${idx + 1}. ${prof.en}</div>
+                    <div class="profession-uz">${prof.uz}</div>
+                </div>
+            `).join('');
+            
+            showSection('section-professions');
+        }
+
+        // Select Profession
+        function selectProfession(en, uz) {
+            userData.profession = `${en} | ${uz}`;
+            saveUserData();
+            
+            // Send to backend
+            fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    telegramId: window.Telegram.WebApp.initDataUnsafe?.user?.id,
+                    firstName: userData.fullName.split(' ')[0],
+                    lastName: userData.fullName.split(' ')[1] || '',
+                    phone: userData.phone,
+                    profession: userData.profession
+                })
+            });
+            
+            alert(`✅ Tanlangan kasb: ${uz}\n\nEndi statistika bo'limidan ishlaringizni yuklashingiz mumkin!`);
+            showSection('section-statistics');
+        }
+
+        // Handle File Upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.type !== 'application/pdf') {
+                alert('Faqat PDF fayllar qabul qilinadi!');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                alert('Fayl hajmi 10 MB dan oshmasligi kerak!');
+                return;
+            }
+
+            const fileData = {
+                name: file.name,
+                size: (file.size / 1024 / 1024).toFixed(2),
+                status: 'pending',
+                score: null,
+                uploadedAt: new Date().toISOString()
+            };
+
+            userData.files.push(fileData);
+            saveUserData();
+            updateFileList();
+            updateStats();
+
+            // Simulate upload to backend
+            setTimeout(() => {
+                alert(`✅ Fayl yuklandi: ${file.name}\n\nAdmin ko'rib chiqadi va ball qo'yadi.`);
+            }, 1000);
+        }
+
+        // Update File List
+        function updateFileList() {
+            const container = document.getElementById('fileList');
+            if (userData.files.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Hali hech qanday fayl yuklanmagan</p>';
+                return;
+            }
+
+            container.innerHTML = userData.files.map((file, idx) => `
+                <div class="file-item">
+                    <div class="file-icon">📄</div>
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-status ${file.status}">
+                            ${file.status === 'pending' ? '⏳ Ko\'rib chiqilmoqda' : 
+                              file.status === 'approved' ? `✅ Tasdiqlandi (${file.score} ball)` : 
+                              '❌ Rad etildi'}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update Stats
+        function updateStats() {
+            document.getElementById('uploadedCount').textContent = userData.files.length;
+            const approvedFiles = userData.files.filter(f => f.status === 'approved');
+            const avgScore = approvedFiles.length > 0 
+                ? (approvedFiles.reduce((sum, f) => sum + f.score, 0) / approvedFiles.length).toFixed(1)
+                : 0;
+            document.getElementById('totalScore').textContent = avgScore;
+        }
+
+        // Show Section
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(sectionId).classList.add('active');
+            
+            if (sectionId === 'section-statistics') {
+                updateFileList();
+                updateStats();
+            }
+        }
+    </script>
+</body>
+</html>
