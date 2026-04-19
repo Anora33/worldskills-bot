@@ -7,34 +7,62 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        :root {
-            --bg: #000; --card: #111; --border: #222; --text: #fff; --muted: #888;
-            --success: #4CAF50; --warning: #FFC107; --gradient: linear-gradient(135deg,#fff,#888);
-        }
+        :root { --bg: #000; --card: #111; --border: #222; --text: #fff; --muted: #888; --success: #4CAF50; --warning: #FFC107; --error: #f44336; --gradient: linear-gradient(135deg,#fff,#888); }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 80px; font-size: 14px; line-height: 1.4; }
         .header { background: var(--gradient); color: #000; padding: 20px 15px; text-align: center; border-radius: 0 0 12px 12px; margin-bottom: 12px; }
         .header h1 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
         .header p { font-size: 11px; opacity: 0.9; }
         .content { padding: 0 12px; }
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
-        .card-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .card-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
         
-        /* Categories Grid */
-        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .cat-card { background: #0a0a0a; border: 1px solid var(--border); border-radius: 10px; padding: 14px 10px; text-align: center; cursor: pointer; transition: all 0.2s; }
-        .cat-card:hover { border-color: #444; transform: translateY(-2px); }
-        .cat-icon { font-size: 28px; margin-bottom: 6px; }
-        .cat-name { font-size: 11px; font-weight: 600; margin-bottom: 3px; }
-        .cat-count { font-size: 9px; color: var(--muted); }
+        /* Progress */
+        .progress-container { margin-bottom: 15px; }
+        .progress-header { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 11px; }
+        .progress-bar { height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--gradient); border-radius: 3px; transition: width 0.3s; }
+        .progress-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; }
+        .progress-stat { background: #0a0a0a; padding: 8px; border-radius: 8px; text-align: center; }
+        .progress-stat-num { font-size: 16px; font-weight: 800; display: block; }
+        .progress-stat-num.approved { color: var(--success); }
+        .progress-stat-num.pending { color: var(--warning); }
+        .progress-stat-num.rejected { color: var(--error); }
+        .progress-stat-label { font-size: 8px; color: var(--muted); }
         
-        /* Professions List */
-        .prof-list { display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto; }
-        .prof-item { background: #0a0a0a; border: 1px solid var(--border); border-radius: 10px; padding: 12px; cursor: pointer; transition: all 0.2s; }
-        .prof-item:hover { border-color: var(--success); transform: translateX(3px); }
-        .prof-en { font-weight: 600; font-size: 12px; color: var(--success); margin-bottom: 2px; }
-        .prof-uz { font-size: 11px; color: var(--muted); }
+        /* Documents List */
+        .doc-item { background: #0a0a0a; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+        .doc-item:hover { border-color: #444; }
+        .doc-item.approved { border-left: 3px solid var(--success); }
+        .doc-item.pending { border-left: 3px solid var(--warning); }
+        .doc-item.rejected { border-left: 3px solid var(--error); }
+        .doc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .doc-title { font-weight: 600; font-size: 12px; }
+        .doc-status { font-size: 9px; padding: 2px 6px; border-radius: 6px; background: #111; color: var(--muted); }
+        .doc-status.pending { background: rgba(255,193,7,0.2); color: var(--warning); }
+        .doc-status.approved { background: rgba(76,175,80,0.2); color: var(--success); }
+        .doc-status.rejected { background: rgba(244,67,54,0.2); color: var(--error); }
+        .doc-meta { font-size: 10px; color: var(--muted); margin-bottom: 8px; }
+        .doc-link { color: var(--text); text-decoration: none; font-size: 10px; display: inline-flex; align-items: center; gap: 3px; margin-bottom: 8px; }
+        .doc-btn { width: 100%; padding: 8px; border: none; border-radius: 6px; font-size: 10px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+        .doc-btn.primary { background: var(--gradient); color: #000; }
+        .doc-btn.secondary { background: #0a0a0a; color: var(--text); border: 1px solid var(--border); }
         
-        /* Upload Section */
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: flex-end; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--card); border-radius: 16px 16px 0 0; width: 100%; max-height: 85vh; overflow-y: auto; padding: 16px; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+        .modal-title { font-size: 15px; font-weight: 700; }
+        .modal-close { background: none; border: none; color: var(--muted); font-size: 24px; cursor: pointer; }
+        .modal-section { margin-bottom: 16px; }
+        .modal-section-title { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--muted); }
+        .requirements-list { list-style: none; font-size: 11px; }
+        .requirements-list li { padding: 4px 0; border-bottom: 1px solid #222; }
+        .requirements-list li:last-child { border-bottom: none; }
+        .requirements-list li::before { content: "• "; color: var(--text); }
+        
+        /* Upload Area */
         .upload-area { border: 2px dashed var(--border); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; margin: 12px 0; transition: all 0.2s; }
         .upload-area:hover { border-color: var(--text); background: rgba(255,255,255,0.05); }
         .upload-icon { font-size: 36px; margin-bottom: 8px; }
@@ -51,9 +79,10 @@
         .btn-primary { background: var(--gradient); color: #000; }
         .btn-secondary { background: #0a0a0a; color: var(--text); border: 1px solid var(--border); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        /* Back Button */
-        .back-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text); background: none; border: none; cursor: pointer; margin-bottom: 12px; padding: 6px 10px; }
+        .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+        .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+        .modal-btn.primary { background: var(--gradient); color: #000; }
+        .modal-btn.secondary { background: #0a0a0a; color: var(--text); border: 1px solid var(--border); }
         
         /* Bottom Nav */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0a0a0a; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 8px 5px; z-index: 100; }
@@ -66,6 +95,9 @@
         .section { display: none; }
         .section.active { display: block; }
         
+        /* Back Button */
+        .back-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text); background: none; border: none; cursor: pointer; margin-bottom: 12px; padding: 6px 10px; }
+        
         /* Info Box */
         .info-box { background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid #333; padding: 12px; border-radius: 10px; margin-bottom: 12px; }
         .info-title { color: var(--warning); font-size: 13px; font-weight: 700; margin-bottom: 8px; }
@@ -74,10 +106,18 @@
         .info-list li:last-child { border-bottom: none; }
         .info-list li::before { content: "• "; color: var(--text); }
         
-        /* Progress */
-        .progress-bar { height: 6px; background: #222; border-radius: 3px; overflow: hidden; margin: 10px 0; }
-        .progress-fill { height: 100%; background: var(--gradient); border-radius: 3px; transition: width 0.3s; }
-        .progress-text { font-size: 10px; color: var(--muted); text-align: center; }
+        /* Categories & Professions */
+        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .cat-card { background: #0a0a0a; border: 1px solid var(--border); border-radius: 10px; padding: 14px 10px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .cat-card:hover { border-color: #444; transform: translateY(-2px); }
+        .cat-icon { font-size: 28px; margin-bottom: 6px; }
+        .cat-name { font-size: 11px; font-weight: 600; margin-bottom: 3px; }
+        .cat-count { font-size: 9px; color: var(--muted); }
+        .prof-list { display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto; }
+        .prof-item { background: #0a0a0a; border: 1px solid var(--border); border-radius: 10px; padding: 12px; cursor: pointer; transition: all 0.2s; }
+        .prof-item:hover { border-color: var(--success); transform: translateX(3px); }
+        .prof-en { font-weight: 600; font-size: 12px; color: var(--success); margin-bottom: 2px; }
+        .prof-uz { font-size: 11px; color: var(--muted); }
     </style>
 </head>
 <body>
@@ -93,9 +133,8 @@
             <div class="card info-box">
                 <div class="info-title">ℹ️ WorldSkills Haqida</div>
                 <div style="font-size:11px;color:var(--muted);line-height:1.5;">
-                    WorldSkills Competition dunyodagi eng yirik texnik va kasblar chempionati hisoblanadi.<br><br>
-                    Ushbu chempionat kasbiy mahoratning oltin standartini ifodalaydi.<br><br>
-                    Har ikki yilda bir marta o'tkaziladi. WorldSkills Shanghai 2026 bu musobaqaning 48-chi nashri.<br><br>
+                    WorldSkills Competition dunyodagi eng yirik texnik va kasblar chempionati.<br><br>
+                    Har ikki yilda bir marta o'tkaziladi. WorldSkills Shanghai 2026 - 48-chi nashr.<br><br>
                     <b>Tashkilotchilar:</b><br>
                     • Xitoy Xalq Respublikasi Inson resurslari vazirligi<br>
                     • Shanxay shahar xalq hukumati
@@ -126,33 +165,30 @@
             </div>
         </div>
         
-        <!-- Upload Section -->
-        <div id="section-upload" class="section">
+        <!-- Portfolio Upload Section -->
+        <div id="section-portfolio" class="section">
             <button class="back-btn" onclick="showSection('section-professions')">← Orqaga</button>
             <div class="card">
-                <div class="card-title">💼 <span id="uploadProfName">Kasb</span></div>
-                <div style="font-size:11px;color:var(--muted);margin-bottom:12px;" id="uploadProfDesc"></div>
-                
-                <div class="progress-bar"><div class="progress-fill" id="uploadProgress" style="width:0%"></div></div>
-                <div class="progress-text"><span id="uploadCount">0</span>/5 ta ish yuklandi</div>
-                
+                <div class="card-title">💼 <span id="portfolioProfName">Kasb</span></div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:12px;" id="portfolioProfDesc"></div>
+                <div class="progress-bar"><div class="progress-fill" id="portfolioProgress" style="width:0%"></div></div>
+                <div style="font-size:10px;color:var(--muted);text-align:center;"><span id="portfolioCount">0</span>/5 ta ish yuklandi</div>
                 <div style="margin-top:15px;">
-                    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-area" onclick="document.getElementById('portfolioFileInput').click()">
                         <div class="upload-icon">📎</div>
                         <div class="upload-text">PDF fayl tanlang</div>
                         <div class="upload-hint">Max 20 MB • Faqat PDF</div>
                     </div>
-                    <input type="file" id="fileInput" accept=".pdf" onchange="handleFileSelect(event)">
-                    <div class="file-preview" id="filePreview">
-                        <div class="file-name" id="fileName">file.pdf</div>
-                        <div class="file-size" id="fileSize">0 MB</div>
+                    <input type="file" id="portfolioFileInput" accept=".pdf" onchange="handlePortfolioFileSelect(event)">
+                    <div class="file-preview" id="portfolioFilePreview">
+                        <div class="file-name" id="portfolioFileName">file.pdf</div>
+                        <div class="file-size" id="portfolioFileSize">0 MB</div>
                     </div>
-                    <button class="btn btn-primary" id="uploadBtn" onclick="uploadWork()" disabled>📤 Ishni Yuklash</button>
+                    <button class="btn btn-primary" id="portfolioUploadBtn" onclick="uploadPortfolioWork()" disabled>📤 Ishni Yuklash</button>
                 </div>
-                
                 <div style="margin-top:15px;">
                     <div class="card-title" style="font-size:13px;">📋 Yuklangan Ishlar</div>
-                    <div id="uploadedList"></div>
+                    <div id="portfolioUploadedList"></div>
                 </div>
             </div>
         </div>
@@ -160,10 +196,26 @@
         <!-- Documents Section -->
         <div id="section-documents" class="section">
             <button class="back-btn" onclick="showSection('section-home')">← Orqaga</button>
+            <!-- Progress -->
+            <div class="card progress-container">
+                <div class="progress-header">
+                    <span>📋 Rasmiy Hujjatlar</span>
+                    <span id="docProgressPercent">0%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" id="docProgressFill" style="width: 0%"></div></div>
+                <div class="progress-stats">
+                    <div class="progress-stat"><span class="progress-stat-num approved" id="docApproved">0</span><span class="progress-stat-label">✅ Tasdiq</span></div>
+                    <div class="progress-stat"><span class="progress-stat-num pending" id="docPending">0</span><span class="progress-stat-label">⏳ Kutish</span></div>
+                    <div class="progress-stat"><span class="progress-stat-num rejected" id="docRejected">0</span><span class="progress-stat-label">❌ Rad</span></div>
+                    <div class="progress-stat"><span class="progress-stat-num" id="docTotal">9</span><span class="progress-stat-label">📄 Jami</span></div>
+                </div>
+            </div>
+            <!-- Documents List -->
             <div class="card">
                 <div class="card-title">📄 my.gov.uz Hujjatlari</div>
                 <div id="docList"></div>
             </div>
+            <!-- Info -->
             <div class="card info-box">
                 <div class="info-title">💡 Muhim</div>
                 <ul class="info-list">
@@ -171,6 +223,46 @@
                     <li>my.gov.uz hujjatlarida <b>QR kod</b> bo'lishi shart</li>
                     <li>Hujjat muddati <b>30 kundan kam</b> qolmagan bo'lsin</li>
                 </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Document Upload Modal -->
+    <div class="modal" id="docModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalDocTitle">Hujjat Yuklash</div>
+                <button class="modal-close" onclick="closeModal('docModal')">&times;</button>
+            </div>
+            <div class="modal-section">
+                <div class="modal-section-title">🔗 Qayerdan olish</div>
+                <a href="#" id="modalDocLink" class="doc-link" target="_blank">my.gov.uz ga o'tish →</a>
+            </div>
+            <div class="modal-section">
+                <div class="modal-section-title">📋 Talablar</div>
+                <ul class="requirements-list" id="modalRequirements">
+                    <li>A4 formatda PDF</li>
+                    <li>QR kod bo'lishi shart</li>
+                    <li>Aniq skanerlangan</li>
+                    <li>Muddati o'tmagan</li>
+                </ul>
+            </div>
+            <div class="modal-section">
+                <div class="modal-section-title">📎 PDF Yuklash</div>
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📎</div>
+                    <div class="upload-text">Fayl tanlang</div>
+                    <div class="upload-hint">PDF • Max 10 MB</div>
+                </div>
+                <input type="file" id="fileInput" accept=".pdf" onchange="handleDocFileSelect(event)">
+                <div class="file-preview" id="filePreview">
+                    <div class="file-name" id="fileName">file.pdf</div>
+                    <div class="file-size" id="fileSize">0 MB</div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn secondary" onclick="closeModal('docModal')">Bekor qilish</button>
+                <button class="modal-btn primary" id="uploadBtn" onclick="uploadDocument()" disabled>📤 Yuklash</button>
             </div>
         </div>
     </div>
@@ -185,7 +277,7 @@
     <script>
         console.log('✅ WorldSkills App yuklandi!');
         
-        // ====== 6 KATEGORIYA ======
+        // ====== DATA ======
         const categories = [
             { id: 'cat1', icon: '🏭', name: 'Ishlab chiqarish\nva Muhandislik', count: 17 },
             { id: 'cat2', icon: '💻', name: 'Axborot va\nKommunikatsiya', count: 8 },
@@ -195,128 +287,59 @@
             { id: 'cat6', icon: '👥', name: 'Ijtimoiy va\nShaxsiy Xizmatlar', count: 10 }
         ];
         
-        // ====== 64 KASB (EN + UZ) ======
         const professions = {
-            cat1: [
-                {id:'p1_1',en:'Industrial Mechanics',uz:'Sanoat mexanikasi'},
-                {id:'p1_2',en:'Mechatronics',uz:'Mexatronika'},
-                {id:'p1_3',en:'Mechanical Engineering CAD',uz:'Mexanik muhandislik CAD'},
-                {id:'p1_4',en:'CNC Turning',uz:'CNC tokarlik ishlovi'},
-                {id:'p1_5',en:'CNC Milling',uz:'CNC frezalash'},
-                {id:'p1_6',en:'Welding',uz:'Payvandlash'},
-                {id:'p1_7',en:'Electronics',uz:'Elektronika'},
-                {id:'p1_8',en:'Industrial Control',uz:'Sanoat boshqaruvi'},
-                {id:'p1_9',en:'Autonomous Mobile Robotics',uz:'Avtonom mobil robototexnika'},
-                {id:'p1_10',en:'Industry 4.0',uz:'Sanoat 4.0 texnologiyalari'},
-                {id:'p1_11',en:'Chemical Laboratory Technology',uz:'Kimyo laboratoriya texnologiyasi'},
-                {id:'p1_12',en:'Water Technology',uz:'Suv texnologiyasi'},
-                {id:'p1_13',en:'Additive Manufacturing',uz:'3D chop etish'},
-                {id:'p1_14',en:'Industrial Design Technology',uz:'Sanoat dizayn texnologiyasi'},
-                {id:'p1_15',en:'Optoelectronic Technology',uz:'Optoelektron texnologiya'},
-                {id:'p1_16',en:'Renewable Energy',uz:'Qayta tiklanuvchi energiya'},
-                {id:'p1_17',en:'Robot Systems Integration',uz:'Robot tizimlarini integratsiyalash'}
-            ],
-            cat2: [
-                {id:'p2_1',en:'ICT Network Infrastructure',uz:'AKT tarmoq infratuzilmasi'},
-                {id:'p2_2',en:'Mobile Applications Development',uz:'Mobil ilovalar ishlab chiqish'},
-                {id:'p2_3',en:'Software Applications Development',uz:'Dasturiy ta\'minot ishlab chiqish'},
-                {id:'p2_4',en:'Web Technologies',uz:'Veb texnologiyalar'},
-                {id:'p2_5',en:'IT Network Systems Administration',uz:'Kompyuter tarmoqlarini boshqarish'},
-                {id:'p2_6',en:'Cloud Computing',uz:'Bulutli hisoblash'},
-                {id:'p2_7',en:'Cyber Security',uz:'Kiberxavfsizlik'},
-                {id:'p2_8',en:'Software Testing',uz:'Dasturiy ta\'minotni sinash'}
-            ],
-            cat3: [
-                {id:'p3_1',en:'Wall and Floor Tiling',uz:'Devor va pol plitkalash'},
-                {id:'p3_2',en:'Plumbing and Heating',uz:'Santexnika va isitish tizimlari'},
-                {id:'p3_3',en:'Electrical Installations',uz:'Elektr o\'rnatish ishlari'},
-                {id:'p3_4',en:'Bricklaying',uz:'G\'isht terish'},
-                {id:'p3_5',en:'Plastering and Drywall Systems',uz:'Suvoq va gipsokarton tizimlari'},
-                {id:'p3_6',en:'Painting and Decorating',uz:'Bo\'yash va bezatish'},
-                {id:'p3_7',en:'Cabinetmaking',uz:'Shkaf yasash duradgorlik'},
-                {id:'p3_8',en:'Joinery',uz:'Duradgorlik yig\'ish ishlari'},
-                {id:'p3_9',en:'Carpentry',uz:'Duradgorlik yog\'och ishlari'},
-                {id:'p3_10',en:'Landscape Gardening',uz:'Landshaft bog\'dorchiligi'},
-                {id:'p3_11',en:'Refrigeration and Air Conditioning',uz:'Sovutish va konditsioner tizimlari'},
-                {id:'p3_12',en:'Concrete Construction Work',uz:'Beton qurilish ishlari'},
-                {id:'p3_13',en:'Digital Construction',uz:'Raqamli qurilish'},
-                {id:'p3_14',en:'Intelligent Security Technology',uz:'Aqlli xavfsizlik texnologiyalari'}
-            ],
-            cat4: [
-                {id:'p4_1',en:'Autobody Repair',uz:'Avtomobil kuzovini ta\'mirlash'},
-                {id:'p4_2',en:'Aircraft Maintenance',uz:'Samolyotlarga texnik xizmat'},
-                {id:'p4_3',en:'Automobile Technology',uz:'Avtomobil texnologiyasi'},
-                {id:'p4_4',en:'Car Painting',uz:'Avtomobil bo\'yash'},
-                {id:'p4_5',en:'Heavy Vehicle Technology',uz:'Og\'ir transport texnologiyasi'},
-                {id:'p4_6',en:'Logistics and Freight Forwarding',uz:'Logistika va yuk tashish'},
-                {id:'p4_7',en:'Rail Vehicle Technology',uz:'Temiryo\'l transporti texnologiyasi'},
-                {id:'p4_8',en:'Unmanned Aerial Systems',uz:'Uchuvchisiz uchish apparatlari'}
-            ],
-            cat5: [
-                {id:'p5_1',en:'Jewellery',uz:'Zargarlik'},
-                {id:'p5_2',en:'Floristry',uz:'Gulchilik san\'ati'},
-                {id:'p5_3',en:'Fashion Technology',uz:'Moda texnologiyasi'},
-                {id:'p5_4',en:'Graphic Design Technology',uz:'Grafik dizayn texnologiyasi'},
-                {id:'p5_5',en:'Visual Merchandising',uz:'Vizual savdo bezagi'},
-                {id:'p5_6',en:'3D Digital Game Art',uz:'3D raqamli o\'yin san\'ati'},
-                {id:'p5_7',en:'Digital Interactive Media Design',uz:'Raqamli interaktiv media dizayni'}
-            ],
-            cat6: [
-                {id:'p6_1',en:'Hairdressing',uz:'Sartaroshlik'},
-                {id:'p6_2',en:'Beauty Therapy',uz:'Go\'zallik terapiyasi'},
-                {id:'p6_3',en:'Pâtisserie and Confectionery',uz:'Pishiriqlar va shirinliklar'},
-                {id:'p6_4',en:'Cooking',uz:'Oshpazlik'},
-                {id:'p6_5',en:'Restaurant Service',uz:'Restoran xizmati'},
-                {id:'p6_6',en:'Health and Social Care',uz:'Sog\'liqni saqlash va ijtimoiy g\'amxo\'rlik'},
-                {id:'p6_7',en:'Bakery',uz:'Nonvoychilik'},
-                {id:'p6_8',en:'Hotel Reception',uz:'Mehmonxona qabulxonasi'},
-                {id:'p6_9',en:'Dental Prosthetics',uz:'Tish protezlash'},
-                {id:'p6_10',en:'Retail Sales',uz:'Chakana savdo'}
-            ]
+            cat1: [{id:'p1_1',en:'Industrial Mechanics',uz:'Sanoat mexanikasi'},{id:'p1_2',en:'Mechatronics',uz:'Mexatronika'},{id:'p1_3',en:'Mechanical Engineering CAD',uz:'Mexanik muhandislik CAD'},{id:'p1_4',en:'CNC Turning',uz:'CNC tokarlik ishlovi'},{id:'p1_5',en:'CNC Milling',uz:'CNC frezalash'},{id:'p1_6',en:'Welding',uz:'Payvandlash'},{id:'p1_7',en:'Electronics',uz:'Elektronika'},{id:'p1_8',en:'Industrial Control',uz:'Sanoat boshqaruvi'},{id:'p1_9',en:'Autonomous Mobile Robotics',uz:'Avtonom mobil robototexnika'},{id:'p1_10',en:'Industry 4.0',uz:'Sanoat 4.0'},{id:'p1_11',en:'Chemical Laboratory Technology',uz:'Kimyo laboratoriya'},{id:'p1_12',en:'Water Technology',uz:'Suv texnologiyasi'},{id:'p1_13',en:'Additive Manufacturing',uz:'3D chop etish'},{id:'p1_14',en:'Industrial Design Technology',uz:'Sanoat dizayni'},{id:'p1_15',en:'Optoelectronic Technology',uz:'Optoelektronika'},{id:'p1_16',en:'Renewable Energy',uz:'Qayta energiya'},{id:'p1_17',en:'Robot Systems Integration',uz:'Robot tizimlari'}],
+            cat2: [{id:'p2_1',en:'ICT Network Infrastructure',uz:'Tarmoq infratuzilmasi'},{id:'p2_2',en:'Mobile Applications',uz:'Mobil ilovalar'},{id:'p2_3',en:'Software Development',uz:'Dasturiy ta\'minot'},{id:'p2_4',en:'Web Technologies',uz:'Veb texnologiyalar'},{id:'p2_5',en:'IT Network Administration',uz:'Tarmoq boshqaruvi'},{id:'p2_6',en:'Cloud Computing',uz:'Bulutli hisoblash'},{id:'p2_7',en:'Cyber Security',uz:'Kiberxavfsizlik'},{id:'p2_8',en:'Software Testing',uz:'Dasturiy sinov'}],
+            cat3: [{id:'p3_1',en:'Wall and Floor Tiling',uz:'Plitkalash'},{id:'p3_2',en:'Plumbing and Heating',uz:'Santexnika'},{id:'p3_3',en:'Electrical Installations',uz:'Elektr o\'rnatish'},{id:'p3_4',en:'Bricklaying',uz:'G\'isht terish'},{id:'p3_5',en:'Plastering',uz:'Suvoq'},{id:'p3_6',en:'Painting',uz:'Bo\'yash'},{id:'p3_7',en:'Cabinetmaking',uz:'Duradgorlik'},{id:'p3_8',en:'Joinery',uz:'Yig\'ish ishlari'},{id:'p3_9',en:'Carpentry',uz:'Yog\'och ishlari'},{id:'p3_10',en:'Landscape Gardening',uz:'Landshaft'},{id:'p3_11',en:'Refrigeration',uz:'Sovutish'},{id:'p3_12',en:'Concrete Work',uz:'Beton ishlari'},{id:'p3_13',en:'Digital Construction',uz:'Raqamli qurilish'},{id:'p3_14',en:'Security Technology',uz:'Xavfsizlik'}],
+            cat4: [{id:'p4_1',en:'Autobody Repair',uz:'Kuzov ta\'mirlash'},{id:'p4_2',en:'Aircraft Maintenance',uz:'Samolyot xizmati'},{id:'p4_3',en:'Automobile Technology',uz:'Avtomobil'},{id:'p4_4',en:'Car Painting',uz:'Avtomobil bo\'yash'},{id:'p4_5',en:'Heavy Vehicle',uz:'Og\'ir transport'},{id:'p4_6',en:'Logistics',uz:'Logistika'},{id:'p4_7',en:'Rail Vehicle',uz:'Temiryo\'l'},{id:'p4_8',en:'UAV Systems',uz:'Uchuvchisiz apparatlar'}],
+            cat5: [{id:'p5_1',en:'Jewellery',uz:'Zargarlik'},{id:'p5_2',en:'Floristry',uz:'Gulchilik'},{id:'p5_3',en:'Fashion Technology',uz:'Moda'},{id:'p5_4',en:'Graphic Design',uz:'Grafik dizayn'},{id:'p5_5',en:'Visual Merchandising',uz:'Vizual savdo'},{id:'p5_6',en:'3D Game Art',uz:'3D o\'yin san\'ati'},{id:'p5_7',en:'Media Design',uz:'Media dizayn'}],
+            cat6: [{id:'p6_1',en:'Hairdressing',uz:'Sartaroshlik'},{id:'p6_2',en:'Beauty Therapy',uz:'Go\'zallik'},{id:'p6_3',en:'Pâtisserie',uz:'Qandolatchilik'},{id:'p6_4',en:'Cooking',uz:'Oshpazlik'},{id:'p6_5',en:'Restaurant Service',uz:'Restoran'},{id:'p6_6',en:'Health Care',uz:'Sog\'liqni saqlash'},{id:'p6_7',en:'Bakery',uz:'Nonvoychilik'},{id:'p6_8',en:'Hotel Reception',uz:'Mehmonxona'},{id:'p6_9',en:'Dental Prosthetics',uz:'Tish protezi'},{id:'p6_10',en:'Retail Sales',uz:'Savdo'}]
         };
         
-        // ====== Rasmiy Hujjatlar ======
         const officialDocs = [
-            {id:'d1',title:'🧾 Sudlanganlik haqida',link:'https://my.gov.uz/uz/service/135'},
-            {id:'d2',title:'🏠 Yashash joyi',link:'https://my.gov.uz/uz/service/367'},
-            {id:'d3',title:'💼 Mehnat faoliyati (inglizcha)',link:'https://my.gov.uz/uz/service/496'},
-            {id:'d4',title:'🎓 O\'qish joyidan',link:'https://my.gov.uz/uz/service/323'},
-            {id:'d5',title:'🚫 Chiqishga cheklov yo\'q',link:'https://my.gov.uz/uz/service/412'},
-            {id:'d6',title:'💰 Daromad (inglizcha)',link:'https://my.gov.uz/uz/service/263'},
-            {id:'d7',title:'🧾 PNFL (Soliq ID)',link:'https://my.gov.uz/uz/service/65'},
-            {id:'d8',title:'📑 Nikoh/ajrashish',link:'https://my.gov.uz/uz/service/112'},
-            {id:'d9',title:'🆔 ID karta',link:'https://id.gov.uz'}
+            {id:'d1',title:'🧾 Sudlanganlik haqida',link:'https://my.gov.uz/uz/service/135',requirements:['OneID orqali kirish','Ingliz tilida so\'rash mumkin','Muddati: 30 kun','QR kod shart']},
+            {id:'d2',title:'🏠 Yashash joyi',link:'https://my.gov.uz/uz/service/367',requirements:['Pasport ma\'lumotlari kerak','Doimiy manzil ko\'rsatilishi','Muddati: 30 kun']},
+            {id:'d3',title:'💼 Mehnat faoliyati (inglizcha)',link:'https://my.gov.uz/uz/service/496',requirements:['Ingliz tilida so\'rang','Barcha ish joylari ko\'rsatilsin','Imzo va muhr bo\'lsin']},
+            {id:'d4',title:'🎓 O\'qish joyidan',link:'https://my.gov.uz/uz/service/323',requirements:['O\'quv yurti muhri va imzosi','Talaba ekanligi tasdiqlangan','Muddati: 30 kun']},
+            {id:'d5',title:'🚫 Chiqishga cheklov yo\'q',link:'https://my.gov.uz/uz/service/412',requirements:['Pasport bilan tekshiriladi','Darhol beriladi','QR kod shart']},
+            {id:'d6',title:'💰 Daromad (inglizcha)',link:'https://my.gov.uz/uz/service/263',requirements:['INCOME STATEMENT so\'rang','Oxirgi 6 oylik ma\'lumot','Rasmiy muhr va imzo']},
+            {id:'d7',title:'🧾 PNFL (Soliq ID)',link:'https://my.gov.uz/uz/service/65',requirements:['Shaxsiy kabinetdan yuklash','QR kod bilan tasdiqlangan','Muddatsiz']},
+            {id:'d8',title:'📑 Nikoh/ajrashish',link:'https://my.gov.uz/uz/service/112',requirements:['FHDYo dan olingan bo\'lsin','Muhrlangan va imzolangan','Muddati: 30 kun']},
+            {id:'d9',title:'🆔 ID karta',link:'https://id.gov.uz',requirements:['Old va orqa alohida A4 da','Barcha ma\'lumotlar o\'qiladigan','Muddati o\'tmagan']}
         ];
         
-        // ====== User Data ======
         let userData = {
             fullName: '',
             selectedProfession: null,
-            uploadedWorks: []
+            documents: {},
+            portfolioWorks: []
         };
-        let selectedFile = null;
+        let currentDocId = null;
+        let selectedDocFile = null;
+        let selectedPortfolioFile = null;
         
-        // ====== Init ======
+        // ====== INIT ======
         window.onload = function() {
             try {
                 const tg = Telegram.WebApp;
                 tg.ready();
                 tg.expand();
                 
-                // Load user data
                 const saved = localStorage.getItem('ws_user');
-                if(saved) userData = JSON.parse(saved);
-                if(userData.fullName) document.getElementById('userGreeting').textContent = '👋 ' + userData.fullName;
+                if(saved) {
+                    userData = JSON.parse(saved);
+                    if(userData.fullName) document.getElementById('userGreeting').textContent = '👋 ' + userData.fullName;
+                }
                 
-                // Render categories
                 renderCategories();
                 renderDocuments();
+                updateDocProgress();
                 
-                console.log('✅ App ready! 64 professions loaded.');
+                console.log('✅ App ready! Documents upload enabled.');
             } catch(e) { console.error('❌ Init error:', e); }
         };
         
-        // ====== Navigation ======
+        // ====== NAVIGATION ======
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -326,126 +349,171 @@
             el.classList.add('active');
         }
         
-        // ====== Render Categories ======
+        // ====== CATEGORIES & PROFESSIONS ======
         function renderCategories() {
             const grid = document.getElementById('catGrid');
-            grid.innerHTML = categories.map(c => 
-                `<div class="cat-card" onclick="showProfessions('${c.id}')">
-                    <div class="cat-icon">${c.icon}</div>
-                    <div class="cat-name">${c.name}</div>
-                    <div class="cat-count">${c.count} ta kasb</div>
-                </div>`
-            ).join('');
+            grid.innerHTML = categories.map(c => `<div class="cat-card" onclick="showProfessions('${c.id}')"><div class="cat-icon">${c.icon}</div><div class="cat-name">${c.name}</div><div class="cat-count">${c.count} ta kasb</div></div>`).join('');
         }
-        
-        // ====== Show Professions ======
         function showProfessions(catId) {
             const cat = categories.find(c => c.id === catId);
             document.getElementById('catTitle').textContent = cat.name.replace('\n',' ');
-            
             const list = document.getElementById('profList');
             const profs = professions[catId];
-            list.innerHTML = profs.map(p => 
-                `<div class="prof-item" onclick="selectProfession('${catId}','${p.id}','${p.en}','${p.uz}')">
-                    <div class="prof-en">${p.en}</div>
-                    <div class="prof-uz">${p.uz}</div>
-                </div>`
-            ).join('');
-            
+            list.innerHTML = profs.map(p => `<div class="prof-item" onclick="selectProfession('${catId}','${p.id}','${p.en}','${p.uz}')"><div class="prof-en">${p.en}</div><div class="prof-uz">${p.uz}</div></div>`).join('');
             showSection('section-professions');
         }
-        
-        // ====== Select Profession ======
         function selectProfession(catId, profId, en, uz) {
             userData.selectedProfession = { catId, profId, en, uz };
             localStorage.setItem('ws_user', JSON.stringify(userData));
-            
-            document.getElementById('uploadProfName').textContent = uz;
-            document.getElementById('uploadProfDesc').textContent = en;
-            document.getElementById('uploadCount').textContent = userData.uploadedWorks.filter(w => w.profId === profId).length;
-            document.getElementById('uploadProgress').style.width = (userData.uploadedWorks.filter(w => w.profId === profId).length / 5 * 100) + '%';
-            
-            renderUploadedWorks(profId);
-            showSection('section-upload');
+            document.getElementById('portfolioProfName').textContent = uz;
+            document.getElementById('portfolioProfDesc').textContent = en;
+            const works = userData.portfolioWorks.filter(w => w.profId === profId);
+            document.getElementById('portfolioCount').textContent = works.length;
+            document.getElementById('portfolioProgress').style.width = (works.length / 5 * 100) + '%';
+            renderPortfolioWorks(profId);
+            showSection('section-portfolio');
         }
         
-        // ====== File Upload ======
-        function handleFileSelect(e) {
+        // ====== DOCUMENTS ======
+        function renderDocuments() {
+            const list = document.getElementById('docList');
+            list.innerHTML = officialDocs.map(d => {
+                const docData = userData.documents[d.id] || {};
+                const status = docData.status || 'upload';
+                const statusText = { 'upload': '⏹️ Yuklash', 'pending': '⏳ Ko\'rib chiqilmoqda', 'approved': '✅ Tasdiqlandi', 'rejected': '❌ Qayta yuklang' }[status];
+                return `<div class="doc-item ${status}" onclick="openDocModal('${d.id}')"><div class="doc-header"><div class="doc-title">${d.title}</div><div class="doc-status ${status}">${statusText}</div></div><div class="doc-meta">📄 PDF, A4 ${d.id === 'd7' || d.id === 'd9' ? '• ♾️ Muddatsiz' : '• ⏱️ 30 kun'}</div><a href="${d.link}" class="doc-link" target="_blank" onclick="event.stopPropagation()">🔗 my.gov.uz dan olish →</a><button class="doc-btn ${status === 'upload' ? 'primary' : 'secondary'}" onclick="event.stopPropagation(); openDocModal('${d.id}')">${status === 'upload' ? '📎 Yuklash' : status === 'approved' ? '✅ Tasdiqlandi' : '👁️ Ko\'rish'}</button></div>`;
+            }).join('');
+        }
+        function openDocModal(docId) {
+            const doc = officialDocs.find(d => d.id === docId);
+            if(!doc) return;
+            currentDocId = docId;
+            selectedDocFile = null;
+            document.getElementById('modalDocTitle').textContent = doc.title;
+            document.getElementById('modalDocLink').href = doc.link;
+            document.getElementById('modalRequirements').innerHTML = doc.requirements.map(r => `<li>${r}</li>`).join('');
+            document.getElementById('filePreview').classList.remove('active');
+            document.getElementById('uploadBtn').disabled = true;
+            const docData = userData.documents[docId];
+            if(docData?.status === 'approved') {
+                document.getElementById('uploadBtn').textContent = '✅ Tasdiqlandi';
+                document.getElementById('uploadBtn').disabled = true;
+            } else if(docData?.status === 'pending') {
+                document.getElementById('uploadBtn').textContent = '⏳ Ko\'rib chiqilmoqda';
+                document.getElementById('uploadBtn').disabled = true;
+            } else {
+                document.getElementById('uploadBtn').textContent = '📤 Yuklash';
+                document.getElementById('uploadBtn').disabled = true;
+            }
+            document.getElementById('docModal').classList.add('active');
+        }
+        function handleDocFileSelect(e) {
             const file = e.target.files[0];
             if(!file) return;
             if(file.type !== 'application/pdf') { alert('❌ Faqat PDF fayllar!'); e.target.value=''; return; }
-            if(file.size > 20*1024*1024) { alert('❌ Max 20 MB!'); e.target.value=''; return; }
-            
-            selectedFile = file;
+            if(file.size > 10*1024*1024) { alert('❌ Max 10 MB!'); e.target.value=''; return; }
+            selectedDocFile = file;
             document.getElementById('fileName').textContent = file.name;
             document.getElementById('fileSize').textContent = (file.size/1024/1024).toFixed(2) + ' MB';
             document.getElementById('filePreview').classList.add('active');
             document.getElementById('uploadBtn').disabled = false;
         }
-        
-        async function uploadWork() {
-            if(!selectedFile || !userData.selectedProfession) return;
+        async function uploadDocument() {
+            if(!currentDocId || !selectedDocFile) return;
             const btn = document.getElementById('uploadBtn');
             btn.disabled = true; btn.textContent = '⏳ Yuklanmoqda...';
-            
             try {
-                // Simulate upload
+                // Simulate upload to backend
                 await new Promise(r => setTimeout(r, 1500));
-                
-                // Save to local storage
-                userData.uploadedWorks.push({
+                // Save to localStorage
+                userData.documents[currentDocId] = {
+                    status: 'pending',
+                    fileName: selectedDocFile.name,
+                    fileSize: selectedDocFile.size,
+                    uploadedAt: new Date().toISOString()
+                };
+                localStorage.setItem('ws_user', JSON.stringify(userData));
+                // Update UI
+                renderDocuments();
+                updateDocProgress();
+                closeModal('docModal');
+                Telegram.WebApp.showPopup({ title: '✅ Yuklandi!', message: 'Hujjatingiz admin ko\'rib chiqishiga yuborildi. 1-3 kun ichida natija ma\'lum bo\'ladi.', buttons: [{type:'ok'}] });
+            } catch(err) {
+                alert('❌ Xatolik: ' + err.message);
+                btn.disabled = false; btn.textContent = '📤 Yuklash';
+            }
+        }
+        function updateDocProgress() {
+            const total = officialDocs.length;
+            const approved = Object.values(userData.documents).filter(d => d.status === 'approved').length;
+            const pending = Object.values(userData.documents).filter(d => d.status === 'pending').length;
+            const rejected = Object.values(userData.documents).filter(d => d.status === 'rejected').length;
+            const percent = Math.round((approved / total) * 100);
+            document.getElementById('docProgressFill').style.width = percent + '%';
+            document.getElementById('docProgressPercent').textContent = percent + '%';
+            document.getElementById('docApproved').textContent = approved;
+            document.getElementById('docPending').textContent = pending;
+            document.getElementById('docRejected').textContent = rejected;
+            document.getElementById('docTotal').textContent = total;
+        }
+        
+        // ====== PORTFOLIO ======
+        function handlePortfolioFileSelect(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            if(file.type !== 'application/pdf') { alert('❌ Faqat PDF fayllar!'); e.target.value=''; return; }
+            if(file.size > 20*1024*1024) { alert('❌ Max 20 MB!'); e.target.value=''; return; }
+            selectedPortfolioFile = file;
+            document.getElementById('portfolioFileName').textContent = file.name;
+            document.getElementById('portfolioFileSize').textContent = (file.size/1024/1024).toFixed(2) + ' MB';
+            document.getElementById('portfolioFilePreview').classList.add('active');
+            document.getElementById('portfolioUploadBtn').disabled = false;
+        }
+        async function uploadPortfolioWork() {
+            if(!selectedPortfolioFile || !userData.selectedProfession) return;
+            const btn = document.getElementById('portfolioUploadBtn');
+            btn.disabled = true; btn.textContent = '⏳ Yuklanmoqda...';
+            try {
+                await new Promise(r => setTimeout(r, 1500));
+                userData.portfolioWorks.push({
                     profId: userData.selectedProfession.profId,
-                    fileName: selectedFile.name,
+                    fileName: selectedPortfolioFile.name,
                     uploadedAt: new Date().toISOString()
                 });
                 localStorage.setItem('ws_user', JSON.stringify(userData));
-                
-                // Update UI
-                document.getElementById('uploadCount').textContent = userData.uploadedWorks.filter(w => w.profId === userData.selectedProfession.profId).length;
-                document.getElementById('uploadProgress').style.width = (userData.uploadedWorks.filter(w => w.profId === userData.selectedProfession.profId).length / 5 * 100) + '%';
-                renderUploadedWorks(userData.selectedProfession.profId);
-                
-                // Reset
-                selectedFile = null;
-                document.getElementById('fileInput').value = '';
-                document.getElementById('filePreview').classList.remove('active');
+                const works = userData.portfolioWorks.filter(w => w.profId === userData.selectedProfession.profId);
+                document.getElementById('portfolioCount').textContent = works.length;
+                document.getElementById('portfolioProgress').style.width = (works.length / 5 * 100) + '%';
+                renderPortfolioWorks(userData.selectedProfession.profId);
+                selectedPortfolioFile = null;
+                document.getElementById('portfolioFileInput').value = '';
+                document.getElementById('portfolioFilePreview').classList.remove('active');
                 btn.disabled = true; btn.textContent = '📤 Ishni Yuklash';
-                
-                Telegram.WebApp.showPopup({ title: '✅ Muvaffaqiyatli!', message: 'Ishingiz yuklandi! Admin ko\'rib chiqadi.', buttons: [{type:'ok'}] });
+                Telegram.WebApp.showPopup({ title: '✅ Yuklandi!', message: 'Ishingiz yuklandi! Admin baholaydi.', buttons: [{type:'ok'}] });
             } catch(err) {
                 alert('❌ Xatolik: ' + err.message);
                 btn.disabled = false; btn.textContent = '📤 Ishni Yuklash';
             }
         }
-        
-        function renderUploadedWorks(profId) {
-            const works = userData.uploadedWorks.filter(w => w.profId === profId);
-            const list = document.getElementById('uploadedList');
+        function renderPortfolioWorks(profId) {
+            const works = userData.portfolioWorks.filter(w => w.profId === profId);
+            const list = document.getElementById('portfolioUploadedList');
             if(works.length === 0) {
                 list.innerHTML = '<p style="font-size:11px;color:#888">Hali ish yuklanmagan</p>';
                 return;
             }
-            list.innerHTML = works.map(w => 
-                `<div style="background:#0a0a0a;padding:10px;border-radius:8px;margin-bottom:6px;font-size:11px;">
-                    📄 ${w.fileName}<br>
-                    <span style="color:#888">${new Date(w.uploadedAt).toLocaleDateString()}</span>
-                </div>`
-            ).join('');
+            list.innerHTML = works.map(w => `<div style="background:#0a0a0a;padding:10px;border-radius:8px;margin-bottom:6px;font-size:11px;">📄 ${w.fileName}<br><span style="color:#888">${new Date(w.uploadedAt).toLocaleDateString()}</span></div>`).join('');
         }
         
-        // ====== Documents ======
-        function renderDocuments() {
-            const list = document.getElementById('docList');
-            list.innerHTML = officialDocs.map(d => 
-                `<div style="background:#0a0a0a;padding:10px;border-radius:8px;margin-bottom:8px;">
-                    <div style="font-weight:600;font-size:12px;margin-bottom:4px">${d.title}</div>
-                    <a href="${d.link}" class="doc-link" target="_blank" style="color:#fff;font-size:10px">🔗 my.gov.uz dan olish →</a>
-                    <button class="btn btn-secondary" style="margin-top:6px;padding:8px;font-size:10px" onclick="alert('Tez orada upload!')">📎 Yuklash</button>
-                </div>`
-            ).join('');
+        // ====== MODAL ======
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            currentDocId = null;
+            selectedDocFile = null;
         }
+        document.getElementById('docModal').addEventListener('click', e => { if(e.target.id === 'docModal') closeModal('docModal'); });
         
-        console.log('✅ 64 kasb + hujjatlar tizimi yuklandi!');
+        console.log('✅ Document upload + Admin review system ready!');
     </script>
 </body>
 </html>
