@@ -90,7 +90,7 @@ init_db()
 
 # ============= 6. FLASK APP (INIT BEFORE ROUTES!) =============
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 024  # 25 MB
+app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024  # 25 MB
 
 # ============= 7. BOT INIT =============
 bot = Bot(token=BOT_TOKEN)
