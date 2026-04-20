@@ -1,5 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
-"""WorldSkills Bot - Main Entry Point"""
+"""WorldSkills Bot - Main Entry Point (FIXED VERSION)"""
 import os, sys, logging, asyncio, uuid, threading, sqlite3
 from datetime import datetime
 from flask import Flask, request, jsonify, send_from_directory, send_file
@@ -32,73 +32,84 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, "documents"), exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, "portfolio"), exist_ok=True)
 
-# ============= 5. DATABASE INIT (CREATE TABLES) =============
-def init_db():
-    """SQLite database'ni initialize qilish va jadvallarni yaratish"""
-    conn = sqlite3.connect(DATABASE_PATH)
-    cursor = conn.cursor()
-    
-    # Users table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            telegram_id TEXT PRIMARY KEY,
-            fullname TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            profession TEXT,
-            language TEXT DEFAULT 'uz',
-            admin_score INTEGER DEFAULT 0,
-            status TEXT DEFAULT 'pending',
-            registered_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    
-    # Documents table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS documents (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            telegram_id TEXT,
-            doc_id TEXT,
-            filename TEXT,
-            status TEXT DEFAULT 'pending',
-            score INTEGER DEFAULT 0,
-            comment TEXT,
-            uploaded_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (telegram_id) REFERENCES users(telegram_id)
-        )
-    """)
-    
-    # Portfolio table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS portfolio (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            telegram_id TEXT,
-            profession_id TEXT,
-            filename TEXT,
-            score INTEGER DEFAULT 0,
-            comment TEXT,
-            uploaded_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (telegram_id) REFERENCES users(telegram_id)
-        )
-    """)
-    
-    conn.commit()
-    conn.close()
-    logger.info(f"✅ Database initialized: {DATABASE_PATH}")
+# ============= 5. DATABASE PATH (FIX: ensure directory exists) =============
+# Render'da database fayli yoziladigan papka mavjud bo'lishi kerak
+DB_DIR = os.path.dirname(os.path.abspath(DATABASE_PATH)) if os.path.dirname(os.path.abspath(DATABASE_PATH)) else "."
+if DB_DIR and not os.path.exists(DB_DIR):
+    os.makedirs(DB_DIR, exist_ok=True)
 
-# Initialize DB immediately
+# ============= 6. DATABASE INIT =============
+def init_db():
+    """SQLite database'ni initialize qilish"""
+    try:
+        conn = sqlite3.connect(DATABASE_PATH)
+        cursor = conn.cursor()
+        
+        # Users table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                telegram_id TEXT PRIMARY KEY,
+                fullname TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                profession TEXT,
+                language TEXT DEFAULT 'uz',
+                admin_score INTEGER DEFAULT 0,
+                status TEXT DEFAULT 'pending',
+                registered_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Documents table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS documents (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                telegram_id TEXT,
+                doc_id TEXT,
+                filename TEXT,
+                status TEXT DEFAULT 'pending',
+                score INTEGER DEFAULT 0,
+                comment TEXT,
+                uploaded_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (telegram_id) REFERENCES users(telegram_id)
+            )
+        """)
+        
+        # Portfolio table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS portfolio (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                telegram_id TEXT,
+                profession_id TEXT,
+                filename TEXT,
+                score INTEGER DEFAULT 0,
+                comment TEXT,
+                uploaded_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (telegram_id) REFERENCES users(telegram_id)
+            )
+        """)
+        
+        conn.commit()
+        conn.close()
+        logger.info(f"✅ Database initialized: {DATABASE_PATH}")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Database init error: {e}")
+        return False
+
+# Initialize DB
 init_db()
 
-# ============= 6. FLASK APP (INIT BEFORE ROUTES!) =============
+# ============= 7. FLASK APP (INIT BEFORE ROUTES!) =============
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024  # 25 MB
+# ✅ FIX: 024 emas, 1024! (25 MB = 25 * 1024 * 1024 bytes)
+app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024
 
-# ============= 7. BOT INIT =============
+# ============= 8. BOT INIT =============
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# ============= 8. DATABASE HELPER FUNCTIONS =============
+# ============= 9. DATABASE HELPERS =============
 def get_user(tid):
-    """Foydalanuvchini database'dan olish"""
     try:
         conn = sqlite3.connect(DATABASE_PATH)
         conn.row_factory = sqlite3.Row
@@ -112,7 +123,6 @@ def get_user(tid):
         return None
 
 def add_user(tid, fullname, phone, profession, language="uz"):
-    """Yangi foydalanuvchini qo'shish"""
     try:
         conn = sqlite3.connect(DATABASE_PATH)
         cursor = conn.cursor()
@@ -129,7 +139,6 @@ def add_user(tid, fullname, phone, profession, language="uz"):
         return False
 
 def get_all_users():
-    """Barcha foydalanuvchilar"""
     try:
         conn = sqlite3.connect(DATABASE_PATH)
         conn.row_factory = sqlite3.Row
@@ -142,9 +151,8 @@ def get_all_users():
         logger.error(f"get_all_users error: {e}")
         return []
 
-# ============= 9. ADMIN NOTIFICATION =============
+# ============= 10. ADMIN NOTIFICATION =============
 async def send_admin_notification(message_text: str):
-    """Admin'ga xabar yuborish"""
     try:
         if ADMIN_ID and ADMIN_ID > 0:
             await bot.send_message(chat_id=ADMIN_ID, text=message_text, parse_mode="HTML")
@@ -152,7 +160,7 @@ async def send_admin_notification(message_text: str):
     except Exception as e:
         logger.error(f"❌ Admin notification error: {e}")
 
-# ============= 10. FLASK ROUTES (ALL HERE - BEFORE RUN!) =============
+# ============= 11. FLASK ROUTES (ALL HERE - BEFORE RUN!) =============
 
 @app.route("/health")
 def health():
@@ -192,12 +200,14 @@ def admin_users():
     if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
     return jsonify(get_all_users())
 
-@app.route("/api/admin/files/<filename>", methods=["GET"])
+@app.route("/api/admin/files/<path:filename>", methods=["GET"])
 def admin_download_file(filename):
     if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    if os.path.exists(filepath):
-        return send_file(filepath, as_attachment=True)
+    # Search in both documents and portfolio folders
+    for folder in ["documents", "portfolio"]:
+        filepath = os.path.join(UPLOAD_FOLDER, folder, filename)
+        if os.path.exists(filepath):
+            return send_file(filepath, as_attachment=True)
     return jsonify({"error": "File not found"}), 404
 
 @app.route("/api/documents/upload", methods=["POST"])
@@ -256,7 +266,7 @@ def admin_review_portfolio():
     if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
     return jsonify({"success": True, "message": "Scored"})
 
-# ============= 11. IMPORT HANDLERS (AFTER bot/dp INIT) =============
+# ============= 12. IMPORT HANDLERS (AFTER bot/dp INIT) =============
 try:
     from bot.handlers import start, ai_chat, webapp
     dp.include_router(start.router)
@@ -266,17 +276,21 @@ try:
 except Exception as e:
     logger.error(f"❌ Error loading handlers: {e}")
 
-# ============= 12. MAIN EXECUTION =============
+# ============= 13. MAIN EXECUTION =============
+def run_flask():
+    """Flask'ni alohida thread'da ishga tushirish"""
+    app.run(host="0.0.0.0", port=5000, threaded=True)
+
 if __name__ == "__main__":
     logger.info("✅ WorldSkills Bot started! @worldskills_uzbekistan_bot")
     
     # Flask'ni background thread'da ishga tushirish
-    flask_thread = threading.Thread(
-        target=lambda: app.run(host="0.0.0.0", port=5000, threaded=True),
-        daemon=True
-    )
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
     logger.info("✅ Flask started on port 5000")
     
-    # Aiogram polling
-    asyncio.run(dp.start_polling(bot))
+    # Aiogram polling (main thread)
+    try:
+        asyncio.run(dp.start_polling(bot))
+    except Exception as e:
+        logger.error(f"❌ Polling error: {e}")

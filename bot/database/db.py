@@ -1,12 +1,15 @@
 ﻿# -*- coding: utf-8 -*-
 import sqlite3, logging, os
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 DATABASE_PATH = os.getenv("DATABASE_URL", "worldskills.db")
 
+# Ensure directory exists
+DB_DIR = os.path.dirname(os.path.abspath(DATABASE_PATH))
+if DB_DIR and not os.path.exists(DB_DIR):
+    os.makedirs(DB_DIR, exist_ok=True)
+
 def init_db():
-    """Database va jadvallarni yaratish"""
     conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
     
