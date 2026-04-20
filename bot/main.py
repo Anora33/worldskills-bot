@@ -146,3 +146,140 @@ if __name__ == "__main__":
     logger.info("✅ Flask on port 5000")
     
     asyncio.run(dp.start_polling(bot))
+
+# ============= ADMIN API ENDPOINTS =============
+
+def check_admin_auth(req):
+    auth = req.headers.get('Authorization', '')
+    if not auth.startswith('Bearer '): return False
+    return auth.split(' ')[1] == os.getenv('ADMIN_TOKEN', 'secret123')
+
+@app.route("/api/admin/stats", methods=["GET"])
+def api_admin_stats():
+    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("SELECT COUNT(*) FROM users")
+        total = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM documents WHERE status='approved'")
+        approved = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM documents WHERE status='pending'")
+        pending = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM documents WHERE status='rejected'")
+        rejected = c.fetchone()[0]
+        conn.close()
+        return jsonify({"total": total, "approved": approved, "pending": pending, "rejected": rejected})
+    except: return jsonify({"total": 0, "approved": 0, "pending": 0, "rejected": 0})
+
+@app.route("/api/admin/documents", methods=["GET"])
+def api_admin_documents():
+    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
+    return jsonify([])
+
+@app.route("/api/admin/portfolio", methods=["GET"])
+def api_admin_portfolio():
+    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
+    return jsonify([])
+
+@app.route("/api/admin/users", methods=["GET"])
+def api_admin_users():
+    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute("SELECT * FROM users ORDER BY registered_at DESC")
+        users = [dict(row) for row in c.fetchall()]
+        conn.close()
+        return jsonify(users)
+    except: return jsonify([])
+
+@app.route("/api/admin/files/<filename>", methods=["GET"])
+def api_admin_files(filename):
+    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
+    filepath = os.path.join(UPLOAD_DIR, filename)
+    if os.path.exists(filepath):
+        return send_file(filepath, as_attachment=True)
+    return jsonify({"error": "File not found"}), 404
+
+@app.route("/api/admin/review/document", methods=["POST"])
+def api_admin_review_doc():
+    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
+    data = request.json
+    tid = data.get("telegramId")
+    doc_id = data.get("docId")
+    action = data.get("action")
+    score = data.get("score", 100)
+    comment = data.get("comment", "")
+    
+    user = get_user(tid)
+    if action == "approved":
+        msg = f"✅ <b>Hujjatingiz tasdiqlandi!</b>\n\n⭐ Ball: {score}/100\n💬 {comment or 'Ajoyib!'}"
+    else:
+        msg = f"❌ <b>Hujjatingiz rad etildi</b>\n\n💬 Sabab: {comment or 'Talablarga javob bermaydi'}\n\n🔄 Qayta yuklang!"
+    
+    asyncio.run(notify_admin(msg))
+    return jsonify({"success": True})
+
+@app.route("/api/admin/review/portfolio", methods=["POST"])
+def api_admin_review_portfolio():
+    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
+    data = request.json
+    tid = data.get("telegramId")
+    action = data.get("action")
+    score = data.get("score", 0)
+    comment = data.get("comment", "")
+    
+    user = get_user(tid)
+    if action == "approved":
+        msg = f"⭐ <b>Ishingiz baholandi!</b>\n\n🏆 Ball: {score}/100\n💬 {comment or 'Yaxshi natija!'}"
+    else:
+        msg = f"❌ <b>Ishingiz rad etildi</b>\n\n💬 Sabab: {comment}\n\n🔄 Qayta yuklang!"
+    
+    asyncio.run(notify_admin(msg))
+    return jsonify({"success": True})
+# ============= ADMIN API ENDPOINTS =============
+
+def check_admin_auth(req):
+    auth = req.headers.get('Authorization', '')
+    if not auth.startswith('Bearer '): return False
+    return auth.split(' ')[1] == os.getenv('ADMIN_TOKEN', 'secret123')
+
+@app.route("/api/admin/stats", methods=["GET"])
+def api_admin_stats():
+    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
+    return jsonify({"total": 10, "approved": 5, "pending": 3, "rejected": 2})
+
+@app.route("/api/admin/documents", methods=["GET"])
+def api_admin_documents():
+    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
+    return jsonify([])
+
+@app.route("/api/admin/portfolio", methods=["GET"])
+def api_admin_portfolio():
+    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
+    return jsonify([])
+
+@app.route("/api/admin/users", methods=["GET"])
+def api_admin_users():
+    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
+    return jsonify(get_all_users())
+
+@app.route("/api/admin/files/<filename>", methods=["GET"])
+def api_admin_files(filename):
+    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
+    filepath = os.path.join(UPLOAD_DIR, filename)
+    if os.path.exists(filepath):
+        return send_file(filepath, as_attachment=True)
+    return jsonify({"error": "File not found"}), 404
+
+@app.route("/api/admin/review/document", methods=["POST"])
+def api_admin_review_doc():
+    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
+    return jsonify({"success": True})
+
+@app.route("/api/admin/review/portfolio", methods=["POST"])
+def api_admin_review_portfolio():
+    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
+    return jsonify({"success": True})
