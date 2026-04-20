@@ -110,3 +110,66 @@ if __name__ == "__main__":
         logger.info("⌨️ Bot stopped")
 
 
+# ============= ADMIN NOTIFICATION FUNKSIYASI =============
+# (bot/main.py oxiriga qo'shilgan bo'lishi kerak)
+async def send_admin_notification(message_text: str):
+    """Admin'ga xabar yuborish"""
+    try:
+        if ADMIN_ID and ADMIN_ID > 0:
+            await bot.send_message(
+                chat_id=ADMIN_ID,
+                text=message_text,
+                parse_mode="HTML"
+            )
+            logger.info(f"✅ Admin notified: {ADMIN_ID}")
+    except Exception as e:
+        logger.error(f"❌ Admin notification error: {e}")
+
+
+# ============= UPLOAD_PORTFOLIO FUNKSIYASI ichiga qo'shing =============
+@app.route("/api/portfolio/upload", methods=["POST"])
+def upload_portfolio():
+    try:
+        tid = request.form.get("telegramId")
+        prof_id = request.form.get("professionId")
+        
+        # ... file validation code ...
+        
+        # Faylni saqlash
+        filename = secure_filename(f"{tid}_{prof_id}_{uuid.uuid4().hex}.pdf")
+        filepath = os.path.join(UPLOAD_FOLDER, "portfolio", str(tid), prof_id)
+        os.makedirs(filepath, exist_ok=True)
+        file.save(os.path.join(filepath, filename))
+        # ✅ ADMIN NOTIFICATION FOR DOCUMENTS
+        user = get_user(tid)
+        doc = next((d for d in officialDocuments if d["id"] == doc_id), {})
+        notification = (
+            f"📄 <b>Yangi hujjat yuklandi!</b>\n\n"
+            f"👤 {user.get('fullname', 'Noma\'lum')}\n"
+            f"📋 {doc.get('title', doc_id)}\n"
+            f"📎 Fayl: {filename}\n"
+            f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+        )
+        asyncio.run(send_admin_notification(notification))
+        # ✅ ADMIN NOTIFICATION TUGADI
+
+        
+        # ✅ ADMIN NOTIFICATION - SHU YERGA QO'SHING:
+        user = get_user(tid)
+        notification = (
+            f"💼 <b>Yangi portfolio ish!</b>\n\n"
+            f"👤 {user.get('fullname', 'Noma\'lum')}\n"
+            f"🎓 Profession: {prof_id}\n"
+            f"📎 Fayl: {filename}\n"
+            f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+        )
+        # ✅ asyncio.run() ishlatish kerak (sync funksiya ichida):
+        asyncio.run(send_admin_notification(notification))
+        # ✅ ADMIN NOTIFICATION TUGADI
+        
+        return jsonify({"success": True, "message": "Uploaded"})
+        
+    except Exception as e:
+        logger.error(f"Portfolio upload error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
