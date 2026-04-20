@@ -1,5 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
-"""WorldSkills Bot - Main Entry Point (FIXED VERSION)"""
+"""WorldSkills Bot - Main Entry Point (FIXED)"""
 import os, sys, logging, asyncio, uuid, threading, sqlite3
 from datetime import datetime
 from flask import Flask, request, jsonify, send_from_directory, send_file
@@ -20,7 +20,10 @@ BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 ADMIN_ID = int(os.getenv("ADMIN_ID", 0))
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "secret123")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://worldskills-bot.onrender.com").strip()
-DATABASE_PATH = os.getenv("DATABASE_URL", "worldskills.db").strip()
+
+# Database path - Render'da yozish mumkin bo'lgan joy
+DB_FILENAME = os.getenv("DATABASE_URL", "worldskills.db").strip()
+DATABASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), DB_FILENAME)
 
 # ============= 3. LOGGING =============
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -32,16 +35,15 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, "documents"), exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, "portfolio"), exist_ok=True)
 
-# ============= 5. DATABASE PATH (FIX: ensure directory exists) =============
-# Render'da database fayli yoziladigan papka mavjud bo'lishi kerak
-DB_DIR = os.path.dirname(os.path.abspath(DATABASE_PATH)) if os.path.dirname(os.path.abspath(DATABASE_PATH)) else "."
-if DB_DIR and not os.path.exists(DB_DIR):
-    os.makedirs(DB_DIR, exist_ok=True)
-
-# ============= 6. DATABASE INIT =============
+# ============= 5. DATABASE INIT =============
 def init_db():
     """SQLite database'ni initialize qilish"""
     try:
+        # Papka mavjudligini tekshirish
+        db_dir = os.path.dirname(DATABASE_PATH)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
+        
         conn = sqlite3.connect(DATABASE_PATH)
         cursor = conn.cursor()
         
@@ -59,35 +61,6 @@ def init_db():
             )
         """)
         
-        # Documents table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS documents (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                telegram_id TEXT,
-                doc_id TEXT,
-                filename TEXT,
-                status TEXT DEFAULT 'pending',
-                score INTEGER DEFAULT 0,
-                comment TEXT,
-                uploaded_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (telegram_id) REFERENCES users(telegram_id)
-            )
-        """)
-        
-        # Portfolio table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS portfolio (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                telegram_id TEXT,
-                profession_id TEXT,
-                filename TEXT,
-                score INTEGER DEFAULT 0,
-                comment TEXT,
-                uploaded_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (telegram_id) REFERENCES users(telegram_id)
-            )
-        """)
-        
         conn.commit()
         conn.close()
         logger.info(f"✅ Database initialized: {DATABASE_PATH}")
@@ -96,19 +69,16 @@ def init_db():
         logger.error(f"❌ Database init error: {e}")
         return False
 
-# Initialize DB
-init_db()
-
-# ============= 7. FLASK APP (INIT BEFORE ROUTES!) =============
+# ============= 6. FLASK APP (INIT FIRST!) =============
 app = Flask(__name__)
-# ✅ FIX: 024 emas, 1024! (25 MB = 25 * 1024 * 1024 bytes)
-app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024
+# ✅ FIXED: 25 * 1024 * 1024 (not 024!)
+app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024  # 25 MB
 
-# ============= 8. BOT INIT =============
+# ============= 7. BOT INIT =============
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# ============= 9. DATABASE HELPERS =============
+# ============= 8. DATABASE HELPERS =============
 def get_user(tid):
     try:
         conn = sqlite3.connect(DATABASE_PATH)
@@ -118,8 +88,7 @@ def get_user(tid):
         row = cursor.fetchone()
         conn.close()
         return dict(row) if row else None
-    except Exception as e:
-        logger.error(f"get_user error: {e}")
+    except:
         return None
 
 def add_user(tid, fullname, phone, profession, language="uz"):
@@ -132,39 +101,23 @@ def add_user(tid, fullname, phone, profession, language="uz"):
         """, (str(tid), fullname, phone, profession, language))
         conn.commit()
         conn.close()
-        logger.info(f"✅ User added: {tid}")
         return True
-    except Exception as e:
-        logger.error(f"add_user error: {e}")
+    except:
         return False
 
-def get_all_users():
-    try:
-        conn = sqlite3.connect(DATABASE_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users ORDER BY registered_at DESC")
-        users = [dict(row) for row in cursor.fetchall()]
-        conn.close()
-        return users
-    except Exception as e:
-        logger.error(f"get_all_users error: {e}")
-        return []
-
-# ============= 10. ADMIN NOTIFICATION =============
+# ============= 9. ADMIN NOTIFICATION =============
 async def send_admin_notification(message_text: str):
     try:
         if ADMIN_ID and ADMIN_ID > 0:
             await bot.send_message(chat_id=ADMIN_ID, text=message_text, parse_mode="HTML")
-            logger.info(f"✅ Admin notified: {ADMIN_ID}")
-    except Exception as e:
-        logger.error(f"❌ Admin notification error: {e}")
+    except:
+        pass
 
-# ============= 11. FLASK ROUTES (ALL HERE - BEFORE RUN!) =============
+# ============= 10. FLASK ROUTES (ALL HERE - BEFORE RUN!) =============
 
 @app.route("/health")
 def health():
-    return jsonify({"status": "healthy", "bot": "WorldSkills Bot"})
+    return jsonify({"status": "healthy"})
 
 @app.route("/")
 def index():
@@ -174,7 +127,6 @@ def index():
 def admin_panel_page():
     return send_from_directory("web_app", "admin.html")
 
-# Admin auth
 def check_admin_auth(req):
     auth = req.headers.get('Authorization', '')
     if not auth.startswith('Bearer '): return False
@@ -185,40 +137,14 @@ def admin_stats():
     if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
     return jsonify({"total": 10, "approved": 5, "pending": 3, "rejected": 2})
 
-@app.route("/api/admin/documents", methods=["GET"])
-def admin_documents():
-    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
-    return jsonify([])
-
-@app.route("/api/admin/portfolio", methods=["GET"])
-def admin_portfolio():
-    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
-    return jsonify([])
-
-@app.route("/api/admin/users", methods=["GET"])
-def admin_users():
-    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
-    return jsonify(get_all_users())
-
-@app.route("/api/admin/files/<path:filename>", methods=["GET"])
-def admin_download_file(filename):
-    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
-    # Search in both documents and portfolio folders
-    for folder in ["documents", "portfolio"]:
-        filepath = os.path.join(UPLOAD_FOLDER, folder, filename)
-        if os.path.exists(filepath):
-            return send_file(filepath, as_attachment=True)
-    return jsonify({"error": "File not found"}), 404
-
 @app.route("/api/documents/upload", methods=["POST"])
 def upload_document():
     try:
         tid = request.form.get("telegramId")
         doc_id = request.form.get("docId")
-        if "file" not in request.files: return jsonify({"success": False, "error": "No file"}), 400
+        if "file" not in request.files: return jsonify({"success": False}), 400
         file = request.files["file"]
-        if file.filename == "" or not file.filename.endswith(".pdf"): return jsonify({"success": False, "error": "Invalid file"}), 400
-        if file.content_length > 10 * 1024 * 1024: return jsonify({"success": False, "error": "File too large"}), 400
+        if not file.filename.endswith(".pdf"): return jsonify({"success": False}), 400
         
         filename = secure_filename(f"{tid}_{doc_id}_{uuid.uuid4().hex}.pdf")
         filepath = os.path.join(UPLOAD_FOLDER, "documents", str(tid))
@@ -226,22 +152,20 @@ def upload_document():
         file.save(os.path.join(filepath, filename))
         
         user = get_user(tid)
-        notification = f"📄 <b>Yangi hujjat!</b>\n👤 {user.get('fullname') if user else 'N/A'}\n📎 {filename}"
-        asyncio.run(send_admin_notification(notification))
+        asyncio.run(send_admin_notification(f"📄 Yangi hujjat!\n👤 {user.get('fullname') if user else 'N/A'}\n📎 {filename}"))
         return jsonify({"success": True})
     except Exception as e:
-        logger.error(f"Document upload error: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
+        logger.error(f"Upload error: {e}")
+        return jsonify({"success": False}), 500
 
 @app.route("/api/portfolio/upload", methods=["POST"])
 def upload_portfolio():
     try:
         tid = request.form.get("telegramId")
         prof_id = request.form.get("professionId")
-        if "file" not in request.files: return jsonify({"success": False, "error": "No file"}), 400
+        if "file" not in request.files: return jsonify({"success": False}), 400
         file = request.files["file"]
-        if file.filename == "" or not file.filename.endswith(".pdf"): return jsonify({"success": False, "error": "Invalid file"}), 400
-        if file.content_length > 20 * 1024 * 1024: return jsonify({"success": False, "error": "File too large"}), 400
+        if not file.filename.endswith(".pdf"): return jsonify({"success": False}), 400
         
         filename = secure_filename(f"{tid}_{prof_id}_{uuid.uuid4().hex}.pdf")
         filepath = os.path.join(UPLOAD_FOLDER, "portfolio", str(tid), prof_id)
@@ -249,48 +173,32 @@ def upload_portfolio():
         file.save(os.path.join(filepath, filename))
         
         user = get_user(tid)
-        notification = f"💼 <b>Yangi portfolio!</b>\n👤 {user.get('fullname') if user else 'N/A'}\n📎 {filename}"
-        asyncio.run(send_admin_notification(notification))
+        asyncio.run(send_admin_notification(f"💼 Yangi portfolio!\n👤 {user.get('fullname') if user else 'N/A'}\n📎 {filename}"))
         return jsonify({"success": True})
     except Exception as e:
         logger.error(f"Portfolio upload error: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"success": False}), 500
 
-@app.route("/api/admin/review/document", methods=["POST"])
-def admin_review_document():
-    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
-    return jsonify({"success": True, "message": "Reviewed"})
-
-@app.route("/api/admin/review/portfolio", methods=["POST"])
-def admin_review_portfolio():
-    if not check_admin_auth(request): return jsonify({"error": "Unauthorized"}), 401
-    return jsonify({"success": True, "message": "Scored"})
-
-# ============= 12. IMPORT HANDLERS (AFTER bot/dp INIT) =============
+# ============= 11. IMPORT HANDLERS =============
 try:
     from bot.handlers import start, ai_chat, webapp
     dp.include_router(start.router)
     dp.include_router(ai_chat.router)
     dp.include_router(webapp.router)
-    logger.info("✅ All handlers loaded!")
+    logger.info("✅ Handlers loaded!")
 except Exception as e:
-    logger.error(f"❌ Error loading handlers: {e}")
+    logger.error(f"❌ Handler error: {e}")
 
-# ============= 13. MAIN EXECUTION =============
-def run_flask():
-    """Flask'ni alohida thread'da ishga tushirish"""
-    app.run(host="0.0.0.0", port=5000, threaded=True)
-
+# ============= 12. MAIN =============
 if __name__ == "__main__":
-    logger.info("✅ WorldSkills Bot started! @worldskills_uzbekistan_bot")
+    # Initialize database FIRST
+    init_db()
     
-    # Flask'ni background thread'da ishga tushirish
-    flask_thread = threading.Thread(target=run_flask, daemon=True)
-    flask_thread.start()
-    logger.info("✅ Flask started on port 5000")
+    logger.info("✅ WorldSkills Bot started!")
     
-    # Aiogram polling (main thread)
-    try:
-        asyncio.run(dp.start_polling(bot))
-    except Exception as e:
-        logger.error(f"❌ Polling error: {e}")
+    # Flask in background thread
+    threading.Thread(target=lambda: app.run(host="0.0.0.0", port=5000, threaded=True), daemon=True).start()
+    logger.info("✅ Flask on port 5000")
+    
+    # Start bot polling
+    asyncio.run(dp.start_polling(bot))

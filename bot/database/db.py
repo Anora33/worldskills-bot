@@ -2,48 +2,57 @@
 import sqlite3, logging, os
 
 logger = logging.getLogger(__name__)
-DATABASE_PATH = os.getenv("DATABASE_URL", "worldskills.db")
 
-# Ensure directory exists
-DB_DIR = os.path.dirname(os.path.abspath(DATABASE_PATH))
-if DB_DIR and not os.path.exists(DB_DIR):
-    os.makedirs(DB_DIR, exist_ok=True)
+def get_db_path():
+    """Render'da ishlash uchun to'g'ri path"""
+    db_name = os.getenv("DATABASE_URL", "worldskills.db")
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), db_name)
 
 def init_db():
-    conn = sqlite3.connect(DATABASE_PATH)
-    cursor = conn.cursor()
-    
-    cursor.execute("""CREATE TABLE IF NOT EXISTS users (
-        telegram_id TEXT PRIMARY KEY,
-        fullname TEXT NOT NULL,
-        phone TEXT NOT NULL,
-        profession TEXT,
-        language TEXT DEFAULT 'uz',
-        admin_score INTEGER DEFAULT 0,
-        status TEXT DEFAULT 'pending',
-        registered_at TEXT DEFAULT CURRENT_TIMESTAMP
-    )""")
-    
-    conn.commit()
-    conn.close()
-    logger.info(f"✅ Database initialized: {DATABASE_PATH}")
+    """Database va jadvallarni yaratish"""
+    try:
+        db_path = get_db_path()
+        db_dir = os.path.dirname(db_path)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
+        
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute("""CREATE TABLE IF NOT EXISTS users (
+            telegram_id TEXT PRIMARY KEY,
+            fullname TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            profession TEXT,
+            language TEXT DEFAULT 'uz',
+            admin_score INTEGER DEFAULT 0,
+            status TEXT DEFAULT 'pending',
+            registered_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )""")
+        
+        conn.commit()
+        conn.close()
+        logger.info(f"✅ DB initialized: {db_path}")
+        return True
+    except Exception as e:
+        logger.error(f"❌ DB init error: {e}")
+        return False
 
 def get_user(tid):
     try:
-        conn = sqlite3.connect(DATABASE_PATH)
+        conn = sqlite3.connect(get_db_path())
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM users WHERE telegram_id = ?", (str(tid),))
         row = cursor.fetchone()
         conn.close()
         return dict(row) if row else None
-    except Exception as e:
-        logger.error(f"get_user error: {e}")
+    except:
         return None
 
 def add_user(tid, fullname, phone, profession, language="uz"):
     try:
-        conn = sqlite3.connect(DATABASE_PATH)
+        conn = sqlite3.connect(get_db_path())
         cursor = conn.cursor()
         cursor.execute("""
             INSERT OR REPLACE INTO users (telegram_id, fullname, phone, profession, language)
@@ -52,22 +61,8 @@ def add_user(tid, fullname, phone, profession, language="uz"):
         conn.commit()
         conn.close()
         return True
-    except Exception as e:
-        logger.error(f"add_user error: {e}")
+    except:
         return False
 
-def get_all_users():
-    try:
-        conn = sqlite3.connect(DATABASE_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users ORDER BY registered_at DESC")
-        users = [dict(row) for row in cursor.fetchall()]
-        conn.close()
-        return users
-    except Exception as e:
-        logger.error(f"get_all_users error: {e}")
-        return []
-
-# Initialize on import
+# Auto-init on import
 init_db()
