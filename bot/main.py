@@ -127,9 +127,10 @@ def upload_portfolio():
         return jsonify({"success": False}), 500
 
 try:
-    from bot.handlers import start, ai_chat, webapp
+    from bot.handlers import start, ai_chat, admin, webapp
     dp.include_router(start.router)
     dp.include_router(ai_chat.router)
+    dp.include_router(admin.router)
     dp.include_router(webapp.router)
     logger.info("✅ Handlers loaded!")
 except Exception as e:
