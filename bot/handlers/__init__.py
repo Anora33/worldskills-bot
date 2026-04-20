@@ -1,2 +1,1 @@
-﻿from . import start, ai_chat, webapp
-# from . import admin  # ← VAQTINCHA IZOHGA OLINDI
+﻿from . import start, ai_chat, admin, webapp

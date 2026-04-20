@@ -8,7 +8,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from bot.config import BOT_TOKEN, DATABASE_URL, ADMIN_ID, WEBAPP_URL
 from bot.database.db import init_db, add_user, update_user_status, get_user as get_db_user
-from bot.handlers import start, ai_chat, webapp
+from bot.handlers import start, ai_chat, admin, webapp
 
 # Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -87,6 +87,7 @@ def register():
 dp.include_router(start.router)
 dp.include_router(ai_chat.router)
 dp.include_router(webapp.router)
+dp.include_router(admin.router)
 logger.info("✅ All handlers loaded!")
 
 async def main():
@@ -107,4 +108,5 @@ if __name__ == "__main__":
         asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("⌨️ Bot stopped")
+
 
