@@ -1,117 +1,69 @@
 ﻿# -*- coding: utf-8 -*-
-import logging, asyncio, os, json, threading
+import os, sys, logging, asyncio, uuid
 from datetime import datetime
-from aiogram import Bot, Dispatcher
-from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
-from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
-from bot.config import BOT_TOKEN, DATABASE_URL, ADMIN_ID, WEBAPP_URL
-from bot.database.db import init_db, add_user, update_user_status, get_user as get_db_user
-from bot.handlers import start, ai_chat, admin, webapp
+from flask import Flask, request, jsonify, send_from_directory, send_file
+from werkzeug.utils import secure_filename
+from aiogram import Bot, Dispatcher, types, F
+from aiogram.filters import Command, CommandStart
+from aiogram.types import Message, CallbackQuery, WebAppInfo, KeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
+from dotenv import load_dotenv
 
-# Logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+# Load environment variables FIRST
+load_dotenv()
+
+# ============= CONFIG =============
+BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
+ADMIN_ID = int(os.getenv("ADMIN_ID", 0))
+ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "secret123")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://worldskills-bot.onrender.com").strip()
+DATABASE_PATH = os.getenv("DATABASE_URL", "worldskills.db").strip()
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
+
+# ============= UPLOAD CONFIG =============
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_FOLDER, "documents"), exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_FOLDER, "portfolio"), exist_ok=True)
+
+# ============= LOGGING =============
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
-# Bot & Dispatcher
-bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+# ============= FLASK APP (INIT FIRST!) =============
+app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024  # 25 MB max
+
+# ============= BOT INIT =============
+bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# Database init
-init_db()
-logger.info("✅ Database initialized")
+# ============= IMPORT HANDLERS (AFTER bot/dp INIT) =============
+from bot.handlers import start, ai_chat, webapp  # admin handler temporarily removed
 
-# Base directory for web_app - works on Render and local
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-WEB_APP_DIR = os.path.join(BASE_DIR, "web_app")
-
-# Flask app with correct static folder
-app = Flask(__name__, static_folder=WEB_APP_DIR, static_url_path="/web_app")
-CORS(app)
-
-# Health check endpoint for Render
-@app.route("/health")
-def health():
-    return jsonify({
-        "status": "healthy",
-        "bot": "WorldSkills Bot",
-        "timestamp": datetime.now().isoformat()
-    }), 200
-
-# Home page - serve index.html from web_app
-@app.route("/")
-def home():
-    return send_from_directory(WEB_APP_DIR, "index.html")
-
-# Serve web_app static files
-@app.route("/web_app/<path:filename>")
-def serve_web_app(filename):
-    return send_from_directory(WEB_APP_DIR, filename)
-
-# API Register endpoint
-@app.route("/api/register", methods=["POST", "OPTIONS"])
-def register():
-    logger.info("🔥 /api/register called")
-    
-    if request.method == "OPTIONS":
-        return "", 200
-    
-    try:
-        data = request.json
-        logger.info(f"🔥 Registration  {data}")
-        
-        tid = data.get("telegramId")
-        first_name = data.get("firstName", "")
-        last_name = data.get("lastName", "")
-        phone = data.get("phone", "")
-        profession = data.get("profession", "Dasturlash")
-        
-        if not all([tid, first_name, phone]):
-            logger.error(f"❌ Missing fields: {data}")
-            return jsonify({"success": False, "error": "Missing fields"}), 400
-        
-        fullname = f"{first_name} {last_name}".strip()
-        
-        add_user(tid, fullname, phone, profession, "uz")
-        update_user_status(tid, "approved", 0)
-        logger.info(f"✅ User registered: {tid} - {fullname}")
-        
-        return jsonify({"success": True, "message": "Registered successfully"})
-        
-    except Exception as e:
-        logger.error(f"❌ Registration error: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
-
-# Include routers
+# ============= REGISTER HANDLERS =============
 dp.include_router(start.router)
 dp.include_router(ai_chat.router)
 dp.include_router(webapp.router)
-dp.include_router(admin.router)
-logger.info("✅ All handlers loaded!")
+# dp.include_router(admin.router)  # Temporarily disabled
 
-async def main():
-    me = await bot.get_me()
-    logger.info(f"✅ WorldSkills Bot started! @{me.username}")
-    await dp.start_polling(bot)
+# ============= DATABASE FUNCTIONS =============
+# (Your existing db functions here...)
 
-def run_flask():
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, threaded=True)
+def get_user(tid):
+    """Placeholder - replace with actual DB query"""
+    return {"fullname": "Test User", "phone": "+998901234567", "profession": "Test Profession"}
 
-if __name__ == "__main__":
-    flask_thread = threading.Thread(target=run_flask, daemon=True)
-    flask_thread.start()
-    logger.info(f"✅ Flask started on port {os.environ.get('PORT', 5000)}")
-    
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        logger.info("⌨️ Bot stopped")
+def get_all_users():
+    """Placeholder"""
+    return []
 
-
-# ============= ADMIN NOTIFICATION FUNKSIYASI =============
-# (bot/main.py oxiriga qo'shilgan bo'lishi kerak)
+# ============= ADMIN NOTIFICATION =============
 async def send_admin_notification(message_text: str):
     """Admin'ga xabar yuborish"""
     try:
@@ -125,51 +77,148 @@ async def send_admin_notification(message_text: str):
     except Exception as e:
         logger.error(f"❌ Admin notification error: {e}")
 
+# ============= FLASK ROUTES (ALL BEFORE app.run!) =============
 
-# ============= UPLOAD_PORTFOLIO FUNKSIYASI ichiga qo'shing =============
+@app.route("/health")
+def health():
+    return jsonify({"status": "healthy", "bot": "WorldSkills Bot"})
+
+@app.route("/")
+def index():
+    return send_from_directory("web_app", "index.html")
+
+@app.route("/admin-panel")
+def admin_panel_page():
+    return send_from_directory("web_app", "admin.html")
+
+# Admin auth check
+def check_admin_auth(request):
+    auth_header = request.headers.get('Authorization', '')
+    if not auth_header.startswith('Bearer '):
+        return False
+    token = auth_header.split(' ')[1]
+    return token == ADMIN_TOKEN
+
+# Admin stats
+@app.route("/api/admin/stats", methods=["GET"])
+def admin_stats():
+    if not check_admin_auth(request):
+        return jsonify({"error": "Unauthorized"}), 401
+    return jsonify({"total": 10, "approved": 5, "pending": 3, "rejected": 2})
+
+# Admin documents list
+@app.route("/api/admin/documents", methods=["GET"])
+def admin_documents():
+    if not check_admin_auth(request):
+        return jsonify({"error": "Unauthorized"}), 401
+    return jsonify([])
+
+# Admin portfolio list
+@app.route("/api/admin/portfolio", methods=["GET"])
+def admin_portfolio():
+    if not check_admin_auth(request):
+        return jsonify({"error": "Unauthorized"}), 401
+    return jsonify([])
+
+# Admin users list
+@app.route("/api/admin/users", methods=["GET"])
+def admin_users():
+    if not check_admin_auth(request):
+        return jsonify({"error": "Unauthorized"}), 401
+    return jsonify(get_all_users())
+
+# Admin file download
+@app.route("/api/admin/files/<filename>", methods=["GET"])
+def admin_download_file(filename):
+    if not check_admin_auth(request):
+        return jsonify({"error": "Unauthorized"}), 401
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    if os.path.exists(filepath):
+        return send_file(filepath, as_attachment=True)
+    return jsonify({"error": "File not found"}), 404
+
+# Document upload
+@app.route("/api/documents/upload", methods=["POST"])
+def upload_document():
+    try:
+        tid = request.form.get("telegramId")
+        doc_id = request.form.get("docId")
+        if "file" not in request.files:
+            return jsonify({"success": False, "error": "No file"}), 400
+        file = request.files["file"]
+        if file.filename == "" or not file.filename.endswith(".pdf"):
+            return jsonify({"success": False, "error": "Invalid file"}), 400
+        if file.content_length > 10 * 1024 * 1024:
+            return jsonify({"success": False, "error": "File too large"}), 400
+        
+        filename = secure_filename(f"{tid}_{doc_id}_{uuid.uuid4().hex}.pdf")
+        filepath = os.path.join(UPLOAD_FOLDER, "documents", str(tid))
+        os.makedirs(filepath, exist_ok=True)
+        file.save(os.path.join(filepath, filename))
+        
+        # Admin notification
+        user = get_user(tid)
+        notification = f"📄 <b>Yangi hujjat!</b>\n👤 {user.get('fullname')}\n📎 {filename}"
+        asyncio.run(send_admin_notification(notification))
+        
+        return jsonify({"success": True, "message": "Uploaded"})
+    except Exception as e:
+        logger.error(f"Document upload error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# Portfolio upload
 @app.route("/api/portfolio/upload", methods=["POST"])
 def upload_portfolio():
     try:
         tid = request.form.get("telegramId")
         prof_id = request.form.get("professionId")
+        if "file" not in request.files:
+            return jsonify({"success": False, "error": "No file"}), 400
+        file = request.files["file"]
+        if file.filename == "" or not file.filename.endswith(".pdf"):
+            return jsonify({"success": False, "error": "Invalid file"}), 400
+        if file.content_length > 20 * 1024 * 1024:
+            return jsonify({"success": False, "error": "File too large"}), 400
         
-        # ... file validation code ...
-        
-        # Faylni saqlash
         filename = secure_filename(f"{tid}_{prof_id}_{uuid.uuid4().hex}.pdf")
         filepath = os.path.join(UPLOAD_FOLDER, "portfolio", str(tid), prof_id)
         os.makedirs(filepath, exist_ok=True)
         file.save(os.path.join(filepath, filename))
-        # ✅ ADMIN NOTIFICATION FOR DOCUMENTS
-        user = get_user(tid)
-        doc = next((d for d in officialDocuments if d["id"] == doc_id), {})
-        notification = (
-            f"📄 <b>Yangi hujjat yuklandi!</b>\n\n"
-            f"👤 {user.get('fullname', 'Noma\'lum')}\n"
-            f"📋 {doc.get('title', doc_id)}\n"
-            f"📎 Fayl: {filename}\n"
-            f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-        )
-        asyncio.run(send_admin_notification(notification))
-        # ✅ ADMIN NOTIFICATION TUGADI
-
         
-        # ✅ ADMIN NOTIFICATION - SHU YERGA QO'SHING:
+        # Admin notification
         user = get_user(tid)
-        notification = (
-            f"💼 <b>Yangi portfolio ish!</b>\n\n"
-            f"👤 {user.get('fullname', 'Noma\'lum')}\n"
-            f"🎓 Profession: {prof_id}\n"
-            f"📎 Fayl: {filename}\n"
-            f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-        )
-        # ✅ asyncio.run() ishlatish kerak (sync funksiya ichida):
+        notification = f"💼 <b>Yangi portfolio!</b>\n👤 {user.get('fullname')}\n📎 {filename}"
         asyncio.run(send_admin_notification(notification))
-        # ✅ ADMIN NOTIFICATION TUGADI
         
         return jsonify({"success": True, "message": "Uploaded"})
-        
     except Exception as e:
         logger.error(f"Portfolio upload error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+# Admin review endpoints (placeholder)
+@app.route("/api/admin/review/document", methods=["POST"])
+def admin_review_document():
+    if not check_admin_auth(request):
+        return jsonify({"error": "Unauthorized"}), 401
+    return jsonify({"success": True, "message": "Review completed"})
+
+@app.route("/api/admin/review/portfolio", methods=["POST"])
+def admin_review_portfolio():
+    if not check_admin_auth(request):
+        return jsonify({"error": "Unauthorized"}), 401
+    return jsonify({"success": True, "message": "Scored successfully"})
+
+# ============= MAIN EXECUTION =============
+if __name__ == "__main__":
+    # Start Flask in background thread
+    import threading
+    flask_thread = threading.Thread(
+        target=lambda: app.run(host="0.0.0.0", port=5000, threaded=True),
+        daemon=True
+    )
+    flask_thread.start()
+    
+    logger.info("✅ WorldSkills Bot started! @worldskills_uzbekistan_bot")
+    
+    # Start aiogram polling
+    asyncio.run(dp.start_polling(bot))
