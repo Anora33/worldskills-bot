@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WorldSkills Shanghai 2026</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -15,6 +15,8 @@
         .content { padding: 0 12px; }
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
         .card-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+        
+        /* Progress */
         .progress-container { margin-bottom: 15px; }
         .progress-header { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 11px; }
         .progress-bar { height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
@@ -26,6 +28,8 @@
         .progress-stat-num.pending { color: var(--warning); }
         .progress-stat-num.rejected { color: var(--error); }
         .progress-stat-label { font-size: 8px; color: var(--muted); }
+        
+        /* Documents List */
         .doc-item { background: #0a0a0a; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
         .doc-item:hover { border-color: #444; }
         .doc-item.approved { border-left: 3px solid var(--success); }
@@ -42,6 +46,8 @@
         .doc-btn { width: 100%; padding: 8px; border: none; border-radius: 6px; font-size: 10px; font-weight: 600; cursor: pointer; margin-top: 4px; }
         .doc-btn.primary { background: var(--gradient); color: #000; }
         .doc-btn.secondary { background: #0a0a0a; color: var(--text); border: 1px solid var(--border); }
+        
+        /* Modal */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: flex-end; }
         .modal.active { display: flex; }
         .modal-content { background: var(--card); border-radius: 16px 16px 0 0; width: 100%; max-height: 85vh; overflow-y: auto; padding: 16px; animation: slideUp 0.3s ease; }
@@ -55,9 +61,11 @@
         .requirements-list li { padding: 4px 0; border-bottom: 1px solid #222; }
         .requirements-list li:last-child { border-bottom: none; }
         .requirements-list li::before { content: "• "; color: var(--text); }
+        
+        /* Upload Area */
         .upload-area { border: 2px dashed var(--border); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; margin: 12px 0; transition: all 0.2s; }
         .upload-area:hover { border-color: var(--text); background: rgba(255,255,255,0.05); }
-        .upload-icon { font-size: 32px; margin-bottom: 8px; }
+        .upload-icon { font-size: 36px; margin-bottom: 8px; }
         .upload-text { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
         .upload-hint { font-size: 10px; color: var(--muted); }
         #fileInput { display: none; }
@@ -65,24 +73,40 @@
         .file-preview.active { display: block; }
         .file-name { font-size: 11px; font-weight: 600; word-break: break-all; }
         .file-size { font-size: 9px; color: var(--muted); margin-top: 3px; }
+        
+        /* Buttons */
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+        .btn-primary { background: var(--gradient); color: #000; }
+        .btn-secondary { background: #0a0a0a; color: var(--text); border: 1px solid var(--border); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
         .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
         .modal-btn.primary { background: var(--gradient); color: #000; }
         .modal-btn.secondary { background: #0a0a0a; color: var(--text); border: 1px solid var(--border); }
+        
+        /* Bottom Nav */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0a0a0a; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 8px 5px; z-index: 100; }
         .nav-item { flex: 1; text-align: center; padding: 6px 2px; cursor: pointer; color: var(--muted); }
         .nav-item.active { color: var(--text); }
         .nav-icon { font-size: 20px; margin-bottom: 2px; }
         .nav-label { font-size: 9px; font-weight: 600; }
+        
+        /* Sections */
         .section { display: none; }
         .section.active { display: block; }
+        
+        /* Back Button */
         .back-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text); background: none; border: none; cursor: pointer; margin-bottom: 12px; padding: 6px 10px; }
+        
+        /* Info Box */
         .info-box { background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid #333; padding: 12px; border-radius: 10px; margin-bottom: 12px; }
         .info-title { color: var(--warning); font-size: 13px; font-weight: 700; margin-bottom: 8px; }
         .info-list { list-style: none; font-size: 11px; color: var(--muted); }
         .info-list li { padding: 4px 0; border-bottom: 1px solid #222; }
         .info-list li:last-child { border-bottom: none; }
         .info-list li::before { content: "• "; color: var(--text); }
+        
+        /* Categories & Professions */
         .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .cat-card { background: #0a0a0a; border: 1px solid var(--border); border-radius: 10px; padding: 14px 10px; text-align: center; cursor: pointer; transition: all 0.2s; }
         .cat-card:hover { border-color: #444; transform: translateY(-2px); }
@@ -118,8 +142,8 @@
             </div>
             <div class="card">
                 <div class="card-title">🚀 Boshlash</div>
-                <button class="doc-btn primary" onclick="showSection('section-categories')">🎓 Kasbingizni Tanlang</button>
-                <button class="doc-btn secondary" onclick="showSection('section-documents')" style="margin-top:8px;">📄 Hujjatlar (my.gov.uz)</button>
+                <button class="btn btn-primary" onclick="showSection('section-categories')">🎓 Kasbingizni Tanlang</button>
+                <button class="btn btn-secondary" onclick="showSection('section-documents')" style="margin-top:8px;">📄 Hujjatlar (my.gov.uz)</button>
             </div>
         </div>
         
@@ -160,7 +184,7 @@
                         <div class="file-name" id="portfolioFileName">file.pdf</div>
                         <div class="file-size" id="portfolioFileSize">0 MB</div>
                     </div>
-                    <button class="doc-btn primary" id="portfolioUploadBtn" onclick="uploadPortfolioWork()" disabled>📤 Ishni Yuklash</button>
+                    <button class="btn btn-primary" id="portfolioUploadBtn" onclick="uploadPortfolioWork()" disabled>📤 Ishni Yuklash</button>
                 </div>
                 <div style="margin-top:15px;">
                     <div class="card-title" style="font-size:13px;">📋 Yuklangan Ishlar</div>
@@ -172,6 +196,7 @@
         <!-- Documents Section -->
         <div id="section-documents" class="section">
             <button class="back-btn" onclick="showSection('section-home')">← Orqaga</button>
+            <!-- Progress -->
             <div class="card progress-container">
                 <div class="progress-header">
                     <span>📋 Rasmiy Hujjatlar</span>
@@ -185,10 +210,12 @@
                     <div class="progress-stat"><span class="progress-stat-num" id="docTotal">9</span><span class="progress-stat-label">📄 Jami</span></div>
                 </div>
             </div>
+            <!-- Documents List -->
             <div class="card">
                 <div class="card-title">📄 my.gov.uz Hujjatlari</div>
                 <div id="docList"></div>
             </div>
+            <!-- Info -->
             <div class="card info-box">
                 <div class="info-title">💡 Muhim</div>
                 <ul class="info-list">
@@ -250,28 +277,7 @@
     <script>
         console.log('✅ WorldSkills App yuklandi!');
         
-        // ============= TELEGRAM WEBAPP SAFE WRAPPERS =============
-        function safeShowPopup(title, message, buttons = [{type:'ok'}]) {
-            if (typeof Telegram !== 'undefined' && Telegram.WebApp && Telegram.WebApp.showPopup) {
-                Telegram.WebApp.showPopup({ title: title, message: message, buttons: buttons });
-            } else {
-                alert(title + '\n\n' + message);
-            }
-        }
-        
-        function safeExpand() {
-            if (typeof Telegram !== 'undefined' && Telegram.WebApp && Telegram.WebApp.expand) {
-                Telegram.WebApp.expand();
-            }
-        }
-        
-        function safeEnableClosingConfirmation() {
-            if (typeof Telegram !== 'undefined' && Telegram.WebApp && Telegram.WebApp.enableClosingConfirmation) {
-                Telegram.WebApp.enableClosingConfirmation();
-            }
-        }
-        
-        // ============= DATA =============
+        // ====== DATA ======
         const categories = [
             { id: 'cat1', icon: '🏭', name: 'Ishlab chiqarish\nva Muhandislik', count: 17 },
             { id: 'cat2', icon: '💻', name: 'Axborot va\nKommunikatsiya', count: 8 },
@@ -302,46 +308,38 @@
             {id:'d9',title:'🆔 ID karta',link:'https://id.gov.uz',requirements:['Old va orqa alohida A4 da','Barcha ma\'lumotlar o\'qiladigan','Muddati o\'tmagan']}
         ];
         
-        let userData = { fullName: '', selectedProfession: null, documents: {}, portfolioWorks: [] };
+        let userData = {
+            fullName: '',
+            selectedProfession: null,
+            documents: {},
+            portfolioWorks: []
+        };
         let currentDocId = null;
         let selectedDocFile = null;
         let selectedPortfolioFile = null;
         
-        // ============= INIT =============
+        // ====== INIT ======
         window.onload = function() {
             try {
-                // Telegram WebApp mavjudligini tekshirish
-                if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                    const tg = Telegram.WebApp;
-                    tg.ready();
-                    safeExpand();
-                    safeEnableClosingConfirmation();
-                    console.log('✅ Telegram WebApp initialized');
-                } else {
-                    console.log('⚠️ Running in browser (not Telegram) - some features disabled');
-                }
+                const tg = Telegram.WebApp;
+                tg.ready();
+                tg.expand();
                 
-                // Load user data
                 const saved = localStorage.getItem('ws_user');
                 if(saved) {
                     userData = JSON.parse(saved);
-                    if(userData.fullName) {
-                        document.getElementById('userGreeting').textContent = '👋 ' + userData.fullName;
-                    }
+                    if(userData.fullName) document.getElementById('userGreeting').textContent = '👋 ' + userData.fullName;
                 }
                 
-                // Render UI
                 renderCategories();
                 renderDocuments();
-                checkDocumentProgress();
+                updateDocProgress();
                 
-                console.log('✅ App ready! 64 professions loaded.');
-            } catch(e) { 
-                console.error('❌ Init error:', e); 
-            }
+                console.log('✅ App ready! Documents upload enabled.');
+            } catch(e) { console.error('❌ Init error:', e); }
         };
         
-        // ============= NAVIGATION =============
+        // ====== NAVIGATION ======
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -351,17 +349,17 @@
             el.classList.add('active');
         }
         
-        // ============= CATEGORIES & PROFESSIONS =============
+        // ====== CATEGORIES & PROFESSIONS ======
         function renderCategories() {
             const grid = document.getElementById('catGrid');
-            grid.innerHTML = categories.map(c => '<div class="cat-card" onclick="showProfessions(\'' + c.id + '\')"><div class="cat-icon">' + c.icon + '</div><div class="cat-name">' + c.name + '</div><div class="cat-count">' + c.count + ' ta kasb</div></div>').join('');
+            grid.innerHTML = categories.map(c => `<div class="cat-card" onclick="showProfessions('${c.id}')"><div class="cat-icon">${c.icon}</div><div class="cat-name">${c.name}</div><div class="cat-count">${c.count} ta kasb</div></div>`).join('');
         }
         function showProfessions(catId) {
             const cat = categories.find(c => c.id === catId);
             document.getElementById('catTitle').textContent = cat.name.replace('\n',' ');
             const list = document.getElementById('profList');
             const profs = professions[catId];
-            list.innerHTML = profs.map(p => '<div class="prof-item" onclick="selectProfession(\'' + catId + '\',\'' + p.id + '\',\'' + p.en.replace(/'/g, "\\'") + '\',\'' + p.uz.replace(/'/g, "\\'") + '\')"><div class="prof-en">' + p.en + '</div><div class="prof-uz">' + p.uz + '</div></div>').join('');
+            list.innerHTML = profs.map(p => `<div class="prof-item" onclick="selectProfession('${catId}','${p.id}','${p.en}','${p.uz}')"><div class="prof-en">${p.en}</div><div class="prof-uz">${p.uz}</div></div>`).join('');
             showSection('section-professions');
         }
         function selectProfession(catId, profId, en, uz) {
@@ -376,14 +374,14 @@
             showSection('section-portfolio');
         }
         
-        // ============= DOCUMENTS =============
+        // ====== DOCUMENTS ======
         function renderDocuments() {
             const list = document.getElementById('docList');
             list.innerHTML = officialDocs.map(d => {
                 const docData = userData.documents[d.id] || {};
                 const status = docData.status || 'upload';
                 const statusText = { 'upload': '⏹️ Yuklash', 'pending': '⏳ Ko\'rib chiqilmoqda', 'approved': '✅ Tasdiqlandi', 'rejected': '❌ Qayta yuklang' }[status];
-                return '<div class="doc-item ' + status + '" onclick="openDocModal(\'' + d.id + '\')"><div class="doc-header"><div class="doc-title">' + d.title + '</div><div class="doc-status ' + status + '">' + statusText + '</div></div><div class="doc-meta">📄 PDF, A4 ' + (d.id === 'd7' || d.id === 'd9' ? '• ♾️ Muddatsiz' : '• ⏱️ 30 kun') + '</div><a href="' + d.link + '" class="doc-link" target="_blank" onclick="event.stopPropagation()">🔗 my.gov.uz dan olish →</a><button class="doc-btn ' + (status === 'upload' ? 'primary' : 'secondary') + '" onclick="event.stopPropagation(); openDocModal(\'' + d.id + '\')">' + (status === 'upload' ? '📎 Yuklash' : status === 'approved' ? '✅ Tasdiqlandi' : '👁️ Ko\'rish') + '</button></div>';
+                return `<div class="doc-item ${status}" onclick="openDocModal('${d.id}')"><div class="doc-header"><div class="doc-title">${d.title}</div><div class="doc-status ${status}">${statusText}</div></div><div class="doc-meta">📄 PDF, A4 ${d.id === 'd7' || d.id === 'd9' ? '• ♾️ Muddatsiz' : '• ⏱️ 30 kun'}</div><a href="${d.link}" class="doc-link" target="_blank" onclick="event.stopPropagation()">🔗 my.gov.uz dan olish →</a><button class="doc-btn ${status === 'upload' ? 'primary' : 'secondary'}" onclick="event.stopPropagation(); openDocModal('${d.id}')">${status === 'upload' ? '📎 Yuklash' : status === 'approved' ? '✅ Tasdiqlandi' : '👁️ Ko\'rish'}</button></div>`;
             }).join('');
         }
         function openDocModal(docId) {
@@ -393,7 +391,7 @@
             selectedDocFile = null;
             document.getElementById('modalDocTitle').textContent = doc.title;
             document.getElementById('modalDocLink').href = doc.link;
-            document.getElementById('modalRequirements').innerHTML = doc.requirements.map(r => '<li>' + r + '</li>').join('');
+            document.getElementById('modalRequirements').innerHTML = doc.requirements.map(r => `<li>${r}</li>`).join('');
             document.getElementById('filePreview').classList.remove('active');
             document.getElementById('uploadBtn').disabled = true;
             const docData = userData.documents[docId];
@@ -412,8 +410,8 @@
         function handleDocFileSelect(e) {
             const file = e.target.files[0];
             if(!file) return;
-            if(file.type !== 'application/pdf') { safeShowPopup('❌ Xatolik', 'Faqat PDF fayllar!'); e.target.value=''; return; }
-            if(file.size > 10*1024*1024) { safeShowPopup('❌ Xatolik', 'Max 10 MB!'); e.target.value=''; return; }
+            if(file.type !== 'application/pdf') { alert('❌ Faqat PDF fayllar!'); e.target.value=''; return; }
+            if(file.size > 10*1024*1024) { alert('❌ Max 10 MB!'); e.target.value=''; return; }
             selectedDocFile = file;
             document.getElementById('fileName').textContent = file.name;
             document.getElementById('fileSize').textContent = (file.size/1024/1024).toFixed(2) + ' MB';
@@ -425,19 +423,27 @@
             const btn = document.getElementById('uploadBtn');
             btn.disabled = true; btn.textContent = '⏳ Yuklanmoqda...';
             try {
+                // Simulate upload to backend
                 await new Promise(r => setTimeout(r, 1500));
-                userData.documents[currentDocId] = { status: 'pending', fileName: selectedDocFile.name, fileSize: selectedDocFile.size, uploadedAt: new Date().toISOString() };
+                // Save to localStorage
+                userData.documents[currentDocId] = {
+                    status: 'pending',
+                    fileName: selectedDocFile.name,
+                    fileSize: selectedDocFile.size,
+                    uploadedAt: new Date().toISOString()
+                };
                 localStorage.setItem('ws_user', JSON.stringify(userData));
+                // Update UI
                 renderDocuments();
-                checkDocumentProgress();
+                updateDocProgress();
                 closeModal('docModal');
-                safeShowPopup('✅ Yuklandi!', 'Hujjatingiz admin ko\'rib chiqishiga yuborildi. 1-3 kun ichida natija ma\'lum bo\'ladi.');
+                Telegram.WebApp.showPopup({ title: '✅ Yuklandi!', message: 'Hujjatingiz admin ko\'rib chiqishiga yuborildi. 1-3 kun ichida natija ma\'lum bo\'ladi.', buttons: [{type:'ok'}] });
             } catch(err) {
-                safeShowPopup('❌ Xatolik', 'Xatolik: ' + err.message);
+                alert('❌ Xatolik: ' + err.message);
                 btn.disabled = false; btn.textContent = '📤 Yuklash';
             }
         }
-        function checkDocumentProgress() {
+        function updateDocProgress() {
             const total = officialDocs.length;
             const approved = Object.values(userData.documents).filter(d => d.status === 'approved').length;
             const pending = Object.values(userData.documents).filter(d => d.status === 'pending').length;
@@ -449,23 +455,14 @@
             document.getElementById('docPending').textContent = pending;
             document.getElementById('docRejected').textContent = rejected;
             document.getElementById('docTotal').textContent = total;
-            
-            if (approved === total) {
-                safeShowPopup('🎉 Barcha hujjatlar!', 'Barcha hujjatlaringiz yuklandi va tasdiqlandi!');
-            } else if (approved > 0 && approved < total) {
-                const remaining = total - approved;
-                if (remaining <= 3) {
-                    safeShowPopup('⚡ Oz qoldi!', 'Faqat ' + remaining + ' ta hujjat qoldi! Davom eting!');
-                }
-            }
         }
         
-        // ============= PORTFOLIO =============
+        // ====== PORTFOLIO ======
         function handlePortfolioFileSelect(e) {
             const file = e.target.files[0];
             if(!file) return;
-            if(file.type !== 'application/pdf') { safeShowPopup('❌ Xatolik', 'Faqat PDF fayllar!'); e.target.value=''; return; }
-            if(file.size > 20*1024*1024) { safeShowPopup('❌ Xatolik', 'Max 20 MB!'); e.target.value=''; return; }
+            if(file.type !== 'application/pdf') { alert('❌ Faqat PDF fayllar!'); e.target.value=''; return; }
+            if(file.size > 20*1024*1024) { alert('❌ Max 20 MB!'); e.target.value=''; return; }
             selectedPortfolioFile = file;
             document.getElementById('portfolioFileName').textContent = file.name;
             document.getElementById('portfolioFileSize').textContent = (file.size/1024/1024).toFixed(2) + ' MB';
@@ -478,7 +475,11 @@
             btn.disabled = true; btn.textContent = '⏳ Yuklanmoqda...';
             try {
                 await new Promise(r => setTimeout(r, 1500));
-                userData.portfolioWorks.push({ profId: userData.selectedProfession.profId, fileName: selectedPortfolioFile.name, uploadedAt: new Date().toISOString() });
+                userData.portfolioWorks.push({
+                    profId: userData.selectedProfession.profId,
+                    fileName: selectedPortfolioFile.name,
+                    uploadedAt: new Date().toISOString()
+                });
                 localStorage.setItem('ws_user', JSON.stringify(userData));
                 const works = userData.portfolioWorks.filter(w => w.profId === userData.selectedProfession.profId);
                 document.getElementById('portfolioCount').textContent = works.length;
@@ -488,9 +489,9 @@
                 document.getElementById('portfolioFileInput').value = '';
                 document.getElementById('portfolioFilePreview').classList.remove('active');
                 btn.disabled = true; btn.textContent = '📤 Ishni Yuklash';
-                safeShowPopup('✅ Yuklandi!', 'Ishingiz yuklandi! Admin baholaydi.');
+                Telegram.WebApp.showPopup({ title: '✅ Yuklandi!', message: 'Ishingiz yuklandi! Admin baholaydi.', buttons: [{type:'ok'}] });
             } catch(err) {
-                safeShowPopup('❌ Xatolik', 'Xatolik: ' + err.message);
+                alert('❌ Xatolik: ' + err.message);
                 btn.disabled = false; btn.textContent = '📤 Ishni Yuklash';
             }
         }
@@ -501,18 +502,18 @@
                 list.innerHTML = '<p style="font-size:11px;color:#888">Hali ish yuklanmagan</p>';
                 return;
             }
-            list.innerHTML = works.map(w => '<div style="background:#0a0a0a;padding:10px;border-radius:8px;margin-bottom:6px;font-size:11px;">📄 ' + w.fileName + '<br><span style="color:#888">' + new Date(w.uploadedAt).toLocaleDateString() + '</span></div>').join('');
+            list.innerHTML = works.map(w => `<div style="background:#0a0a0a;padding:10px;border-radius:8px;margin-bottom:6px;font-size:11px;">📄 ${w.fileName}<br><span style="color:#888">${new Date(w.uploadedAt).toLocaleDateString()}</span></div>`).join('');
         }
         
-        // ============= MODAL =============
+        // ====== MODAL ======
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
             currentDocId = null;
             selectedDocFile = null;
         }
-        document.getElementById('docModal').addEventListener('click', function(e) { if(e.target.id === 'docModal') closeModal('docModal'); });
+        document.getElementById('docModal').addEventListener('click', e => { if(e.target.id === 'docModal') closeModal('docModal'); });
         
-        console.log('✅ Safe WebApp wrappers loaded!');
+        console.log('✅ Document upload + Admin review system ready!');
     </script>
 </body>
 </html>
