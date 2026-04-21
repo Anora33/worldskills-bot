@@ -2,470 +2,164 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WorldSkills Shanghai 2026</title>
-    <script src="https://telegram.org/js/telegram-web-app.js">
-// ============= DESKTOP + MOBILE FILE UPLOAD =============
-
-};
-</script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        :root { --bg: #000; --card: #111; --border: #222; --text: #fff; --muted: #888; --success: #4CAF50; --warning: #FFC107; --error: #f44336; --gradient: linear-gradient(135deg,#fff,#888); }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 80px; font-size: 14px; line-height: 1.4; overflow-x: hidden; }
-        .rain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.08; }
-        .raindrop { position: absolute; width: 1px; height: 15px; background: linear-gradient(to bottom, transparent, var(--text)); animation: fall linear infinite; }
-        @keyframes fall { to { transform: translateY(100vh); } }
-        .header { background: var(--gradient); color: #000; padding: 25px 15px; text-align: center; position: relative; z-index: 1; border-radius: 0 0 20px 20px; margin-bottom: 15px; }
-        .header h1 { font-size: 20px; font-weight: 800; margin-bottom: 5px; }
-        .header p { font-size: 12px; opacity: 0.9; }
-        .content { position: relative; z-index: 1; padding: 0 12px; }
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; animation: slideUp 0.4s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .card-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        .progress-container { margin-bottom: 15px; }
-        .progress-header { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 11px; }
-        .progress-bar { height: 8px; background: #222; border-radius: 4px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--gradient); border-radius: 4px; transition: width 0.3s; }
-        .progress-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; }
-        .progress-stat { background: #0a0a0a; padding: 8px; border-radius: 8px; text-align: center; }
-        .progress-stat-num { font-size: 18px; font-weight: 800; display: block; }
-        .progress-stat-num.approved { color: var(--success); }
-        .progress-stat-num.pending { color: var(--warning); }
-        .progress-stat-num.rejected { color: var(--error); }
-        .progress-stat-label { font-size: 8px; color: var(--muted); }
-        .doc-item { background: #0a0a0a; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
-        .doc-item:hover { border-color: #444; transform: translateX(3px); }
-        .doc-item.approved { border-left: 3px solid var(--success); }
-        .doc-item.pending { border-left: 3px solid var(--warning); }
-        .doc-item.rejected { border-left: 3px solid var(--error); }
-        .doc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .doc-title { font-weight: 600; font-size: 12px; }
-        .doc-status { font-size: 9px; padding: 3px 8px; border-radius: 8px; background: #111; color: var(--muted); }
-        .doc-status.pending { background: rgba(255,193,7,0.2); color: var(--warning); }
-        .doc-status.approved { background: rgba(76,175,80,0.2); color: var(--success); }
-        .doc-status.rejected { background: rgba(244,67,54,0.2); color: var(--error); }
-        .doc-meta { font-size: 10px; color: var(--muted); margin-bottom: 8px; }
-        .doc-link { color: var(--text); text-decoration: none; font-size: 10px; display: inline-flex; align-items: center; gap: 3px; margin-bottom: 8px; }
-        .doc-link:hover { text-decoration: underline; }
-        .doc-btn { width: 100%; padding: 10px; border: none; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; margin-top: 4px; }
-        .doc-btn.primary { background: var(--gradient); color: #000; }
-        .doc-btn.secondary { background: #0a0a0a; color: var(--text); border: 1px solid var(--border); }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: flex-end; }
-        .modal.active { display: flex; }
-        .modal-content { background: var(--card); border-radius: 20px 20px 0 0; width: 100%; max-height: 85vh; overflow-y: auto; padding: 20px; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-        .modal-title { font-size: 16px; font-weight: 700; }
-        .modal-close { background: none; border: none; color: var(--muted); font-size: 28px; cursor: pointer; }
-        .modal-section { margin-bottom: 16px; }
-        .modal-section-title { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--muted); }
-        .requirements-list { list-style: none; font-size: 11px; }
-        .requirements-list li { padding: 5px 0; border-bottom: 1px solid #222; }
-        .requirements-list li:last-child { border-bottom: none; }
-        .requirements-list li::before { content: "• "; color: var(--text); }
-        .upload-area { border: 2px dashed var(--border); border-radius: 12px; padding: 25px; text-align: center; cursor: pointer; margin: 12px 0; transition: all 0.2s; }
-        .upload-area:hover { border-color: var(--text); background: rgba(255,255,255,0.05); }
-        .upload-icon { font-size: 40px; margin-bottom: 10px; animation: bounce 2s infinite; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-        .upload-text { font-size: 13px; font-weight: 600; margin-bottom: 5px; }
-        .upload-hint { font-size: 10px; color: var(--muted); }
-        #fileInput { display: none; }
-        .file-preview { background: #0a0a0a; padding: 12px; border-radius: 10px; margin-top: 12px; display: none; }
-        .file-preview.active { display: block; }
-        .file-name { font-size: 11px; font-weight: 600; word-break: break-all; }
-        .file-size { font-size: 9px; color: var(--muted); margin-top: 3px; }
-        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-        .modal-btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; }
-        .modal-btn.primary { background: var(--gradient); color: #000; }
-        .modal-btn.secondary { background: #0a0a0a; color: var(--text); border: 1px solid var(--border); }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0a0a0a; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 5px; z-index: 100; }
-        .nav-item { flex: 1; text-align: center; padding: 6px 2px; cursor: pointer; color: var(--muted); transition: all 0.2s; }
-        .nav-item.active { color: var(--text); }
-        .nav-icon { font-size: 22px; margin-bottom: 3px; }
-        .nav-label { font-size: 9px; font-weight: 600; }
-        .section { display: none; }
-        .section.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .back-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text); background: none; border: none; cursor: pointer; margin-bottom: 12px; padding: 8px 12px; }
-        .info-box { background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid #333; padding: 14px; border-radius: 12px; margin-bottom: 12px; }
-        .info-title { color: var(--warning); font-size: 14px; font-weight: 700; margin-bottom: 10px; }
-        .info-list { list-style: none; font-size: 11px; color: var(--muted); }
-        .info-list li { padding: 5px 0; border-bottom: 1px solid #222; }
-        .info-list li:last-child { border-bottom: none; }
-        .info-list li::before { content: "• "; color: var(--text); }
-        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .cat-card { background: #0a0a0a; border: 1px solid var(--border); border-radius: 12px; padding: 16px 10px; text-align: center; cursor: pointer; transition: all 0.2s; }
-        .cat-card:hover { border-color: var(--text); transform: translateY(-3px); }
-        .cat-icon { font-size: 32px; margin-bottom: 8px; }
-        .cat-name { font-size: 11px; font-weight: 600; margin-bottom: 4px; }
-        .cat-count { font-size: 9px; color: var(--muted); }
-        .prof-list { display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto; }
-        .prof-item { background: #0a0a0a; border: 1px solid var(--border); border-radius: 12px; padding: 14px; cursor: pointer; transition: all 0.2s; }
-        .prof-item:hover { border-color: var(--success); transform: translateX(4px); }
-        .prof-en { font-weight: 600; font-size: 12px; color: var(--success); margin-bottom: 3px; }
-        .prof-uz { font-size: 11px; color: var(--muted); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        .content {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .upload-area {
+            background: rgba(255,255,255,0.2);
+            border: 2px dashed rgba(255,255,255,0.5);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            margin: 15px 0;
+        }
+        .upload-area:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .file-info {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+        }
+        .file-info.active { display: block; }
     </style>
 </head>
 <body>
-    <div class="rain" id="rain"></div>
-    
     <div class="header">
         <h1>🏆 WorldSkills Shanghai 2026</h1>
         <p>48-chi Jahon Kasb Chempionati</p>
-        <p id="userGreeting" style="font-size:11px;margin-top:8px;opacity:0.9"></p>
     </div>
     
     <div class="content">
-        <!-- Home Section -->
-        <div id="section-home" class="section active">
+        <h2>📄 Hujjat Yuklash</h2>
+        <p style="margin: 15px 0; font-size: 14px;">PDF faylingizni yuklang (Max 10 MB)</p>
+        
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <div style="font-size: 48px; margin-bottom: 10px;">📎</div>
+            <div>PDF fayl tanlang</div>
+        </div>
+        
+        <input type="file" id="fileInput" accept=".pdf,application/pdf" style="display: none;" onchange="handleFileSelect(event)">
+        
+        <div class="file-info" id="fileInfo">
+            <div><b>Fayl:</b> <span id="fileName"></span></div>
+            <div><b>Hajm:</b> <span id="fileSize"></span></div>
+        </div>
+        
+        <button class="btn" id="uploadBtn" onclick="uploadFile()" disabled>📤 Yuklash</button>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        
+        // Telegram WebApp init
+        if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
+        }
+        
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
             
-
-
-// Mobile + Desktop file upload fix
-
-}
-
-// ============= PDF UPLOAD - MOBILE + DESKTOP =============
-let selectedDocFile = null;
-let selectedPortfolioFile = null;
-let currentDocId = null;
-let userData = JSON.parse(localStorage.getItem('ws_user') || '{}');
-
-// File input trigger
-
-}
-
-// ============= PDF UPLOAD SYSTEM =============
-let selectedDocFile = null;
-let selectedPortfolioFile = null;
-let currentDocId = null;
-
-// Telegram WebApp init
-if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-    Telegram.WebApp.ready();
-    Telegram.WebApp.expand();
-}
-
-// Get user data from Telegram
-function getUserData() {
-    const user = Telegram.WebApp.initDataUnsafe?.user;
-    return {
-        telegramId: user?.id?.toString() || 'unknown',
-        fullName: user?.first_name + ' ' + (user?.last_name || ''),
-        username: user?.username || ''
-    };
-}
-
-// Trigger file input
-function triggerFileInput(inputId) {
-    const input = document.getElementById(inputId);
-    if (input) {
-        input.click();
-    }
-}
-
-// Document file select handler
-function handleDocFileSelect(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    console.log('Selected file:', file.name, file.size, file.type);
-    
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-        if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-            Telegram.WebApp.showPopup({
-                title: '❌ Xatolik',
-                message: 'Faqat PDF fayllar qabul qilinadi!'
-            });
-        } else {
-            alert('❌ Faqat PDF fayllar!');
-        }
-        e.target.value = '';
-        return;
-    }
-    
-    if (file.size > 10 * 1024 * 1024) {
-        if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-            Telegram.WebApp.showPopup({
-                title: '❌ Xatolik',
-                message: 'Fayl hajmi 10 MB dan oshmasligi kerak!'
-            });
-        } else {
-            alert('❌ Max 10 MB!');
-        }
-        e.target.value = '';
-        return;
-    }
-    
-    selectedDocFile = file;
-    const fileNameEl = document.getElementById('fileName');
-    const fileSizeEl = document.getElementById('fileSize');
-    const filePreviewEl = document.getElementById('filePreview');
-    const uploadBtnEl = document.getElementById('uploadBtn');
-    
-    if (fileNameEl) fileNameEl.textContent = file.name;
-    if (fileSizeEl) fileSizeEl.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
-    if (filePreviewEl) filePreviewEl.classList.add('active');
-    if (uploadBtnEl) {
-        uploadBtnEl.disabled = false;
-        uploadBtnEl.textContent = '📤 Yuklash';
-    }
-}
-
-// Portfolio file select handler
-function handlePortfolioFileSelect(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    console.log('Selected portfolio file:', file.name, file.size, file.type);
-    
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-        if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-            Telegram.WebApp.showPopup({
-                title: '❌ Xatolik',
-                message: 'Faqat PDF fayllar qabul qilinadi!'
-            });
-        } else {
-            alert('❌ Faqat PDF fayllar!');
-        }
-        e.target.value = '';
-        return;
-    }
-    
-    if (file.size > 20 * 1024 * 1024) {
-        if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-            Telegram.WebApp.showPopup({
-                title: '❌ Xatolik',
-                message: 'Fayl hajmi 20 MB dan oshmasligi kerak!'
-            });
-        } else {
-            alert('❌ Max 20 MB!');
-        }
-        e.target.value = '';
-        return;
-    }
-    
-    selectedPortfolioFile = file;
-    const fileNameEl = document.getElementById('portfolioFileName');
-    const fileSizeEl = document.getElementById('portfolioFileSize');
-    const filePreviewEl = document.getElementById('portfolioFilePreview');
-    const uploadBtnEl = document.getElementById('portfolioUploadBtn');
-    
-    if (fileNameEl) fileNameEl.textContent = file.name;
-    if (fileSizeEl) fileSizeEl.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
-    if (filePreviewEl) filePreviewEl.classList.add('active');
-    if (uploadBtnEl) {
-        uploadBtnEl.disabled = false;
-        uploadBtnEl.textContent = '📤 Ishni Yuklash';
-    }
-}
-
-// Upload document to server
-async function uploadDocument() {
-    if (!currentDocId || !selectedDocFile) {
-        console.error('No file or docId');
-        return;
-    }
-    
-    const btn = document.getElementById('uploadBtn');
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = '⏳ Yuklanmoqda...';
-    }
-    
-    try {
-        const userData = getUserData();
-        const formData = new FormData();
-        formData.append('telegramId', userData.telegramId);
-        formData.append('docId', currentDocId);
-        formData.append('file', selectedDocFile);
-        
-        console.log('Uploading document...', currentDocId, selectedDocFile.name);
-        
-        const response = await fetch('/api/documents/upload', {
-            method: 'POST',
-            body: formData
-        });
-        
-        const result = await response.json();
-        console.log('Upload result:', result);
-        
-        if (result.success) {
-            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                Telegram.WebApp.showPopup({
-                    title: '✅ Muvaffaqiyatli',
-                    message: 'Hujjat yuklandi! Admin ko\'rib chiqadi.'
-                });
-            } else {
-                alert('✅ Hujjat yuklandi!');
+            if (!file.name.toLowerCase().endsWith('.pdf')) {
+                alert('❌ Faqat PDF fayllar!');
+                e.target.value = '';
+                return;
             }
             
-            const filePreviewEl = document.getElementById('filePreview');
-            if (filePreviewEl) filePreviewEl.classList.remove('active');
-            if (btn) {
-                btn.textContent = '📤 Yuklash';
-                btn.disabled = true;
+            if (file.size > 10 * 1024 * 1024) {
+                alert('❌ Max 10 MB!');
+                e.target.value = '';
+                return;
             }
-            selectedDocFile = null;
-        } else {
-            const errorMsg = result.error || 'Noma\'lum xatolik';
-            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                Telegram.WebApp.showPopup({
-                    title: '❌ Xatolik',
-                    message: 'Upload xatosi: ' + errorMsg
+            
+            selectedFile = file;
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+            document.getElementById('fileInfo').classList.add('active');
+            document.getElementById('uploadBtn').disabled = false;
+        }
+        
+        async function uploadFile() {
+            if (!selectedFile) return;
+            
+            const btn = document.getElementById('uploadBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Yuklanmoqda...';
+            
+            try {
+                const formData = new FormData();
+                formData.append('telegramId', Telegram.WebApp.initDataUnsafe?.user?.id?.toString() || 'unknown');
+                formData.append('docId', 'document_1');
+                formData.append('file', selectedFile);
+                
+                const response = await fetch('/api/documents/upload', {
+                    method: 'POST',
+                    body: formData
                 });
-            } else {
-                alert('❌ Xatolik: ' + errorMsg);
-            }
-            if (btn) {
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ Hujjat yuklandi!');
+                    document.getElementById('fileInfo').classList.remove('active');
+                    btn.textContent = '📤 Yuklash';
+                    btn.disabled = true;
+                    selectedFile = null;
+                } else {
+                    alert('❌ Xatolik: ' + (result.error || 'Noma\'lum xatolik'));
+                    btn.disabled = false;
+                    btn.textContent = '📤 Yuklash';
+                }
+            } catch (err) {
+                alert('❌ Upload xatosi: ' + err.message);
                 btn.disabled = false;
                 btn.textContent = '📤 Yuklash';
             }
         }
-    } catch (err) {
-        console.error('Upload error:', err);
-        if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-            Telegram.WebApp.showPopup({
-                title: '❌ Xatolik',
-                message: 'Upload xatosi: ' + err.message
-            });
-        } else {
-            alert('❌ Upload xatosi: ' + err.message);
-        }
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = '📤 Yuklash';
-        }
-    }
-}
-
-// Upload portfolio to server
-async function uploadPortfolioWork() {
-    if (!selectedPortfolioFile) {
-        console.error('No portfolio file');
-        return;
-    }
-    
-    const btn = document.getElementById('portfolioUploadBtn');
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = '⏳ Yuklanmoqda...';
-    }
-    
-    try {
-        const userData = getUserData();
-        const formData = new FormData();
-        formData.append('telegramId', userData.telegramId);
-        formData.append('professionId', 'unknown'); // Will be set dynamically
-        formData.append('file', selectedPortfolioFile);
-        
-        console.log('Uploading portfolio...', selectedPortfolioFile.name);
-        
-        const response = await fetch('/api/portfolio/upload', {
-            method: 'POST',
-            body: formData
-        });
-        
-        const result = await response.json();
-        console.log('Portfolio upload result:', result);
-        
-        if (result.success) {
-            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                Telegram.WebApp.showPopup({
-                    title: '✅ Muvaffaqiyatli',
-                    message: 'Ish yuklandi! Admin baholaydi.'
-                });
-            } else {
-                alert('✅ Ish yuklandi!');
-            }
-            
-            const filePreviewEl = document.getElementById('portfolioFilePreview');
-            if (filePreviewEl) filePreviewEl.classList.remove('active');
-            if (btn) {
-                btn.textContent = '📤 Ishni Yuklash';
-                btn.disabled = true;
-            }
-            selectedPortfolioFile = null;
-        } else {
-            const errorMsg = result.error || 'Noma\'lum xatolik';
-            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                Telegram.WebApp.showPopup({
-                    title: '❌ Xatolik',
-                    message: 'Upload xatosi: ' + errorMsg
-                });
-            } else {
-                alert('❌ Xatolik: ' + errorMsg);
-            }
-            if (btn) {
-                btn.disabled = false;
-                btn.textContent = '📤 Ishni Yuklash';
-            }
-        }
-    } catch (err) {
-        console.error('Portfolio upload error:', err);
-        if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-            Telegram.WebApp.showPopup({
-                title: '❌ Xatolik',
-                message: 'Upload xatosi: ' + err.message
-            });
-        } else {
-            alert('❌ Upload xatosi: ' + err.message);
-        }
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = '📤 Ishni Yuklash';
-        }
-    }
-}
-
-// Setup upload areas
-function setupUploadAreas() {
-    console.log('Setting up upload areas...');
-    
-    // Document upload area
-    const docUploadArea = document.querySelector('.doc-item .upload-area');
-    if (docUploadArea) {
-        docUploadArea.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            triggerFileInput('fileInput');
-        });
-    }
-    
-    // Portfolio upload area
-    const portfolioUploadArea = document.querySelector('#section-portfolio .upload-area');
-    if (portfolioUploadArea) {
-        portfolioUploadArea.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            triggerFileInput('portfolioFileInput');
-        });
-    }
-    
-    console.log('Upload areas setup complete');
-}
-
-// Init on load
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupUploadAreas);
-} else {
-    setupUploadAreas();
-}
-
-console.log('✅ PDF Upload System loaded!');
+    </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
