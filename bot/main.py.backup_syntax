@@ -1,9 +1,12 @@
 ﻿# -*- coding: utf-8 -*-
 """WorldSkills Bot - FINAL FIXED VERSION"""
-import os, logging, asyncio, threading, sqlite3, uuid
+import os, logging, asyncio, threading, sqlite3, uuid, re
 from flask import Flask, request, jsonify, send_from_directory, send_file
 from werkzeug.utils import secure_filename
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, types, F
+from aiogram.filters import Command, CommandStart
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 from dotenv import load_dotenv
 
 # 1. Load env FIRST
@@ -87,6 +90,17 @@ def get_all_users():
         conn.close()
         return users
     except: return []
+
+def add_user(tid, fullname, phone, profession, language="uz"):
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("INSERT OR REPLACE INTO users VALUES(?,?,?,?,?,?,?,?)",
+                 (str(tid), fullname, phone, profession, language, 0, "pending", None))
+        conn.commit()
+        conn.close()
+        return True
+    except: return False
 
 async def notify_admin(txt):
     try:
@@ -214,13 +228,13 @@ def upload_portfolio():
         return jsonify({"success": False}), 500
 
 # ============= IMPORT HANDLERS (AFTER bot/dp INIT) =============
+# ✅ To'g'ri try/except bloki:
 try:
     from bot.handlers import start, ai_chat, admin, admin_help, webapp
     dp.include_router(start.router)
     dp.include_router(ai_chat.router)
     dp.include_router(admin.router)
     dp.include_router(admin_help.router)
-dp.include_router(admin_help.router)
     dp.include_router(webapp.router)
     logger.info("✅ Handlers loaded!")
 except Exception as e:
@@ -238,7 +252,3 @@ if __name__ == "__main__":
     
     # Bot polling
     asyncio.run(dp.start_polling(bot))
-
-
-
-
