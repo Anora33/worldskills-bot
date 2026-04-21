@@ -7,47 +7,51 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        :root { --bg: #000; --card: #111; --border: #222; --text: #fff; --muted: #888; --success: #4CAF50; --warning: #FFC107; --error: #f44336; --gradient: linear-gradient(135deg,#667eea,#764ba2); }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 80px; }
-        .header { background: var(--gradient); color: #fff; padding: 30px 15px; text-align: center; border-radius: 0 0 25px 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(102,126,234,0.3); }
-        .header h1 { font-size: 22px; font-weight: 800; margin-bottom: 5px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-        .header p { font-size: 12px; opacity: 0.95; }
-        .content { padding: 0 15px; }
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 18px; margin-bottom: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); transition: transform 0.2s; }
-        .card:active { transform: scale(0.98); }
+        :root { --bg: #000; --card: #0a0a0a; --border: #222; --text: #fff; --muted: #888; --success: #4CAF50; --warning: #FFC107; --error: #f44336; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 80px; overflow-x: hidden; }
+        
+        /* Rain Animation */
+        .rain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+        .raindrop { position: absolute; width: 1px; height: 15px; background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.3)); animation: fall linear infinite; }
+        @keyframes fall { to { transform: translateY(100vh); } }
+        
+        .header { background: linear-gradient(180deg, #1a1a1a 0%, #000 100%); color: #fff; padding: 30px 15px; text-align: center; border-radius: 0 0 25px 25px; margin-bottom: 20px; position: relative; z-index: 1; border-bottom: 1px solid #333; }
+        .header h1 { font-size: 22px; font-weight: 800; margin-bottom: 5px; }
+        .header p { font-size: 12px; opacity: 0.8; }
+        .content { padding: 0 15px; position: relative; z-index: 1; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 18px; margin-bottom: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
         .card-title { font-size: 17px; font-weight: 700; margin-bottom: 15px; color: var(--text); }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 10px; transition: all 0.2s; }
-        .btn:active { transform: scale(0.97); }
-        .btn-primary { background: var(--gradient); color: #fff; box-shadow: 0 5px 15px rgba(102,126,234,0.4); }
-        .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
-        .back-btn { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--text); background: none; border: none; cursor: pointer; margin-bottom: 15px; padding: 10px 15px; border-radius: 12px; background: var(--card); }
+        .btn { width: 100%; padding: 15px; border: 1px solid var(--border); border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 10px; transition: all 0.2s; background: var(--card); color: var(--text); }
+        .btn:active { transform: scale(0.97); background: #1a1a1a; }
+        .btn-primary { background: #fff; color: #000; border-color: #fff; }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--text); background: var(--card); border: 1px solid var(--border); cursor: pointer; margin-bottom: 15px; padding: 10px 15px; border-radius: 12px; }
         .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .cat-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
-        .cat-card:active { transform: scale(0.95); border-color: #667eea; }
+        .cat-card:active { transform: scale(0.95); border-color: #fff; }
         .cat-icon { font-size: 36px; margin-bottom: 10px; }
         .cat-name { font-size: 12px; font-weight: 600; margin-bottom: 5px; line-height: 1.4; }
         .cat-count { font-size: 10px; color: var(--muted); }
         .prof-list { display: flex; flex-direction: column; gap: 10px; }
         .prof-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; cursor: pointer; transition: all 0.2s; }
-        .prof-item:active { transform: translateX(5px); border-color: #667eea; }
+        .prof-item:active { transform: translateX(5px); border-color: #fff; }
         .prof-en { font-weight: 700; font-size: 13px; color: var(--success); margin-bottom: 4px; }
         .prof-uz { font-size: 12px; color: var(--muted); }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(17,17,17,0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 5px; z-index: 100; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10,10,10,0.98); backdrop-filter: blur(10px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 5px; z-index: 100; }
         .nav-item { flex: 1; text-align: center; padding: 8px 5px; cursor: pointer; color: var(--muted); transition: all 0.2s; border-radius: 12px; }
         .nav-item:active { transform: scale(0.9); }
-        .nav-item.active { color: #fff; background: rgba(102,126,234,0.2); }
+        .nav-item.active { color: #fff; background: #1a1a1a; }
         .nav-icon { font-size: 24px; margin-bottom: 4px; }
         .nav-label { font-size: 10px; font-weight: 600; }
         .section { display: none; animation: fadeIn 0.3s ease; }
         .section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .upload-area { border: 2px dashed var(--border); border-radius: 16px; padding: 30px 20px; text-align: center; cursor: pointer; margin: 15px 0; transition: all 0.2s; background: rgba(102,126,234,0.05); }
-        .upload-area:active { border-color: #667eea; background: rgba(102,126,234,0.1); }
+        .upload-area { border: 2px dashed var(--border); border-radius: 16px; padding: 30px 20px; text-align: center; cursor: pointer; margin: 15px 0; transition: all 0.2s; background: rgba(255,255,255,0.02); }
+        .upload-area:active { border-color: #fff; background: rgba(255,255,255,0.05); }
         .upload-icon { font-size: 48px; margin-bottom: 12px; animation: bounce 2s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
         .upload-text { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
         .upload-hint { font-size: 11px; color: var(--muted); }
-        #fileInput, #portfolioFileInput, #docFileInput { display: none; }
+        #fileInput, #portfolioFileInput { display: none; }
         .file-preview { background: var(--card); padding: 14px; border-radius: 12px; margin-top: 15px; display: none; border: 1px solid var(--border); }
         .file-preview.active { display: block; animation: slideIn 0.3s ease; }
         @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -60,9 +64,9 @@
         .doc-status.pending { background: rgba(255,193,7,0.15); color: var(--warning); }
         .doc-status.approved { background: rgba(76,175,80,0.15); color: var(--success); }
         .doc-status.rejected { background: rgba(244,67,54,0.15); color: var(--error); }
-        .doc-link { color: #667eea; text-decoration: none; font-size: 12px; display: inline-block; margin-bottom: 10px; font-weight: 500; }
+        .doc-link { color: #fff; text-decoration: none; font-size: 12px; display: inline-block; margin-bottom: 10px; font-weight: 500; border-bottom: 1px solid #444; }
         .progress-bar { height: 10px; background: #222; border-radius: 5px; overflow: hidden; margin-bottom: 12px; }
-        .progress-fill { height: 100%; background: var(--gradient); border-radius: 5px; transition: width 0.5s ease; }
+        .progress-fill { height: 100%; background: #fff; border-radius: 5px; transition: width 0.5s ease; }
         .progress-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
         .progress-stat { background: var(--card); padding: 10px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
         .progress-stat-num { font-size: 18px; font-weight: 800; display: block; margin-bottom: 3px; }
@@ -70,15 +74,17 @@
         .progress-stat-num.pending { color: var(--warning); }
         .progress-stat-num.rejected { color: var(--error); }
         .progress-stat-label { font-size: 9px; color: var(--muted); }
-        .info-box { background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1)); border: 1px solid rgba(102,126,234,0.3); padding: 16px; border-radius: 14px; margin-bottom: 15px; }
-        .info-title { color: #667eea; font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+        .info-box { background: #0a0a0a; border: 1px solid #333; padding: 16px; border-radius: 14px; margin-bottom: 15px; }
+        .info-title { color: #fff; font-size: 15px; font-weight: 700; margin-bottom: 10px; }
         .info-list { list-style: none; font-size: 12px; color: var(--muted); }
         .info-list li { padding: 6px 0; border-bottom: 1px solid var(--border); }
         .info-list li:last-child { border-bottom: none; }
-        .info-list li::before { content: "• "; color: #667eea; }
+        .info-list li::before { content: "• "; color: #fff; }
     </style>
 </head>
 <body>
+    <div class="rain" id="rain"></div>
+    
     <div class="header">
         <h1>🏆 WorldSkills Shanghai 2026</h1>
         <p>48-chi Jahon Kasb Chempionati</p>
@@ -100,7 +106,7 @@
             <div class="card">
                 <div class="card-title">🚀 Boshlash</div>
                 <button class="btn btn-primary" onclick="showSection('section-categories')">🎓 Kasbingizni Tanlang</button>
-                <button class="btn btn-secondary" onclick="showSection('section-documents')">📄 Hujjatlar (my.gov.uz)</button>
+                <button class="btn" onclick="showSection('section-documents')">📄 Hujjatlar (my.gov.uz)</button>
             </div>
         </div>
         
@@ -190,6 +196,20 @@
     </div>
 
     <script>
+        // Rain Effect
+        function createRain() {
+            const rain = document.getElementById('rain');
+            for (let i = 0; i < 50; i++) {
+                const drop = document.createElement('div');
+                drop.className = 'raindrop';
+                drop.style.left = Math.random() * 100 + '%';
+                drop.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                drop.style.animationDelay = Math.random() * 2 + 's';
+                rain.appendChild(drop);
+            }
+        }
+        createRain();
+        
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
@@ -212,12 +232,12 @@
         ];
         
         const professions = {
-            cat1: [{en:'Industrial Mechanics',uz:'Sanoat mexanikasi'},{en:'Mechatronics',uz:'Mexatronika'},{en:'Mechanical Engineering CAD',uz:'Mexanik muhandislik CAD'},{en:'CNC Turning',uz:'CNC tokarlik'},{en:'CNC Milling',uz:'CNC frezalash'},{en:'Welding',uz:'Payvandlash'},{en:'Electronics',uz:'Elektronika'},{en:'Industrial Control',uz:'Sanoat boshqaruvi'},{en:'Mobile Robotics',uz:'Mobil robototexnika'},{en:'Industry 4.0',uz:'Sanoat 4.0'},{en:'Chemical Laboratory',uz:'Kimyo laboratoriya'},{en:'Water Technology',uz:'Suv texnologiyasi'},{en:'Additive Manufacturing',uz:'3D chop etish'},{en:'Industrial Design',uz:'Sanoat dizayni'},{en:'Optoelectronic',uz:'Optoelektronika'},{en:'Renewable Energy',uz:'Qayta energiya'},{en:'Robot Systems',uz:'Robot tizimlari'}],
-            cat2: [{en:'ICT Network',uz:'Tarmoq infratuzilmasi'},{en:'Mobile Apps',uz:'Mobil ilovalar'},{en:'Software Dev',uz:'Dasturiy ta\'minot'},{en:'Web Technologies',uz:'Veb texnologiyalar'},{en:'Network Admin',uz:'Tarmoq boshqaruvi'},{en:'Cloud Computing',uz:'Bulutli hisoblash'},{en:'Cyber Security',uz:'Kiberxavfsizlik'},{en:'Software Testing',uz:'Dasturiy sinov'}],
-            cat3: [{en:'Wall Tiling',uz:'Plitkalash'},{en:'Plumbing',uz:'Santexnika'},{en:'Electrical',uz:'Elektr'},{en:'Bricklaying',uz:'G\'isht terish'},{en:'Plastering',uz:'Suvoq'},{en:'Painting',uz:'Bo\'yash'},{en:'Cabinetmaking',uz:'Duradgorlik'},{en:'Joinery',uz:'Yig\'ish'},{en:'Carpentry',uz:'Yog\'och'},{en:'Landscape',uz:'Landshaft'},{en:'Refrigeration',uz:'Sovutish'},{en:'Concrete',uz:'Beton'},{en:'Digital Construction',uz:'Raqamli qurilish'},{en:'Security',uz:'Xavfsizlik'}],
-            cat4: [{en:'Autobody',uz:'Kuzov'},{en:'Aircraft',uz:'Samolyot'},{en:'Automobile',uz:'Avtomobil'},{en:'Car Painting',uz:'Bo\'yash'},{en:'Heavy Vehicle',uz:'Og\'ir transport'},{en:'Logistics',uz:'Logistika'},{en:'Rail Vehicle',uz:'Temiryo\'l'},{en:'UAV Systems',uz:'Uchuvchisiz'}],
-            cat5: [{en:'Jewellery',uz:'Zargarlik'},{en:'Floristry',uz:'Gulchilik'},{en:'Fashion',uz:'Moda'},{en:'Graphic Design',uz:'Grafik dizayn'},{en:'Visual Merch',uz:'Vizual savdo'},{en:'3D Game Art',uz:'3D o\'yin'},{en:'Media Design',uz:'Media'}],
-            cat6: [{en:'Hairdressing',uz:'Sartaroshlik'},{en:'Beauty',uz:'Go\'zallik'},{en:'Patisserie',uz:'Qandolatchilik'},{en:'Cooking',uz:'Oshpazlik'},{en:'Restaurant',uz:'Restoran'},{en:'Health Care',uz:'Sog\'liq'},{en:'Bakery',uz:'Nonvoy'},{en:'Hotel',uz:'Mehmonxona'},{en:'Dental',uz:'Tish'},{en:'Retail',uz:'Savdo'}]
+            cat1: [{en:'Industrial Mechanics',uz:'Sanoat mexanikasi'},{en:'Mechatronics',uz:'Mexatronika'},{en:'CNC Turning',uz:'CNC tokarlik'},{en:'Welding',uz:'Payvandlash'},{en:'Electronics',uz:'Elektronika'}],
+            cat2: [{en:'Mobile Apps',uz:'Mobil ilovalar'},{en:'Software Dev',uz:'Dasturiy ta\'minot'},{en:'Web Tech',uz:'Veb texnologiyalar'},{en:'Cyber Security',uz:'Kiberxavfsizlik'}],
+            cat3: [{en:'Wall Tiling',uz:'Plitkalash'},{en:'Plumbing',uz:'Santexnika'},{en:'Electrical',uz:'Elektr'},{en:'Bricklaying',uz:'G\'isht terish'}],
+            cat4: [{en:'Automobile',uz:'Avtomobil'},{en:'Logistics',uz:'Logistika'},{en:'Rail Vehicle',uz:'Temiryo\'l'}],
+            cat5: [{en:'Jewellery',uz:'Zargarlik'},{en:'Fashion',uz:'Moda'},{en:'Graphic Design',uz:'Grafik dizayn'}],
+            cat6: [{en:'Cooking',uz:'Oshpazlik'},{en:'Hairdressing',uz:'Sartaroshlik'},{en:'Health Care',uz:'Sog\'liqni saqlash'}]
         };
         
         const officialDocs = [
@@ -233,7 +253,7 @@
         ];
         
         let userData = { selectedProfession: null, documents: {}, portfolioWorks: [] };
-        let selectedPortfolioFile = null, selectedDocFile = null, currentDocId = null;
+        let selectedPortfolioFile = null;
         
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -367,7 +387,7 @@
                 const docData = userData.documents[d.id] || {};
                 const status = docData.status || 'upload';
                 const statusText = { 'upload': '⏹️ Yuklash', 'pending': '⏳ Ko\'rib chiqilmoqda', 'approved': '✅ Tasdiqlandi', 'rejected': '❌ Qayta yuklang' }[status];
-                return '<div class="doc-item '+status+'" onclick="openDocModal(\''+d.id+'\')"><div class="doc-title">'+d.title+'</div><div class="doc-status '+status+'">'+statusText+'</div><a href="'+d.link+'" class="doc-link" target="_blank" onclick="event.stopPropagation()">🔗 my.gov.uz dan olish →</a><button class="btn btn-secondary" onclick="event.stopPropagation(); openDocModal(\''+d.id+'\')" style="margin-top:8px;">'+(status==='upload'?'📎 Yuklash':'👁️ Ko\'rish')+'</button></div>';
+                return '<div class="doc-item '+status+'" onclick="openDocModal(\''+d.id+'\')"><div class="doc-title">'+d.title+'</div><div class="doc-status '+status+'">'+statusText+'</div><a href="'+d.link+'" class="doc-link" target="_blank" onclick="event.stopPropagation()">🔗 my.gov.uz dan olish →</a><button class="btn" onclick="event.stopPropagation(); openDocModal(\''+d.id+'\')" style="margin-top:8px;">'+(status==='upload'?'📎 Yuklash':'👁️ Ko\'rish')+'</button></div>';
             }).join('');
             checkDocumentProgress();
         }
@@ -389,9 +409,6 @@
             const doc = officialDocs.find(d => d.id === docId);
             if (!doc) return;
             
-            currentDocId = docId;
-            selectedDocFile = null;
-            
             tg.showPopup({
                 title: doc.title,
                 message: 'Hujjatni my.gov.uz dan oling va PDF formatda yuklang.',
@@ -400,10 +417,6 @@
                     {type:'ok',text:'Yuklash'}
                 ]
             });
-            
-            setTimeout(() => {
-                document.getElementById('docFileInput').click();
-            }, 500);
         }
         
         // Init

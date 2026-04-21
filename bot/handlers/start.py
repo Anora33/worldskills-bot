@@ -394,7 +394,7 @@ async def callback_profession(callback: types.CallbackQuery, state: FSMContext):
         builder.button(text="🤖 AI yordamchi", callback_data="menu_ai")
         builder.button(text="👨‍ Admin yordami", callback_data="menu_admin")
         builder.button(text="📄 Mening ma'lumotlarim", callback_data="menu_info")
-        builder.button(text="🌐 Mini App ochish", web_app=WebAppInfo(url=webapp_url))
+        
         builder.adjust(2)
         
         await callback.message.answer(
@@ -461,3 +461,83 @@ async def callback_info(callback: types.CallbackQuery):
     else:
         await callback.message.answer("❌ Ma'lumot topilmadi. /start orqali ro'yxatdan o'ting.")
     await callback.answer()
+
+@router.callback_query(F.data == "menu_admin")
+async def callback_admin_help(callback: types.CallbackQuery):
+    builder = InlineKeyboardBuilder()
+    builder.button(text="📱 Telegram", url="https://t.me/worldskills_admin")
+    builder.button(text="📞 Telefon", url="tel:+998933404080")
+    builder.button(text="📧 Email", url="mailto:dadaxon45@gmail.com")
+    builder.button(text="🌐 Web-sayt", url="https://worldskills.uz/ru")
+    builder.adjust(2)
+    
+    await callback.message.answer(
+        "👨‍💼 <b>Admin Yordami</b>\n\n"
+        "📞 <b>Aloqa:</b>\n"
+        "• Telegram: @worldskills_admin\n"
+        "• Telefon: +998 93 340 40 80\n"
+        "• Email: dadaxon45@gmail.com\n\n"
+        "🌐 <b>Web-sayt:</b>\n"
+        "• worldskills.uz",
+        reply_markup=builder.as_markup(),
+        parse_mode="HTML"
+    )
+    await callback.answer()
+
+@router.callback_query(F.data == "menu_info")
+async def callback_info(callback: types.CallbackQuery):
+    user = get_user(callback.from_user.id)
+    if user:
+        await callback.message.answer(
+            f"📄 <b>Mening ma'lumotlarim</b>\n\n"
+            f"👤 <b>Ism:</b> {user.get('fullname','N/A')}\n"
+            f"📱 <b>Telefon:</b> {user.get('phone','N/A')}\n"
+            f"🔧 <b>Kasb:</b> {user.get('profession_uz','N/A')}\n"
+            f"📊 <b>Status:</b> {user.get('status','pending')}\n"
+            f"🆔 <b>ID:</b> <code>{user.get('telegram_id')}</code>",
+            parse_mode="HTML"
+        )
+    else:
+        await callback.message.answer("❌ Ma'lumot topilmadi. /start orqali ro'yxatdan o'ting.")
+    await callback.answer()
+
+@router.callback_query(F.data == "menu_admin")
+async def callback_admin_help(callback: types.CallbackQuery):
+    builder = InlineKeyboardBuilder()
+    builder.button(text="📱 Telegram", url="https://t.me/worldskills_admin")
+    builder.button(text="📞 Telefon", url="tel:+998933404080")
+    builder.button(text="📧 Email", url="mailto:dadaxon45@gmail.com")
+    builder.button(text="🌐 Web-sayt", url="https://worldskills.uz/ru")
+    builder.adjust(2)
+    
+    await callback.message.answer(
+        "👨‍💼 <b>Admin Yordami</b>\n\n"
+        "📞 <b>Aloqa:</b>\n"
+        "• Telegram: @worldskills_admin\n"
+        "• Telefon: +998 93 340 40 80\n"
+        "• Email: dadaxon45@gmail.com\n\n"
+        "🌐 <b>Web-sayt:</b>\n"
+        "• worldskills.uz",
+        reply_markup=builder.as_markup(),
+        parse_mode="HTML"
+    )
+    await callback.answer()
+
+@router.callback_query(F.data == "menu_info")
+async def callback_info(callback: types.CallbackQuery):
+    user = get_user(callback.from_user.id)
+    if user:
+        await callback.message.answer(
+            f"📄 <b>Mening ma'lumotlarim</b>\n\n"
+            f"👤 <b>Ism:</b> {user.get('fullname','N/A')}\n"
+            f"📱 <b>Telefon:</b> {user.get('phone','N/A')}\n"
+            f"🔧 <b>Kasb:</b> {user.get('profession_uz','N/A')}\n"
+            f"📊 <b>Status:</b> {user.get('status','pending')}\n"
+            f"🆔 <b>ID:</b> <code>{user.get('telegram_id')}</code>",
+            parse_mode="HTML"
+        )
+    else:
+        await callback.message.answer("❌ Ma'lumot topilmadi. /start orqali ro'yxatdan o'ting.")
+    await callback.answer()
+
+
