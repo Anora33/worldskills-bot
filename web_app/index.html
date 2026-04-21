@@ -397,20 +397,58 @@
             document.getElementById('uploadBtn').disabled = false;
         }
         
-        async function uploadDocument() {
+                async function uploadDocument() {
             if(!currentDocId || !selectedDocFile) return;
             const btn = document.getElementById('uploadBtn');
             btn.disabled = true; btn.textContent = '⏳ Yuklanmoqda...';
             try {
+                const userData = getUserData();
                 const formData = new FormData();
                 formData.append('telegramId', userData.telegramId || 'unknown');
                 formData.append('docId', currentDocId);
                 formData.append('file', selectedDocFile);
                 
+                console.log('Uploading document to /api/documents/upload...');
+                
                 const response = await fetch('/api/documents/upload', {
                     method: 'POST',
                     body: formData
                 });
+                
+                console.log('Response status:', response.status);
+                const result = await response.json();
+                console.log('Response:', result);
+                
+                if (result.success) {
+                    await new Promise(r => setTimeout(r, 1500));
+                    userData.documents[currentDocId] = { status: 'pending', fileName: selectedDocFile.name, fileSize: selectedDocFile.size, uploadedAt: new Date().toISOString() };
+                    localStorage.setItem('ws_user', JSON.stringify(userData));
+                    renderDocuments();
+                    closeModal('docModal');
+                    if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                        Telegram.WebApp.showPopup({
+                            title: '✅ Muvaffaqiyatli',
+                            message: 'Hujjat yuklandi! Admin ko\'rib chiqadi.'
+                        });
+                    } else {
+                        alert('✅ Hujjat yuklandi!');
+                    }
+                } else {
+                    throw new Error(result.error || 'Server xatosi');
+                }
+            } catch(err) {
+                console.error('Upload error:', err);
+                if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                    Telegram.WebApp.showPopup({
+                        title: '❌ Xatolik',
+                        message: 'Upload xatosi: ' + err.message + '\n\nServer bilan bog\'lanishda muammo. Qaytadan urinib ko\'ring.'
+                    });
+                } else {
+                    alert('❌ Upload xatosi: ' + err.message);
+                }
+                btn.disabled = false; btn.textContent = '📤 Yuklash';
+            }
+        });
                 
                 const result = await response.json();
                 
@@ -458,20 +496,64 @@
             document.getElementById('portfolioUploadBtn').disabled = false;
         }
         
-        async function uploadPortfolioWork() {
+                async function uploadPortfolioWork() {
             if(!selectedPortfolioFile || !userData.selectedProfession) return;
             const btn = document.getElementById('portfolioUploadBtn');
             btn.disabled = true; btn.textContent = '⏳ Yuklanmoqda...';
             try {
+                const userData = getUserData();
                 const formData = new FormData();
                 formData.append('telegramId', userData.telegramId || 'unknown');
                 formData.append('professionId', userData.selectedProfession.profId);
                 formData.append('file', selectedPortfolioFile);
                 
+                console.log('Uploading portfolio to /api/portfolio/upload...');
+                
                 const response = await fetch('/api/portfolio/upload', {
                     method: 'POST',
                     body: formData
                 });
+                
+                console.log('Response status:', response.status);
+                const result = await response.json();
+                console.log('Response:', result);
+                
+                if (result.success) {
+                    await new Promise(r => setTimeout(r, 1500));
+                    userData.portfolioWorks.push({ profId: userData.selectedProfession.profId, fileName: selectedPortfolioFile.name, uploadedAt: new Date().toISOString() });
+                    localStorage.setItem('ws_user', JSON.stringify(userData));
+                    const works = userData.portfolioWorks.filter(w => w.profId === userData.selectedProfession.profId);
+                    document.getElementById('portfolioCount').textContent = works.length;
+                    document.getElementById('portfolioProgress').style.width = (works.length / 5 * 100) + '%';
+                    renderPortfolioWorks(userData.selectedProfession.profId);
+                    selectedPortfolioFile = null;
+                    document.getElementById('portfolioFileInput').value = '';
+                    document.getElementById('portfolioFilePreview').classList.remove('active');
+                    btn.disabled = true; btn.textContent = '📤 Ishni Yuklash';
+                    if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                        Telegram.WebApp.showPopup({
+                            title: '✅ Muvaffaqiyatli',
+                            message: 'Ish yuklandi! Admin baholaydi.'
+                        });
+                    } else {
+                        alert('✅ Ish yuklandi!');
+                    }
+                } else {
+                    throw new Error(result.error || 'Server xatosi');
+                }
+            } catch(err) {
+                console.error('Portfolio upload error:', err);
+                if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                    Telegram.WebApp.showPopup({
+                        title: '❌ Xatolik',
+                        message: 'Upload xatosi: ' + err.message + '\n\nServer bilan bog\'lanishda muammo. Qaytadan urinib ko\'ring.'
+                    });
+                } else {
+                    alert('❌ Upload xatosi: ' + err.message);
+                }
+                btn.disabled = false; btn.textContent = '📤 Ishni Yuklash';
+            }
+        });
                 
                 const result = await response.json();
                 
@@ -521,3 +603,4 @@
     </script>
 </body>
 </html>
+

@@ -1,6 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 """WorldSkills Bot - FINAL FIXED VERSION"""
 import os, logging, asyncio, threading, sqlite3, uuid, re
+from flask_cors import CORS
 from flask import Flask, request, jsonify, send_from_directory, send_file
 from werkzeug.utils import secure_filename
 from aiogram import Bot, Dispatcher, types, F
@@ -62,6 +63,7 @@ def init_db():
 
 # 6. Flask App (INIT BEFORE ROUTES!)
 app = Flask(__name__, static_folder=WEBAPP_DIR, static_url_path='')
+CORS(app)
 app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024
 
 # 7. Bot
@@ -253,4 +255,5 @@ if __name__ == "__main__":
     
     # Bot polling
     asyncio.run(dp.start_polling(bot))
+
 
