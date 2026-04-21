@@ -317,26 +317,81 @@
             el.classList.add('active');
         }
         
-        // Render categories
-        function renderCategories() {
-            const grid = document.getElementById('catGrid');
-            grid.innerHTML = categories.map(c => '<div class="cat-card" onclick="showProfessions(\'' + c.id + '\')"><div class="cat-icon">' + c.icon + '</div><div class="cat-name">' + c.name.replace('\n',' ') + '</div><div class="cat-count">' + c.count + ' ta kasb</div></div>').join('');
-        }
-        renderCategories();
         
-        // Show professions
+        // Category functions
+        function renderCategories() {
+            console.log('Rendering categories...');
+            const grid = document.getElementById('catGrid');
+            if (!grid) {
+                console.error('catGrid not found!');
+                return;
+            }
+            
+            grid.innerHTML = categories.map(c => `
+                <div class="cat-card" onclick="showProfessions('${c.id}')">
+                    <div class="cat-icon">${c.icon}</div>
+                    <div class="cat-name">${c.name.replace('\\n',' ')}</div>
+                    <div class="cat-count">${c.count} ta kasb</div>
+                </div>
+            `).join('');
+            console.log('✅ Categories rendered:', categories.length);
+        }
+
         function showProfessions(catId) {
+            console.log('Showing professions for category:', catId);
             const cat = categories.find(c => c.id === catId);
-            document.getElementById('catTitle').textContent = cat.name.replace('\n',' ');
+            if (!cat) {
+                console.error('Category not found:', catId);
+                return;
+            }
+            
+            const titleEl = document.getElementById('catTitle');
+            if (titleEl) {
+                titleEl.textContent = cat.name.replace('\\n', ' ');
+            }
+            
             const list = document.getElementById('profList');
+            if (!list) {
+                console.error('profList not found!');
+                return;
+            }
+            
             const profs = professions[catId];
-            list.innerHTML = profs.map(p => '<div class="prof-item" onclick="selectProfession(\'' + catId + '\',\'' + p.id + '\',\'' + p.en.replace(/'/g, "\\'") + '\',\'' + p.uz.replace(/'/g, "\\'") + '\')"><div class="prof-en">' + p.en + '</div><div class="prof-uz">' + p.uz + '</div></div>').join('');
+            if (!profs) {
+                console.error('Professions not found for category:', catId);
+                return;
+            }
+            
+            list.innerHTML = profs.map(p => `
+                <div class="prof-item" onclick="selectProfession('${catId}', '${p.id}', '${p.en.replace(/'/g, "\\'")}', '${p.uz.replace(/'/g, "\\'")}')">
+                    <div class="prof-en">${p.en}</div>
+                    <div class="prof-uz">${p.uz}</div>
+                </div>
+            `).join('');
+            
+            console.log('✅ Professions rendered:', profs.length);
             showSection('section-professions');
         }
-        
-        // Select profession
+
         function selectProfession(catId, profId, en, uz) {
+            console.log('Selecting profession:', profId, uz);
             userData.selectedProfession = { catId, profId, en, uz };
+            localStorage.setItem('ws_user', JSON.stringify(userData));
+            
+            const profNameEl = document.getElementById('portfolioProfName');
+            const profDescEl = document.getElementById('portfolioProfDesc');
+            if (profNameEl) profNameEl.textContent = uz;
+            if (profDescEl) profDescEl.textContent = en;
+            
+            const works = userData.portfolioWorks.filter(w => w.profId === profId);
+            const countEl = document.getElementById('portfolioCount');
+            const progressEl = document.getElementById('portfolioProgress');
+            if (countEl) countEl.textContent = works.length;
+            if (progressEl) progressEl.style.width = (works.length / 5 * 100) + '%';
+            
+            renderPortfolioWorks(profId);
+            showSection('section-portfolio');
+        };
             localStorage.setItem('ws_user', JSON.stringify(userData));
             document.getElementById('portfolioProfName').textContent = uz;
             document.getElementById('portfolioProfDesc').textContent = en;
@@ -347,140 +402,118 @@
             showSection('section-portfolio');
         }
         
-        // Render documents
+        
+        // Document functions
         function renderDocuments() {
+            console.log('Rendering documents...');
             const list = document.getElementById('docList');
+            if (!list) {
+                console.error('docList not found!');
+                return;
+            }
+            
             list.innerHTML = officialDocs.map(d => {
                 const docData = userData.documents[d.id] || {};
                 const status = docData.status || 'upload';
-                const statusText = { 'upload': '⏹️ Yuklash', 'pending': '⏳ Ko\'rib chiqilmoqda', 'approved': '✅ Tasdiqlandi', 'rejected': '❌ Qayta yuklang' }[status];
-                return '<div class="doc-item ' + status + '" onclick="openDocModal(\'' + d.id + '\')"><div class="doc-header"><div class="doc-title">' + d.title + '</div><div class="doc-status ' + status + '">' + statusText + '</div></div><div class="doc-meta">📄 PDF, A4 ' + (d.id === 'd7' || d.id === 'd9' ? '• ♾️ Muddatsiz' : '• ⏱️ 30 kun') + '</div><a href="' + d.link + '" class="doc-link" target="_blank" onclick="event.stopPropagation()">🔗 my.gov.uz dan olish →</a><button class="doc-btn ' + (status === 'upload' ? 'primary' : 'secondary') + '" onclick="event.stopPropagation(); openDocModal(\'' + d.id + '\')">' + (status === 'upload' ? '📎 Yuklash' : status === 'approved' ? '✅ Tasdiqlandi' : '👁️ Ko\'rish') + '</button></div>';
+                const statusText = { 
+                    'upload': '⏹️ Yuklash', 
+                    'pending': '⏳ Ko\'rib chiqilmoqda', 
+                    'approved': '✅ Tasdiqlandi', 
+                    'rejected': '❌ Qayta yuklang' 
+                }[status];
+                
+                return `
+                    <div class="doc-item ${status}" onclick="openDocModal('${d.id}')">
+                        <div class="doc-header">
+                            <div class="doc-title">${d.title}</div>
+                            <div class="doc-status ${status}">${statusText}</div>
+                        </div>
+                        <div class="doc-meta">📄 PDF, A4 ${d.id === 'd7' || d.id === 'd9' ? '• ♾️ Muddatsiz' : '• ⏱️ 30 kun'}</div>
+                        <a href="${d.link}" class="doc-link" target="_blank" onclick="event.stopPropagation()">🔗 my.gov.uz dan olish →</a>
+                        <button class="doc-btn ${status === 'upload' ? 'primary' : 'secondary'}" onclick="event.stopPropagation(); openDocModal('${d.id}')">
+                            ${status === 'upload' ? '📎 Yuklash' : status === 'approved' ? '✅ Tasdiqlandi' : '👁️ Ko\'rish'}
+                        </button>
+                    </div>
+                `;
             }).join('');
+            
             checkDocumentProgress();
+            console.log('✅ Documents rendered:', officialDocs.length);
         }
-        renderDocuments();
-        
-        // Document modal
+
         function openDocModal(docId) {
+            console.log('Opening document modal:', docId);
             const doc = officialDocs.find(d => d.id === docId);
-            if(!doc) return;
+            if (!doc) {
+                console.error('Document not found:', docId);
+                return;
+            }
+            
             currentDocId = docId;
             selectedDocFile = null;
-            document.getElementById('modalDocTitle').textContent = doc.title;
-            document.getElementById('modalDocLink').href = doc.link;
-            document.getElementById('modalRequirements').innerHTML = doc.requirements.map(r => '<li>' + r + '</li>').join('');
-            document.getElementById('filePreview').classList.remove('active');
-            document.getElementById('uploadBtn').disabled = true;
+            
+            const titleEl = document.getElementById('modalDocTitle');
+            const linkEl = document.getElementById('modalDocLink');
+            const reqEl = document.getElementById('modalRequirements');
+            const previewEl = document.getElementById('filePreview');
+            const uploadBtnEl = document.getElementById('uploadBtn');
+            
+            if (titleEl) titleEl.textContent = doc.title;
+            if (linkEl) linkEl.href = doc.link;
+            if (reqEl) reqEl.innerHTML = doc.requirements.map(r => `<li>${r}</li>`).join('');
+            if (previewEl) previewEl.classList.remove('active');
+            
             const docData = userData.documents[docId];
-            if(docData?.status === 'approved') {
-                document.getElementById('uploadBtn').textContent = '✅ Tasdiqlandi';
-                document.getElementById('uploadBtn').disabled = true;
-            } else if(docData?.status === 'pending') {
-                document.getElementById('uploadBtn').textContent = '⏳ Ko\'rib chiqilmoqda';
-                document.getElementById('uploadBtn').disabled = true;
-            } else {
-                document.getElementById('uploadBtn').textContent = '📤 Yuklash';
-                document.getElementById('uploadBtn').disabled = true;
+            if (uploadBtnEl) {
+                if (docData?.status === 'approved') {
+                    uploadBtnEl.textContent = '✅ Tasdiqlandi';
+                    uploadBtnEl.disabled = true;
+                } else if (docData?.status === 'pending') {
+                    uploadBtnEl.textContent = '⏳ Ko\'rib chiqilmoqda';
+                    uploadBtnEl.disabled = true;
+                } else {
+                    uploadBtnEl.textContent = '📤 Yuklash';
+                    uploadBtnEl.disabled = true;
+                }
             }
-            document.getElementById('docModal').classList.add('active');
-        }
-        
-        function handleDocFileSelect(e) {
-            const file = e.target.files[0];
-            if(!file) return;
-            if(file.type !== 'application/pdf') { alert('❌ Faqat PDF fayllar!'); e.target.value=''; return; }
-            if(file.size > 10*1024*1024) { alert('❌ Max 10 MB!'); e.target.value=''; return; }
-            selectedDocFile = file;
-            document.getElementById('fileName').textContent = file.name;
-            document.getElementById('fileSize').textContent = (file.size/1024/1024).toFixed(2) + ' MB';
-            document.getElementById('filePreview').classList.add('active');
-            document.getElementById('uploadBtn').disabled = false;
-        }
-        
-                async function uploadDocument() {
-            if(!currentDocId || !selectedDocFile) return;
-            const btn = document.getElementById('uploadBtn');
-            btn.disabled = true; btn.textContent = '⏳ Yuklanmoqda...';
-            try {
-                const userData = getUserData();
-                const formData = new FormData();
-                formData.append('telegramId', userData.telegramId || 'unknown');
-                formData.append('docId', currentDocId);
-                formData.append('file', selectedDocFile);
-                
-                console.log('Uploading document to /api/documents/upload...');
-                
-                const response = await fetch('/api/documents/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                console.log('Response status:', response.status);
-                const result = await response.json();
-                console.log('Response:', result);
-                
-                if (result.success) {
-                    await new Promise(r => setTimeout(r, 1500));
-                    userData.documents[currentDocId] = { status: 'pending', fileName: selectedDocFile.name, fileSize: selectedDocFile.size, uploadedAt: new Date().toISOString() };
-                    localStorage.setItem('ws_user', JSON.stringify(userData));
-                    renderDocuments();
-                    closeModal('docModal');
-                    if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                        Telegram.WebApp.showPopup({
-                            title: '✅ Muvaffaqiyatli',
-                            message: 'Hujjat yuklandi! Admin ko\'rib chiqadi.'
-                        });
-                    } else {
-                        alert('✅ Hujjat yuklandi!');
-                    }
-                } else {
-                    throw new Error(result.error || 'Server xatosi');
-                }
-            } catch(err) {
-                console.error('Upload error:', err);
-                if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                    Telegram.WebApp.showPopup({
-                        title: '❌ Xatolik',
-                        message: 'Upload xatosi: ' + err.message + '\n\nServer bilan bog\'lanishda muammo. Qaytadan urinib ko\'ring.'
-                    });
-                } else {
-                    alert('❌ Upload xatosi: ' + err.message);
-                }
-                btn.disabled = false; btn.textContent = '📤 Yuklash';
-            }
-        });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    await new Promise(r => setTimeout(r, 1500));
-                    userData.documents[currentDocId] = { status: 'pending', fileName: selectedDocFile.name, fileSize: selectedDocFile.size, uploadedAt: new Date().toISOString() };
-                    localStorage.setItem('ws_user', JSON.stringify(userData));
-                    renderDocuments();
-                    closeModal('docModal');
-                    alert('✅ Hujjatingiz yuklandi! Admin ko\'rib chiqadi.');
-                } else {
-                    alert('❌ Xatolik: ' + (result.error || 'Noma\'lum xatolik'));
-                    btn.disabled = false; btn.textContent = '📤 Yuklash';
-                }
-            } catch(err) {
-                alert('❌ Upload xatosi: ' + err.message);
-                btn.disabled = false; btn.textContent = '📤 Yuklash';
+            
+            const modal = document.getElementById('docModal');
+            if (modal) {
+                modal.classList.add('active');
+                console.log('✅ Modal opened');
             }
         }
-        
+
+        function closeModal(modalId) {
+            console.log('Closing modal:', modalId);
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+            }
+            currentDocId = null;
+            selectedDocFile = null;
+        }
+
         function checkDocumentProgress() {
             const total = officialDocs.length;
             const approved = Object.values(userData.documents).filter(d => d.status === 'approved').length;
             const pending = Object.values(userData.documents).filter(d => d.status === 'pending').length;
             const rejected = Object.values(userData.documents).filter(d => d.status === 'rejected').length;
             const percent = Math.round((approved / total) * 100);
-            document.getElementById('docProgressFill').style.width = percent + '%';
-            document.getElementById('docProgressPercent').textContent = percent + '%';
-            document.getElementById('docApproved').textContent = approved;
-            document.getElementById('docPending').textContent = pending;
-            document.getElementById('docRejected').textContent = rejected;
-            document.getElementById('docTotal').textContent = total;
+            
+            const fillEl = document.getElementById('docProgressFill');
+            const percentEl = document.getElementById('docProgressPercent');
+            const approvedEl = document.getElementById('docApproved');
+            const pendingEl = document.getElementById('docPending');
+            const rejectedEl = document.getElementById('docRejected');
+            const totalEl = document.getElementById('docTotal');
+            
+            if (fillEl) fillEl.style.width = percent + '%';
+            if (percentEl) percentEl.textContent = percent + '%';
+            if (approvedEl) approvedEl.textContent = approved;
+            if (pendingEl) pendingEl.textContent = pending;
+            if (rejectedEl) rejectedEl.textContent = rejected;
+            if (totalEl) totalEl.textContent = total;
         }
         
         // Portfolio functions
@@ -603,4 +636,5 @@
     </script>
 </body>
 </html>
+
 
