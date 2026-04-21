@@ -1,4 +1,4 @@
-from handlers.admin import admin_panel
+﻿from handlers.admin import admin_panel
 from telegram.ext import CallbackQueryHandler
 # -*- coding: utf-8 -*-
 """WorldSkills Bot - FINAL FIXED VERSION"""
@@ -59,9 +59,9 @@ def init_db():
         )""")
         conn.commit()
         conn.close()
-        logger.info(f"? DB: {DB_PATH}")
+        logger.info(f"✅ DB: {DB_PATH}")
     except Exception as e:
-        logger.error(f"? DB: {e}")
+        logger.error(f"❌ DB: {e}")
 
 # 6. Flask App (INIT BEFORE ROUTES!)
 app = Flask(__name__, static_folder=WEBAPP_DIR, static_url_path='')
@@ -120,7 +120,7 @@ def health():
 
 @app.route("/")
 def index():
-    logger.info(f"?? Serving from {WEBAPP_DIR}")
+    logger.info(f"📄 Serving from {WEBAPP_DIR}")
     return send_from_directory(WEBAPP_DIR, "index.html")
 
 @app.route("/admin-panel")
@@ -177,9 +177,9 @@ def api_admin_review_doc():
     score = data.get("score", 100); comment = data.get("comment", "")
     user = get_user(tid)
     if action == "approved":
-        msg = f"? <b>Hujjatingiz tasdiqlandi!</b>\n\n? Ball: {score}/100\n?? {comment or 'Ajoyib!'}"
+        msg = f"✅ <b>Hujjatingiz tasdiqlandi!</b>\n\n⭐ Ball: {score}/100\n💬 {comment or 'Ajoyib!'}"
     else:
-        msg = f"? <b>Hujjatingiz rad etildi</b>\n\n?? Sabab: {comment or 'Talablarga javob bermaydi'}\n\n?? Qayta yuklang!"
+        msg = f"❌ <b>Hujjatingiz rad etildi</b>\n\n💬 Sabab: {comment or 'Talablarga javob bermaydi'}\n\n🔄 Qayta yuklang!"
     asyncio.run(notify_admin(msg))
     return jsonify({"success": True})
 
@@ -191,9 +191,9 @@ def api_admin_review_portfolio():
     score = data.get("score", 0); comment = data.get("comment", "")
     user = get_user(tid)
     if action == "approved":
-        msg = f"? <b>Ishingiz baholandi!</b>\n\n?? Ball: {score}/100\n?? {comment or 'Yaxshi natija!'}"
+        msg = f"⭐ <b>Ishingiz baholandi!</b>\n\n🏆 Ball: {score}/100\n💬 {comment or 'Yaxshi natija!'}"
     else:
-        msg = f"? <b>Ishingiz rad etildi</b>\n\n?? Sabab: {comment}\n\n?? Qayta yuklang!"
+        msg = f"❌ <b>Ishingiz rad etildi</b>\n\n💬 Sabab: {comment}\n\n🔄 Qayta yuklang!"
     asyncio.run(notify_admin(msg))
     return jsonify({"success": True})
 
@@ -208,7 +208,7 @@ def upload_doc():
         os.makedirs(fp, exist_ok=True)
         file.save(os.path.join(fp, fn))
         u = get_user(tid)
-        asyncio.run(notify_admin(f"?? Yangi hujjat!\n?? {u.get('fullname') if u else 'N/A'}\n?? {fn}"))
+        asyncio.run(notify_admin(f"📄 Yangi hujjat!\n👤 {u.get('fullname') if u else 'N/A'}\n📎 {fn}"))
         return jsonify({"success": True})
     except Exception as e:
         logger.error(f"Upload error: {e}")
@@ -225,14 +225,14 @@ def upload_portfolio():
         os.makedirs(fp, exist_ok=True)
         file.save(os.path.join(fp, fn))
         u = get_user(tid)
-        asyncio.run(notify_admin(f"?? Portfolio!\n?? {u.get('fullname') if u else 'N/A'}\n?? {fn}"))
+        asyncio.run(notify_admin(f"💼 Portfolio!\n👤 {u.get('fullname') if u else 'N/A'}\n📎 {fn}"))
         return jsonify({"success": True})
     except Exception as e:
         logger.error(f"Portfolio error: {e}")
         return jsonify({"success": False}), 500
 
 # ============= IMPORT HANDLERS (AFTER bot/dp INIT) =============
-# ? To'g'ri try/except bloki:
+# ✅ To'g'ri try/except bloki:
 try:
     from bot.handlers import start, ai_chat, admin, admin_help, admin_review, webapp
     dp.include_router(start.router)
@@ -241,19 +241,19 @@ try:
     dp.include_router(admin_help.router)
     dp.include_router(admin_review.router)
     dp.include_router(webapp.router)
-    logger.info("? Handlers loaded!")
+    logger.info("✅ Handlers loaded!")
 except Exception as e:
-    logger.error(f"? Handler error: {e}")
+    logger.error(f"❌ Handler error: {e}")
 
 # ============= MAIN EXECUTION (LAST!) =============
 if __name__ == "__main__":
     init_db()
-    logger.info("? WorldSkills Bot started!")
-    logger.info(f"?? WEBAPP_DIR: {WEBAPP_DIR}")
+    logger.info("✅ WorldSkills Bot started!")
+    logger.info(f"📂 WEBAPP_DIR: {WEBAPP_DIR}")
     
     # Flask in background thread
     threading.Thread(target=lambda: app.run(host="0.0.0.0", port=5000, threaded=True), daemon=True).start()
-    logger.info("? Flask on port 5000")
+    logger.info("✅ Flask on port 5000")
     
     # Bot polling
     asyncio.run(dp.start_polling(bot))
@@ -266,13 +266,13 @@ async def button_callback(update, context):
     data = query.data
     
     if data == 'admin_stats':
-        await query.edit_message_text('?? Statistika')
+        await query.edit_message_text('📊 Statistika')
     elif data == 'admin_submissions':
-        await query.edit_message_text('?? Kirgan ishlar')
+        await query.edit_message_text('📥 Kirgan ishlar')
     elif data == 'admin_students':
-        await query.edit_message_text('?? O'quvchilar')
+        await query.edit_message_text('👥 O'quvchilar')
     else:
-        await query.edit_message_text('? Noma\'lum tugma')
+        await query.edit_message_text('❌ Noma\'lum tugma')
 
 application.add_handler(CommandHandler('admin', admin_panel))
 application.add_handler(CallbackQueryHandler(button_callback))
