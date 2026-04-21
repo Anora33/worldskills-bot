@@ -1,5 +1,6 @@
 ﻿# -*- coding: utf-8 -*-
 from aiogram import Router, F, types
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.filters import CommandStart
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from aiogram.fsm.context import FSMContext
@@ -22,24 +23,6 @@ class RegisterState(StatesGroup):
     phone = State()
 
 # Database helpers
-def init_db():
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("""CREATE TABLE IF NOT EXISTS users (
-            telegram_id TEXT PRIMARY KEY,
-            fullname TEXT,
-            phone TEXT,
-            profession_en TEXT,
-            profession_uz TEXT,
-            status TEXT DEFAULT 'pending',
-            registered_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )""")
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        logger.error(f"DB init error: {e}")
-
 def add_user(tid, fullname, phone, prof_en="", prof_uz=""):
     try:
         conn = sqlite3.connect(DB_PATH)
@@ -75,7 +58,6 @@ async def notify_admin(bot, text):
 # ============= START COMMAND =============
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
-    """Ro'yxatdan o'tishni boshlash"""
     await state.clear()
     
     kb = ReplyKeyboardMarkup(keyboard=[
@@ -84,8 +66,7 @@ async def cmd_start(message: Message, state: FSMContext):
     ], resize_keyboard=True, one_time_keyboard=True)
     
     await message.answer(
-        "🏆 <b>WorldSkills Shanghai 2026</b>\n"
-        "<i>48-chi Jahon Kasb Chempionati</i>\n\n"
+        "🏆 <b>WorldSkills Shanghai 2026</b>\n\n"
         "👋 <b>Xush kelibsiz!</b>\n\n"
         "📝 <b>1-QADAM: Ism va familiyangizni kiriting</b>\n"
         "<i>Masalan: Ali Valiyev</i>\n\n"
@@ -98,8 +79,6 @@ async def cmd_start(message: Message, state: FSMContext):
 # ============= FULLNAME HANDLER =============
 @router.message(RegisterState.fullname)
 async def process_fullname(message: Message, state: FSMContext):
-    """Ism-familiyani qabul qilish"""
-    # Kontakt orqali kelganmi?
     if message.contact:
         fullname = message.contact.first_name
         if message.contact.last_name:
@@ -107,22 +86,15 @@ async def process_fullname(message: Message, state: FSMContext):
         phone = message.contact.phone_number
         
         await state.update_data(fullname=fullname, phone=phone)
-        await message.answer(
-            f"✅ <b>{fullname}</b>\n\n"
-            f"📱 Telefon raqamingiz: <code>{phone}</code>\n\n"
-            f"✅ Tasdiqlandi!",
-            reply_markup=ReplyKeyboardRemove(),
-            parse_mode="HTML"
-        )
+        await message.answer(f"✅ <b>{fullname}</b>\n\n📱 Telefon raqamingiz tasdiqlandi!", 
+                           reply_markup=ReplyKeyboardRemove(), parse_mode="HTML")
         await show_categories(message, state, fullname, phone)
         return
     
-    # "Qo'lda kiritish" tugmasi
     if message.text == "✍️ Qo'lda kiritish":
         await message.answer("📝 Ism va familiyangizni kiriting:\n<i>Masalan: Ali Valiyev</i>", parse_mode="HTML")
         return
     
-    # Validatsiya
     fullname = message.text.strip()
     
     if not all(c.isalpha() or c.isspace() or c in "'-" for c in fullname):
@@ -153,7 +125,6 @@ async def process_fullname(message: Message, state: FSMContext):
 # ============= PHONE HANDLER =============
 @router.message(RegisterState.phone)
 async def process_phone(message: Message, state: FSMContext):
-    """Telefon raqamni qabul qilish"""
     if message.contact:
         phone = message.contact.phone_number
         user_data = await state.get_data()
@@ -182,7 +153,6 @@ async def process_phone(message: Message, state: FSMContext):
 
 # ============= SHOW CATEGORIES =============
 async def show_categories(message: Message, state: FSMContext, fullname, phone):
-    """6 ta kategoriya ko'rsatish"""
     categories = [
         ("🏭 Ishlab chiqarish | Manufacturing (17)", "cat1"),
         ("💻 IT va Axborot | IT (8)", "cat2"),
@@ -192,7 +162,7 @@ async def show_categories(message: Message, state: FSMContext, fullname, phone):
         ("👥 Xizmatlar | Services (10)", "cat6")
     ]
     
-    builder = types.InlineKeyboardBuilder()
+    builder = InlineKeyboardBuilder()
     for name, cat_id in categories:
         builder.button(text=name, callback_data=f"reg_cat_{cat_id}|{fullname}|{phone}")
     builder.adjust(1)
@@ -207,7 +177,6 @@ async def show_categories(message: Message, state: FSMContext, fullname, phone):
 # ============= CATEGORY CALLBACK =============
 @router.callback_query(F.data.startswith("reg_cat_"))
 async def callback_category(callback: types.CallbackQuery, state: FSMContext):
-    """Kategoriya tanlangach kasblarni ko'rsatish"""
     try:
         data = callback.data.replace("reg_cat_", "")
         parts = data.split("|")
@@ -255,7 +224,7 @@ async def callback_category(callback: types.CallbackQuery, state: FSMContext):
         }
         
         profs = professions.get(cat_id, [])
-        builder = types.InlineKeyboardBuilder()
+        builder = InlineKeyboardBuilder()
         for name, prof_id in profs:
             builder.button(text=name, callback_data=f"reg_prof_{prof_id}|{fullname}|{phone}|{cat_id}")
         builder.adjust(1)
@@ -276,7 +245,6 @@ async def callback_category(callback: types.CallbackQuery, state: FSMContext):
 # ============= PROFESSION CALLBACK =============
 @router.callback_query(F.data.startswith("reg_prof_"))
 async def callback_profession(callback: types.CallbackQuery, state: FSMContext):
-    """Kasb tanlangach - ro'yxatdan o'tish tugallandi"""
     try:
         data = callback.data.replace("reg_prof_", "")
         parts = data.split("|")
@@ -285,7 +253,6 @@ async def callback_profession(callback: types.CallbackQuery, state: FSMContext):
         phone = parts[2] if len(parts) > 2 else "N/A"
         cat_id = parts[3] if len(parts) > 3 else "cat1"
         
-        # Kasb nomini topish
         prof_names = {
             "p1_1": "Industrial Mechanics | Sanoat mexanikasi",
             "p1_2": "Mechatronics | Mexatronika",
@@ -314,20 +281,16 @@ async def callback_profession(callback: types.CallbackQuery, state: FSMContext):
         }
         prof_name = prof_names.get(prof_id, prof_id)
         
-        # Database'ga saqlash
         add_user(callback.from_user.id, fullname, phone, prof_name, prof_name)
         
-        # Admin'ga xabar
         await notify_admin(callback.bot,
             f"🏆 <b>YANGI ISHTIROKCHI RO'YXATDAN O'TDI!</b>\n\n"
             f"👤 <b>Ism:</b> {fullname}\n"
             f"📱 <b>Telefon:</b> {phone}\n"
             f"🔧 <b>Kasb:</b> {prof_name}\n"
-            f"🆔 <b>ID:</b> <code>{callback.from_user.id}</code>\n\n"
-            f"📅 {callback.message.date.strftime('%Y-%m-%d %H:%M')}"
+            f"🆔 <b>ID:</b> <code>{callback.from_user.id}</code>"
         )
         
-        # Foydalanuvchiga xabar
         await callback.message.answer(
             f"✅ <b>Tabriklaymiz! Ro'yxatdan o'tdingiz!</b>\n\n"
             f"👤 <b>Ism:</b> {fullname}\n"
@@ -337,9 +300,8 @@ async def callback_profession(callback: types.CallbackQuery, state: FSMContext):
             parse_mode="HTML"
         )
         
-        # Tugmalar ko'rsatish
         webapp_url = os.getenv("WEBAPP_URL", "https://worldskills-bot.onrender.com")
-        builder = types.InlineKeyboardBuilder()
+        builder = InlineKeyboardBuilder()
         builder.button(text="🤖 AI yordamchi", callback_data="menu_ai")
         builder.button(text="👨‍💼 Admin yordami", callback_data="menu_admin")
         builder.button(text="📄 Mening ma'lumotlarim", callback_data="menu_info")
@@ -363,22 +325,17 @@ async def callback_profession(callback: types.CallbackQuery, state: FSMContext):
 async def callback_ai(callback: types.CallbackQuery):
     await callback.message.answer(
         "🤖 <b>AI Yordamchi</b>\n\n"
-        "Savolingizni yozing, men yordam beraman!\n\n"
-        "<i>Masalan:</i>\n"
-        "• WorldSkills qachon bo'ladi?\n"
-        "• Qanday hujjatlar kerak?\n"
-        "• Tayyorgarlik bo'yicha maslahat",
+        "Savolingizni yozing, men yordam beraman!",
         parse_mode="HTML"
     )
     await callback.answer()
 
 @router.callback_query(F.data == "menu_admin")
 async def callback_admin_help(callback: types.CallbackQuery):
-    builder = types.InlineKeyboardBuilder()
+    builder = InlineKeyboardBuilder()
     builder.button(text="📱 Telegram", url="https://t.me/worldskills_admin")
     builder.button(text="📞 Telefon", url="tel:+998933404080")
     builder.button(text="📧 Email", url="mailto:dadaxon45@gmail.com")
-    builder.button(text="🌐 Web-sayt", url="https://worldskills.uz/ru")
     builder.adjust(2)
     
     await callback.message.answer(
@@ -386,9 +343,7 @@ async def callback_admin_help(callback: types.CallbackQuery):
         "📞 <b>Aloqa:</b>\n"
         "• Telegram: @worldskills_admin\n"
         "• Telefon: +998 93 340 40 80\n"
-        "• Email: dadaxon45@gmail.com\n\n"
-        "🌐 <b>Web-sayt:</b>\n"
-        "• worldskills.uz",
+        "• Email: dadaxon45@gmail.com",
         reply_markup=builder.as_markup(),
         parse_mode="HTML"
     )
@@ -403,7 +358,6 @@ async def callback_info(callback: types.CallbackQuery):
             f"👤 <b>Ism:</b> {user.get('fullname','N/A')}\n"
             f"📱 <b>Telefon:</b> {user.get('phone','N/A')}\n"
             f"🔧 <b>Kasb:</b> {user.get('profession_uz','N/A')}\n"
-            f"📊 <b>Status:</b> {user.get('status','pending')}\n"
             f"🆔 <b>ID:</b> <code>{user.get('telegram_id')}</code>",
             parse_mode="HTML"
         )
