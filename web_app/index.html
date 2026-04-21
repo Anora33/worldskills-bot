@@ -4,7 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WorldSkills Shanghai 2026</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js">
+// ============= DESKTOP + MOBILE FILE UPLOAD =============
+function triggerFileInput(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    try {
+        input.click();
+    } catch (e) {
+        const event = new MouseEvent('click', { view: window, bubbles: true, cancelable: true });
+        input.dispatchEvent(event);
+    }
+}
+
+function validateFile(file, maxSizeMB) {
+    if (!file) return false;
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+        safeShowPopup('❌ Xatolik', 'Faqat PDF fayllar!');
+        return false;
+    }
+    if (file.size > maxSizeMB * 1024 * 1024) {
+        safeShowPopup('❌ Xatolik', 'Max ' + maxSizeMB + ' MB!');
+        return false;
+    }
+    return true;
+}
+
+function setupUploadAreas() {
+    const docArea = document.getElementById('docUploadArea');
+    if (docArea) {
+        docArea.onclick = function(e) {
+            e.preventDefault();
+            triggerFileInput('fileInput');
+        };
+    }
+    const portfolioArea = document.getElementById('portfolioUploadArea');
+    if (portfolioArea) {
+        portfolioArea.onclick = function(e) {
+            e.preventDefault();
+            triggerFileInput('portfolioFileInput');
+        };
+    }
+}
+
+// window.onload da chaqirish
+const originalOnload = window.onload;
+window.onload = function() {
+    if (originalOnload) originalOnload();
+    setupUploadAreas();
+};
+</script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :root { --bg: #000; --card: #111; --border: #222; --text: #fff; --muted: #888; --success: #4CAF50; --warning: #FFC107; --error: #f44336; --gradient: linear-gradient(135deg,#fff,#888); }
@@ -161,12 +210,12 @@
                     <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:5px;"><span id="portfolioCount">0</span>/5 ta ish yuklandi</div>
                 </div>
                 <div style="margin-top:15px;">
-                    <div class="upload-area" onclick="document.getElementById('portfolioFileInput').click()">
+                    <div class="upload-area" id="portfolioUploadArea">
                         <div class="upload-icon">📎</div>
                         <div class="upload-text">PDF fayl tanlang</div>
                         <div class="upload-hint">Max 20 MB • Faqat PDF</div>
                     </div>
-                    <input type="file" id="portfolioFileInput" accept=".pdf" onchange="handlePortfolioFileSelect(event)">
+                    <input type="file" id="fileInput" accept=".pdf,application/pdf" onchange="handleDocFileSelect(event)" style="display:none">
                     <div class="file-preview" id="portfolioFilePreview">
                         <div class="file-name" id="portfolioFileName">file.pdf</div>
                         <div class="file-size" id="portfolioFileSize">0 MB</div>
@@ -233,12 +282,12 @@
             </div>
             <div class="modal-section">
                 <div class="modal-section-title">📎 PDF Yuklash</div>
-                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-area" id="docUploadArea">
                     <div class="upload-icon">📎</div>
                     <div class="upload-text">Fayl tanlang</div>
                     <div class="upload-hint">PDF • Max 10 MB</div>
                 </div>
-                <input type="file" id="fileInput" accept=".pdf" onchange="handleDocFileSelect(event)">
+                <input type="file" id="fileInput" accept=".pdf,application/pdf" onchange="handleDocFileSelect(event)">
                 <div class="file-preview" id="filePreview">
                     <div class="file-name" id="fileName">file.pdf</div>
                     <div class="file-size" id="fileSize">0 MB</div>
@@ -494,6 +543,58 @@
             selectedDocFile = null;
         }
         document.getElementById('docModal').addEventListener('click', function(e) { if(e.target.id === 'docModal') closeModal('docModal'); });
-    </script>
+    
+// ============= DESKTOP + MOBILE FILE UPLOAD =============
+function triggerFileInput(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    try {
+        input.click();
+    } catch (e) {
+        const event = new MouseEvent('click', { view: window, bubbles: true, cancelable: true });
+        input.dispatchEvent(event);
+    }
+}
+
+function validateFile(file, maxSizeMB) {
+    if (!file) return false;
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+        safeShowPopup('❌ Xatolik', 'Faqat PDF fayllar!');
+        return false;
+    }
+    if (file.size > maxSizeMB * 1024 * 1024) {
+        safeShowPopup('❌ Xatolik', 'Max ' + maxSizeMB + ' MB!');
+        return false;
+    }
+    return true;
+}
+
+function setupUploadAreas() {
+    const docArea = document.getElementById('docUploadArea');
+    if (docArea) {
+        docArea.onclick = function(e) {
+            e.preventDefault();
+            triggerFileInput('fileInput');
+        };
+    }
+    const portfolioArea = document.getElementById('portfolioUploadArea');
+    if (portfolioArea) {
+        portfolioArea.onclick = function(e) {
+            e.preventDefault();
+            triggerFileInput('portfolioFileInput');
+        };
+    }
+}
+
+// window.onload da chaqirish
+const originalOnload = window.onload;
+window.onload = function() {
+    if (originalOnload) originalOnload();
+    setupUploadAreas();
+};
+</script>
 </body>
 </html>
+
+
+
