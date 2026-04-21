@@ -6,52 +6,7 @@
     <title>WorldSkills Shanghai 2026</title>
     <script src="https://telegram.org/js/telegram-web-app.js">
 // ============= DESKTOP + MOBILE FILE UPLOAD =============
-function triggerFileInput(inputId) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    try {
-        input.click();
-    } catch (e) {
-        const event = new MouseEvent('click', { view: window, bubbles: true, cancelable: true });
-        input.dispatchEvent(event);
-    }
-}
 
-function validateFile(file, maxSizeMB) {
-    if (!file) return false;
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-        safeShowPopup('❌ Xatolik', 'Faqat PDF fayllar!');
-        return false;
-    }
-    if (file.size > maxSizeMB * 1024 * 1024) {
-        safeShowPopup('❌ Xatolik', 'Max ' + maxSizeMB + ' MB!');
-        return false;
-    }
-    return true;
-}
-
-function setupUploadAreas() {
-    const docArea = document.getElementById('docUploadArea');
-    if (docArea) {
-        docArea.onclick = function(e) {
-            e.preventDefault();
-            triggerFileInput('fileInput');
-        };
-    }
-    const portfolioArea = document.getElementById('portfolioUploadArea');
-    if (portfolioArea) {
-        portfolioArea.onclick = function(e) {
-            e.preventDefault();
-            triggerFileInput('portfolioFileInput');
-        };
-    }
-}
-
-// window.onload da chaqirish
-const originalOnload = window.onload;
-window.onload = function() {
-    if (originalOnload) originalOnload();
-    setupUploadAreas();
 };
 </script>
     <style>
@@ -164,485 +119,11 @@ window.onload = function() {
     <div class="content">
         <!-- Home Section -->
         <div id="section-home" class="section active">
-            <div class="card info-box">
-                <div class="info-title">ℹ️ WorldSkills Haqida</div>
-                <div style="font-size:11px;color:var(--muted);line-height:1.6;">
-                    WorldSkills Competition dunyodagi eng yirik texnik va kasblar chempionati.<br><br>
-                    Har ikki yilda bir marta o'tkaziladi. WorldSkills Shanghai 2026 - 48-chi nashr.<br><br>
-                    <b>Tashkilotchilar:</b><br>
-                    • Xitoy Xalq Respublikasi Inson resurslari vazirligi<br>
-                    • Shanxay shahar xalq hukumati
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">🚀 Boshlash</div>
-                <button class="doc-btn primary" onclick="showSection('section-categories')" style="margin-bottom:8px;">🎓 Kasbingizni Tanlang</button>
-                <button class="doc-btn secondary" onclick="showSection('section-documents')">📄 Hujjatlar (my.gov.uz)</button>
-            </div>
-        </div>
-        
-        <!-- Categories Section -->
-        <div id="section-categories" class="section">
-            <button class="back-btn" onclick="showSection('section-home')">← Orqaga</button>
-            <div class="card">
-                <div class="card-title">📂 Kategoriya Tanlang</div>
-                <div class="cat-grid" id="catGrid"></div>
-            </div>
-        </div>
-        
-        <!-- Professions Section -->
-        <div id="section-professions" class="section">
-            <button class="back-btn" onclick="showSection('section-categories')">← Orqaga</button>
-            <div class="card">
-                <div class="card-title" id="catTitle">Kasblar</div>
-                <div class="prof-list" id="profList"></div>
-            </div>
-        </div>
-        
-        <!-- Portfolio Upload Section -->
-        <div id="section-portfolio" class="section">
-            <button class="back-btn" onclick="showSection('section-professions')">← Orqaga</button>
-            <div class="card">
-                <div class="card-title">💼 <span id="portfolioProfName">Kasb</span></div>
-                <div style="font-size:11px;color:var(--muted);margin-bottom:12px;" id="portfolioProfDesc"></div>
-                <div class="progress-container">
-                    <div class="progress-bar"><div class="progress-fill" id="portfolioProgress" style="width:0%"></div></div>
-                    <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:5px;"><span id="portfolioCount">0</span>/5 ta ish yuklandi</div>
-                </div>
-                <div style="margin-top:15px;">
-                    <div class="upload-area" id="portfolioUploadArea">
-                        <div class="upload-icon">📎</div>
-                        <div class="upload-text">PDF fayl tanlang</div>
-                        <div class="upload-hint">Max 20 MB • Faqat PDF</div>
-                    </div>
-                    <input type="file" id="fileInput" accept=".pdf,application/pdf" onchange="handleDocFileSelect(event)" style="display:none">
-                    <div class="file-preview" id="portfolioFilePreview">
-                        <div class="file-name" id="portfolioFileName">file.pdf</div>
-                        <div class="file-size" id="portfolioFileSize">0 MB</div>
-                    </div>
-                    <button class="doc-btn primary" id="portfolioUploadBtn" onclick="uploadPortfolioWork()" disabled>📤 Ishni Yuklash</button>
-                </div>
-                <div style="margin-top:15px;">
-                    <div class="card-title" style="font-size:13px;">📋 Yuklangan Ishlar</div>
-                    <div id="portfolioUploadedList"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Documents Section -->
-        <div id="section-documents" class="section">
-            <button class="back-btn" onclick="showSection('section-home')">← Orqaga</button>
-            <div class="card progress-container">
-                <div class="progress-header">
-                    <span>📋 Rasmiy Hujjatlar</span>
-                    <span id="docProgressPercent">0%</span>
-                </div>
-                <div class="progress-bar"><div class="progress-fill" id="docProgressFill" style="width: 0%"></div></div>
-                <div class="progress-stats">
-                    <div class="progress-stat"><span class="progress-stat-num approved" id="docApproved">0</span><span class="progress-stat-label">✅ Tasdiq</span></div>
-                    <div class="progress-stat"><span class="progress-stat-num pending" id="docPending">0</span><span class="progress-stat-label">⏳ Kutish</span></div>
-                    <div class="progress-stat"><span class="progress-stat-num rejected" id="docRejected">0</span><span class="progress-stat-label">❌ Rad</span></div>
-                    <div class="progress-stat"><span class="progress-stat-num" id="docTotal">9</span><span class="progress-stat-label">📄 Jami</span></div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">📄 my.gov.uz Hujjatlari</div>
-                <div id="docList"></div>
-            </div>
-            <div class="card info-box">
-                <div class="info-title">💡 Muhim</div>
-                <ul class="info-list">
-                    <li>Barcha hujjatlar <b>A4 formatda PDF</b> bo'lishi kerak</li>
-                    <li>my.gov.uz hujjatlarida <b>QR kod</b> bo'lishi shart</li>
-                    <li>Hujjat muddati <b>30 kundan kam</b> qolmagan bo'lsin</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Document Upload Modal -->
-    <div class="modal" id="docModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title" id="modalDocTitle">Hujjat Yuklash</div>
-                <button class="modal-close" onclick="closeModal('docModal')">&times;</button>
-            </div>
-            <div class="modal-section">
-                <div class="modal-section-title">🔗 Qayerdan olish</div>
-                <a href="#" id="modalDocLink" class="doc-link" target="_blank">my.gov.uz ga o'tish →</a>
-            </div>
-            <div class="modal-section">
-                <div class="modal-section-title">📋 Talablar</div>
-                <ul class="requirements-list" id="modalRequirements">
-                    <li>A4 formatda PDF</li>
-                    <li>QR kod bo'lishi shart</li>
-                    <li>Aniq skanerlangan</li>
-                    <li>Muddati o'tmagan</li>
-                </ul>
-            </div>
-            <div class="modal-section">
-                <div class="modal-section-title">📎 PDF Yuklash</div>
-                <div class="upload-area" id="docUploadArea">
-                    <div class="upload-icon">📎</div>
-                    <div class="upload-text">Fayl tanlang</div>
-                    <div class="upload-hint">PDF • Max 10 MB</div>
-                </div>
-                <input type="file" id="fileInput" accept=".pdf,application/pdf" onchange="handleDocFileSelect(event)">
-                <div class="file-preview" id="filePreview">
-                    <div class="file-name" id="fileName">file.pdf</div>
-                    <div class="file-size" id="fileSize">0 MB</div>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="modal-btn secondary" onclick="closeModal('docModal')">Bekor qilish</button>
-                <button class="modal-btn primary" id="uploadBtn" onclick="uploadDocument()" disabled>📤 Yuklash</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="showSection('section-home');setActiveNav(this)">🏠<br>Bosh</div>
-        <div class="nav-item" onclick="showSection('section-categories');setActiveNav(this)">🎓<br>Kasblar</div>
-        <div class="nav-item" onclick="showSection('section-documents');setActiveNav(this)">📄<br>Hujjatlar</div>
-    </div>
-
-    <script>
-        // Telegram WebApp init
-        if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-            Telegram.WebApp.ready();
-            Telegram.WebApp.expand();
-        }
-        
-        // Rain effect
-        function createRain() {
-            const rain = document.getElementById('rain');
-            for(let i=0; i<50; i++) {
-                const drop = document.createElement('div');
-                drop.className = 'raindrop';
-                drop.style.left = Math.random()*100+'%';
-                drop.style.animationDuration = (Math.random()*2+1)+'s';
-                drop.style.animationDelay = Math.random()*2+'s';
-                rain.appendChild(drop);
-            }
-        }
-        createRain();
-        
-        // Data
-        const categories = [
-            { id: 'cat1', icon: '🏭', name: 'Ishlab chiqarish\nva Muhandislik', count: 17 },
-            { id: 'cat2', icon: '💻', name: 'Axborot va\nKommunikatsiya', count: 8 },
-            { id: 'cat3', icon: '🏗️', name: 'Qurilish va\nBino Texnologiyalari', count: 14 },
-            { id: 'cat4', icon: '🚚', name: 'Transport va\nLogistika', count: 8 },
-            { id: 'cat5', icon: '🎨', name: 'Ijodiy San\'at\nva Moda', count: 7 },
-            { id: 'cat6', icon: '👥', name: 'Ijtimoiy va\nShaxsiy Xizmatlar', count: 10 }
-        ];
-        
-        const professions = {
-            cat1: [{id:'p1_1',en:'Industrial Mechanics',uz:'Sanoat mexanikasi'},{id:'p1_2',en:'Mechatronics',uz:'Mexatronika'},{id:'p1_3',en:'Mechanical Engineering CAD',uz:'Mexanik muhandislik CAD'},{id:'p1_4',en:'CNC Turning',uz:'CNC tokarlik ishlovi'},{id:'p1_5',en:'CNC Milling',uz:'CNC frezalash'},{id:'p1_6',en:'Welding',uz:'Payvandlash'},{id:'p1_7',en:'Electronics',uz:'Elektronika'},{id:'p1_8',en:'Industrial Control',uz:'Sanoat boshqaruvi'},{id:'p1_9',en:'Autonomous Mobile Robotics',uz:'Avtonom mobil robototexnika'},{id:'p1_10',en:'Industry 4.0',uz:'Sanoat 4.0'},{id:'p1_11',en:'Chemical Laboratory Technology',uz:'Kimyo laboratoriya'},{id:'p1_12',en:'Water Technology',uz:'Suv texnologiyasi'},{id:'p1_13',en:'Additive Manufacturing',uz:'3D chop etish'},{id:'p1_14',en:'Industrial Design Technology',uz:'Sanoat dizayni'},{id:'p1_15',en:'Optoelectronic Technology',uz:'Optoelektronika'},{id:'p1_16',en:'Renewable Energy',uz:'Qayta energiya'},{id:'p1_17',en:'Robot Systems Integration',uz:'Robot tizimlari'}],
-            cat2: [{id:'p2_1',en:'ICT Network Infrastructure',uz:'Tarmoq infratuzilmasi'},{id:'p2_2',en:'Mobile Applications',uz:'Mobil ilovalar'},{id:'p2_3',en:'Software Development',uz:'Dasturiy ta\'minot'},{id:'p2_4',en:'Web Technologies',uz:'Veb texnologiyalar'},{id:'p2_5',en:'IT Network Administration',uz:'Tarmoq boshqaruvi'},{id:'p2_6',en:'Cloud Computing',uz:'Bulutli hisoblash'},{id:'p2_7',en:'Cyber Security',uz:'Kiberxavfsizlik'},{id:'p2_8',en:'Software Testing',uz:'Dasturiy sinov'}],
-            cat3: [{id:'p3_1',en:'Wall and Floor Tiling',uz:'Plitkalash'},{id:'p3_2',en:'Plumbing and Heating',uz:'Santexnika'},{id:'p3_3',en:'Electrical Installations',uz:'Elektr o\'rnatish'},{id:'p3_4',en:'Bricklaying',uz:'G\'isht terish'},{id:'p3_5',en:'Plastering',uz:'Suvoq'},{id:'p3_6',en:'Painting',uz:'Bo\'yash'},{id:'p3_7',en:'Cabinetmaking',uz:'Duradgorlik'},{id:'p3_8',en:'Joinery',uz:'Yig\'ish ishlari'},{id:'p3_9',en:'Carpentry',uz:'Yog\'och ishlari'},{id:'p3_10',en:'Landscape Gardening',uz:'Landshaft'},{id:'p3_11',en:'Refrigeration',uz:'Sovutish'},{id:'p3_12',en:'Concrete Work',uz:'Beton ishlari'},{id:'p3_13',en:'Digital Construction',uz:'Raqamli qurilish'},{id:'p3_14',en:'Security Technology',uz:'Xavfsizlik'}],
-            cat4: [{id:'p4_1',en:'Autobody Repair',uz:'Kuzov ta\'mirlash'},{id:'p4_2',en:'Aircraft Maintenance',uz:'Samolyot xizmati'},{id:'p4_3',en:'Automobile Technology',uz:'Avtomobil'},{id:'p4_4',en:'Car Painting',uz:'Avtomobil bo\'yash'},{id:'p4_5',en:'Heavy Vehicle',uz:'Og\'ir transport'},{id:'p4_6',en:'Logistics',uz:'Logistika'},{id:'p4_7',en:'Rail Vehicle',uz:'Temiryo\'l'},{id:'p4_8',en:'UAV Systems',uz:'Uchuvchisiz apparatlar'}],
-            cat5: [{id:'p5_1',en:'Jewellery',uz:'Zargarlik'},{id:'p5_2',en:'Floristry',uz:'Gulchilik'},{id:'p5_3',en:'Fashion Technology',uz:'Moda'},{id:'p5_4',en:'Graphic Design',uz:'Grafik dizayn'},{id:'p5_5',en:'Visual Merchandising',uz:'Vizual savdo'},{id:'p5_6',en:'3D Game Art',uz:'3D o\'yin san\'ati'},{id:'p5_7',en:'Media Design',uz:'Media dizayn'}],
-            cat6: [{id:'p6_1',en:'Hairdressing',uz:'Sartaroshlik'},{id:'p6_2',en:'Beauty Therapy',uz:'Go\'zallik'},{id:'p6_3',en:'Pâtisserie',uz:'Qandolatchilik'},{id:'p6_4',en:'Cooking',uz:'Oshpazlik'},{id:'p6_5',en:'Restaurant Service',uz:'Restoran'},{id:'p6_6',en:'Health Care',uz:'Sog\'liqni saqlash'},{id:'p6_7',en:'Bakery',uz:'Nonvoychilik'},{id:'p6_8',en:'Hotel Reception',uz:'Mehmonxona'},{id:'p6_9',en:'Dental Prosthetics',uz:'Tish protezi'},{id:'p6_10',en:'Retail Sales',uz:'Savdo'}]
-        };
-        
-        const officialDocs = [
-            {id:'d1',title:'🧾 Sudlanganlik haqida',link:'https://my.gov.uz/uz/service/135',requirements:['OneID orqali kirish','Ingliz tilida so\'rash mumkin','Muddati: 30 kun','QR kod shart']},
-            {id:'d2',title:'🏠 Yashash joyi',link:'https://my.gov.uz/uz/service/367',requirements:['Pasport ma\'lumotlari kerak','Doimiy manzil ko\'rsatilishi','Muddati: 30 kun']},
-            {id:'d3',title:'💼 Mehnat faoliyati (inglizcha)',link:'https://my.gov.uz/uz/service/496',requirements:['Ingliz tilida so\'rang','Barcha ish joylari ko\'rsatilsin','Imzo va muhr bo\'lsin']},
-            {id:'d4',title:'🎓 O\'qish joyidan',link:'https://my.gov.uz/uz/service/323',requirements:['O\'quv yurti muhri va imzosi','Talaba ekanligi tasdiqlangan','Muddati: 30 kun']},
-            {id:'d5',title:'🚫 Chiqishga cheklov yo\'q',link:'https://my.gov.uz/uz/service/412',requirements:['Pasport bilan tekshiriladi','Darhol beriladi','QR kod shart']},
-            {id:'d6',title:'💰 Daromad (inglizcha)',link:'https://my.gov.uz/uz/service/263',requirements:['INCOME STATEMENT so\'rang','Oxirgi 6 oylik ma\'lumot','Rasmiy muhr va imzo']},
-            {id:'d7',title:'🧾 PNFL (Soliq ID)',link:'https://my.gov.uz/uz/service/65',requirements:['Shaxsiy kabinetdan yuklash','QR kod bilan tasdiqlangan','Muddatsiz']},
-            {id:'d8',title:'📑 Nikoh/ajrashish',link:'https://my.gov.uz/uz/service/112',requirements:['FHDYo dan olingan bo\'lsin','Muhrlangan va imzolangan','Muddati: 30 kun']},
-            {id:'d9',title:'🆔 ID karta',link:'https://id.gov.uz',requirements:['Old va orqa alohida A4 da','Barcha ma\'lumotlar o\'qiladigan','Muddati o\'tmagan']}
-        ];
-        
-        let userData = { fullName: '', selectedProfession: null, documents: {}, portfolioWorks: [] };
-        let currentDocId = null, selectedDocFile = null, selectedPortfolioFile = null;
-        
-        // Load user data
-        const saved = localStorage.getItem('ws_user');
-        if(saved) {
-            userData = JSON.parse(saved);
-            if(userData.fullName) document.getElementById('userGreeting').textContent = '👋 ' + userData.fullName;
-        }
-        
-        // Navigation
-        function showSection(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-        function setActiveNav(el) {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
-        }
-        
-        // Render categories
-        function renderCategories() {
-            const grid = document.getElementById('catGrid');
-            grid.innerHTML = categories.map(c => '<div class="cat-card" onclick="showProfessions(\'' + c.id + '\')"><div class="cat-icon">' + c.icon + '</div><div class="cat-name">' + c.name.replace('\n',' ') + '</div><div class="cat-count">' + c.count + ' ta kasb</div></div>').join('');
-        }
-        renderCategories();
-        
-        // Show professions
-        function showProfessions(catId) {
-            const cat = categories.find(c => c.id === catId);
-            document.getElementById('catTitle').textContent = cat.name.replace('\n',' ');
-            const list = document.getElementById('profList');
-            const profs = professions[catId];
-            list.innerHTML = profs.map(p => '<div class="prof-item" onclick="selectProfession(\'' + catId + '\',\'' + p.id + '\',\'' + p.en.replace(/'/g, "\\'") + '\',\'' + p.uz.replace(/'/g, "\\'") + '\')"><div class="prof-en">' + p.en + '</div><div class="prof-uz">' + p.uz + '</div></div>').join('');
-            showSection('section-professions');
-        }
-        
-        // Select profession
-        function selectProfession(catId, profId, en, uz) {
-            userData.selectedProfession = { catId, profId, en, uz };
-            localStorage.setItem('ws_user', JSON.stringify(userData));
-            document.getElementById('portfolioProfName').textContent = uz;
-            document.getElementById('portfolioProfDesc').textContent = en;
-            const works = userData.portfolioWorks.filter(w => w.profId === profId);
-            document.getElementById('portfolioCount').textContent = works.length;
-            document.getElementById('portfolioProgress').style.width = (works.length / 5 * 100) + '%';
-            renderPortfolioWorks(profId);
-            showSection('section-portfolio');
-        }
-        
-        // Render documents
-        function renderDocuments() {
-            const list = document.getElementById('docList');
-            list.innerHTML = officialDocs.map(d => {
-                const docData = userData.documents[d.id] || {};
-                const status = docData.status || 'upload';
-                const statusText = { 'upload': '⏹️ Yuklash', 'pending': '⏳ Ko\'rib chiqilmoqda', 'approved': '✅ Tasdiqlandi', 'rejected': '❌ Qayta yuklang' }[status];
-                return '<div class="doc-item ' + status + '" onclick="openDocModal(\'' + d.id + '\')"><div class="doc-header"><div class="doc-title">' + d.title + '</div><div class="doc-status ' + status + '">' + statusText + '</div></div><div class="doc-meta">📄 PDF, A4 ' + (d.id === 'd7' || d.id === 'd9' ? '• ♾️ Muddatsiz' : '• ⏱️ 30 kun') + '</div><a href="' + d.link + '" class="doc-link" target="_blank" onclick="event.stopPropagation()">🔗 my.gov.uz dan olish →</a><button class="doc-btn ' + (status === 'upload' ? 'primary' : 'secondary') + '" onclick="event.stopPropagation(); openDocModal(\'' + d.id + '\')">' + (status === 'upload' ? '📎 Yuklash' : status === 'approved' ? '✅ Tasdiqlandi' : '👁️ Ko\'rish') + '</button></div>';
-            }).join('');
-            checkDocumentProgress();
-        }
-        renderDocuments();
-        
-        // Document modal
-        function openDocModal(docId) {
-            const doc = officialDocs.find(d => d.id === docId);
-            if(!doc) return;
-            currentDocId = docId;
-            selectedDocFile = null;
-            document.getElementById('modalDocTitle').textContent = doc.title;
-            document.getElementById('modalDocLink').href = doc.link;
-            document.getElementById('modalRequirements').innerHTML = doc.requirements.map(r => '<li>' + r + '</li>').join('');
-            document.getElementById('filePreview').classList.remove('active');
-            document.getElementById('uploadBtn').disabled = true;
-            const docData = userData.documents[docId];
-            if(docData?.status === 'approved') {
-                document.getElementById('uploadBtn').textContent = '✅ Tasdiqlandi';
-                document.getElementById('uploadBtn').disabled = true;
-            } else if(docData?.status === 'pending') {
-                document.getElementById('uploadBtn').textContent = '⏳ Ko\'rib chiqilmoqda';
-                document.getElementById('uploadBtn').disabled = true;
-            } else {
-                document.getElementById('uploadBtn').textContent = '📤 Yuklash';
-                document.getElementById('uploadBtn').disabled = true;
-            }
-            document.getElementById('docModal').classList.add('active');
-        }
-        
-        function handleDocFileSelect(e) {
-            const file = e.target.files[0];
-            if(!file) return;
-            if(file.type !== 'application/pdf') { alert('❌ Faqat PDF fayllar!'); e.target.value=''; return; }
-            if(file.size > 10*1024*1024) { alert('❌ Max 10 MB!'); e.target.value=''; return; }
-            selectedDocFile = file;
-            document.getElementById('fileName').textContent = file.name;
-            document.getElementById('fileSize').textContent = (file.size/1024/1024).toFixed(2) + ' MB';
-            document.getElementById('filePreview').classList.add('active');
-            document.getElementById('uploadBtn').disabled = false;
-        }
-        
-        async function uploadDocument() {
-            if(!currentDocId || !selectedDocFile) return;
-            const btn = document.getElementById('uploadBtn');
-            btn.disabled = true; btn.textContent = '⏳ Yuklanmoqda...';
-            try {
-                await new Promise(r => setTimeout(r, 1500));
-                userData.documents[currentDocId] = { status: 'pending', fileName: selectedDocFile.name, fileSize: selectedDocFile.size, uploadedAt: new Date().toISOString() };
-                localStorage.setItem('ws_user', JSON.stringify(userData));
-                renderDocuments();
-                closeModal('docModal');
-                alert('✅ Hujjatingiz yuklandi! Admin ko\'rib chiqadi.');
-            } catch(err) {
-                alert('❌ Xatolik: ' + err.message);
-                btn.disabled = false; btn.textContent = '📤 Yuklash';
-            }
-        }
-        
-        function checkDocumentProgress() {
-            const total = officialDocs.length;
-            const approved = Object.values(userData.documents).filter(d => d.status === 'approved').length;
-            const pending = Object.values(userData.documents).filter(d => d.status === 'pending').length;
-            const rejected = Object.values(userData.documents).filter(d => d.status === 'rejected').length;
-            const percent = Math.round((approved / total) * 100);
-            document.getElementById('docProgressFill').style.width = percent + '%';
-            document.getElementById('docProgressPercent').textContent = percent + '%';
-            document.getElementById('docApproved').textContent = approved;
-            document.getElementById('docPending').textContent = pending;
-            document.getElementById('docRejected').textContent = rejected;
-            document.getElementById('docTotal').textContent = total;
-        }
-        
-        // Portfolio functions
-        function handlePortfolioFileSelect(e) {
-            const file = e.target.files[0];
-            if(!file) return;
-            if(file.type !== 'application/pdf') { alert('❌ Faqat PDF fayllar!'); e.target.value=''; return; }
-            if(file.size > 20*1024*1024) { alert('❌ Max 20 MB!'); e.target.value=''; return; }
-            selectedPortfolioFile = file;
-            document.getElementById('portfolioFileName').textContent = file.name;
-            document.getElementById('portfolioFileSize').textContent = (file.size/1024/1024).toFixed(2) + ' MB';
-            document.getElementById('portfolioFilePreview').classList.add('active');
-            document.getElementById('portfolioUploadBtn').disabled = false;
-        }
-        
-        async function uploadPortfolioWork() {
-            if(!selectedPortfolioFile || !userData.selectedProfession) return;
-            const btn = document.getElementById('portfolioUploadBtn');
-            btn.disabled = true; btn.textContent = '⏳ Yuklanmoqda...';
-            try {
-                await new Promise(r => setTimeout(r, 1500));
-                userData.portfolioWorks.push({ profId: userData.selectedProfession.profId, fileName: selectedPortfolioFile.name, uploadedAt: new Date().toISOString() });
-                localStorage.setItem('ws_user', JSON.stringify(userData));
-                const works = userData.portfolioWorks.filter(w => w.profId === userData.selectedProfession.profId);
-                document.getElementById('portfolioCount').textContent = works.length;
-                document.getElementById('portfolioProgress').style.width = (works.length / 5 * 100) + '%';
-                renderPortfolioWorks(userData.selectedProfession.profId);
-                selectedPortfolioFile = null;
-                document.getElementById('portfolioFileInput').value = '';
-                document.getElementById('portfolioFilePreview').classList.remove('active');
-                btn.disabled = true; btn.textContent = '📤 Ishni Yuklash';
-                alert('✅ Ishingiz yuklandi! Admin baholaydi.');
-            } catch(err) {
-                alert('❌ Xatolik: ' + err.message);
-                btn.disabled = false; btn.textContent = '📤 Ishni Yuklash';
-            }
-        }
-        
-        function renderPortfolioWorks(profId) {
-            const works = userData.portfolioWorks.filter(w => w.profId === profId);
-            const list = document.getElementById('portfolioUploadedList');
-            if(works.length === 0) {
-                list.innerHTML = '<p style="font-size:11px;color:#888">Hali ish yuklanmagan</p>';
-                return;
-            }
-            list.innerHTML = works.map(w => '<div style="background:#0a0a0a;padding:10px;border-radius:8px;margin-bottom:6px;font-size:11px;">📄 ' + w.fileName + '<br><span style="color:#888">' + new Date(w.uploadedAt).toLocaleDateString() + '</span></div>').join('');
-        }
-        
-        // Modal close
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-            currentDocId = null;
-            selectedDocFile = null;
-        }
-        document.getElementById('docModal').addEventListener('click', function(e) { if(e.target.id === 'docModal') closeModal('docModal'); });
-    
-// ============= DESKTOP + MOBILE FILE UPLOAD =============
-function triggerFileInput(inputId) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    try {
-        input.click();
-    } catch (e) {
-        const event = new MouseEvent('click', { view: window, bubbles: true, cancelable: true });
-        input.dispatchEvent(event);
-    }
-}
-
-function validateFile(file, maxSizeMB) {
-    if (!file) return false;
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-        safeShowPopup('❌ Xatolik', 'Faqat PDF fayllar!');
-        return false;
-    }
-    if (file.size > maxSizeMB * 1024 * 1024) {
-        safeShowPopup('❌ Xatolik', 'Max ' + maxSizeMB + ' MB!');
-        return false;
-    }
-    return true;
-}
-
-function setupUploadAreas() {
-    const docArea = document.getElementById('docUploadArea');
-    if (docArea) {
-        docArea.onclick = function(e) {
-            e.preventDefault();
-            triggerFileInput('fileInput');
-        };
-    }
-    const portfolioArea = document.getElementById('portfolioUploadArea');
-    if (portfolioArea) {
-        portfolioArea.onclick = function(e) {
-            e.preventDefault();
-            triggerFileInput('portfolioFileInput');
-        };
-    }
-}
-
-// window.onload da chaqirish
-const originalOnload = window.onload;
-window.onload = function() {
-    if (originalOnload) originalOnload();
-    setupUploadAreas();
-};
-</script>
-
-<!-- Admin Contact Section -->
-<div class="card info-box" style="margin-top: 15px;">
-    <div class="info-title">👨‍💼 Admin Yordami</div>
-    <div style="font-size: 11px; color: var(--muted); line-height: 1.8;">
-        <b>📞 Aloqa:</b><br>
-        • <a href="https://t.me/worldskills_admin" onclick="Telegram.WebApp.openTelegramLink(this.href); return false;" style="color: var(--success); text-decoration: none;">Telegram: @worldskills_admin</a><br>
-        • Telefon: <a href="tel:+998933404080" style="color: var(--text);">+998 93 340 40 80</a><br>
-        • Email: <a href="mailto:dadaxon45@gmail.com" style="color: var(--text);">dadaxon45@gmail.com</a><br><br>
-        <b>🌐 Ijtimoiy tarmoqlar:</b><br>
-        • <a href="https://worldskills.uz/ru" target="_blank" style="color: var(--text);">🌐 Web-sayt</a><br>
-        • <a href="https://www.facebook.com/WorldskillsUzbekistan/" target="_blank" style="color: var(--text);">📘 Facebook</a><br>
-        • <a href="https://t.me/worldskillstalim" onclick="Telegram.WebApp.openTelegramLink(this.href); return false;" target="_blank" style="color: var(--success);">📱 Telegram</a><br>
-        • <a href="https://www.youtube.com/@worldskillsuzbekistan3441" target="_blank" style="color: var(--text);">🎬 YouTube</a><br>
-        • <a href="https://www.instagram.com/worldskillsuzbekistan/" target="_blank" style="color: var(--text);">📷 Instagram</a>
-    </div>
-</div>
+            
 
 
 // Mobile + Desktop file upload fix
-function triggerFileInput(inputId) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    try {
-        input.click();
-    } catch (e) {
-        const event = new MouseEvent('click', { view: window, bubbles: true, cancelable: true });
-        input.dispatchEvent(event);
-    }
-}
 
-function setupUploadAreas() {
-    const areas = document.querySelectorAll('.upload-area');
-    areas.forEach(area => {
-        area.addEventListener('click', function(e) {
-            e.preventDefault();
-            const inputId = this.getAttribute('data-input') || 
-                           (this.querySelector('input') ? this.querySelector('input').id : null);
-            if (inputId) {
-                triggerFileInput(inputId);
-            }
-        });
-    });
-}
-
-// Init da chaqirish
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupUploadAreas);
-} else {
-    setupUploadAreas();
 }
 
 // ============= PDF UPLOAD - MOBILE + DESKTOP =============
@@ -652,6 +133,31 @@ let currentDocId = null;
 let userData = JSON.parse(localStorage.getItem('ws_user') || '{}');
 
 // File input trigger
+
+}
+
+// ============= PDF UPLOAD SYSTEM =============
+let selectedDocFile = null;
+let selectedPortfolioFile = null;
+let currentDocId = null;
+
+// Telegram WebApp init
+if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+}
+
+// Get user data from Telegram
+function getUserData() {
+    const user = Telegram.WebApp.initDataUnsafe?.user;
+    return {
+        telegramId: user?.id?.toString() || 'unknown',
+        fullName: user?.first_name + ' ' + (user?.last_name || ''),
+        username: user?.username || ''
+    };
+}
+
+// Trigger file input
 function triggerFileInput(inputId) {
     const input = document.getElementById(inputId);
     if (input) {
@@ -659,67 +165,123 @@ function triggerFileInput(inputId) {
     }
 }
 
-// Document file select
+// Document file select handler
 function handleDocFileSelect(e) {
     const file = e.target.files[0];
     if (!file) return;
     
+    console.log('Selected file:', file.name, file.size, file.type);
+    
     if (!file.name.toLowerCase().endsWith('.pdf')) {
-        alert('❌ Faqat PDF fayllar!');
+        if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+            Telegram.WebApp.showPopup({
+                title: '❌ Xatolik',
+                message: 'Faqat PDF fayllar qabul qilinadi!'
+            });
+        } else {
+            alert('❌ Faqat PDF fayllar!');
+        }
         e.target.value = '';
         return;
     }
     
     if (file.size > 10 * 1024 * 1024) {
-        alert('❌ Max 10 MB!');
+        if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+            Telegram.WebApp.showPopup({
+                title: '❌ Xatolik',
+                message: 'Fayl hajmi 10 MB dan oshmasligi kerak!'
+            });
+        } else {
+            alert('❌ Max 10 MB!');
+        }
         e.target.value = '';
         return;
     }
     
     selectedDocFile = file;
-    document.getElementById('fileName').textContent = file.name;
-    document.getElementById('fileSize').textContent = (file.size/1024/1024).toFixed(2) + ' MB';
-    document.getElementById('filePreview').classList.add('active');
-    document.getElementById('uploadBtn').disabled = false;
+    const fileNameEl = document.getElementById('fileName');
+    const fileSizeEl = document.getElementById('fileSize');
+    const filePreviewEl = document.getElementById('filePreview');
+    const uploadBtnEl = document.getElementById('uploadBtn');
+    
+    if (fileNameEl) fileNameEl.textContent = file.name;
+    if (fileSizeEl) fileSizeEl.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+    if (filePreviewEl) filePreviewEl.classList.add('active');
+    if (uploadBtnEl) {
+        uploadBtnEl.disabled = false;
+        uploadBtnEl.textContent = '📤 Yuklash';
+    }
 }
 
-// Portfolio file select
+// Portfolio file select handler
 function handlePortfolioFileSelect(e) {
     const file = e.target.files[0];
     if (!file) return;
     
+    console.log('Selected portfolio file:', file.name, file.size, file.type);
+    
     if (!file.name.toLowerCase().endsWith('.pdf')) {
-        alert('❌ Faqat PDF fayllar!');
+        if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+            Telegram.WebApp.showPopup({
+                title: '❌ Xatolik',
+                message: 'Faqat PDF fayllar qabul qilinadi!'
+            });
+        } else {
+            alert('❌ Faqat PDF fayllar!');
+        }
         e.target.value = '';
         return;
     }
     
     if (file.size > 20 * 1024 * 1024) {
-        alert('❌ Max 20 MB!');
+        if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+            Telegram.WebApp.showPopup({
+                title: '❌ Xatolik',
+                message: 'Fayl hajmi 20 MB dan oshmasligi kerak!'
+            });
+        } else {
+            alert('❌ Max 20 MB!');
+        }
         e.target.value = '';
         return;
     }
     
     selectedPortfolioFile = file;
-    document.getElementById('portfolioFileName').textContent = file.name;
-    document.getElementById('portfolioFileSize').textContent = (file.size/1024/1024).toFixed(2) + ' MB';
-    document.getElementById('portfolioFilePreview').classList.add('active');
-    document.getElementById('portfolioUploadBtn').disabled = false;
+    const fileNameEl = document.getElementById('portfolioFileName');
+    const fileSizeEl = document.getElementById('portfolioFileSize');
+    const filePreviewEl = document.getElementById('portfolioFilePreview');
+    const uploadBtnEl = document.getElementById('portfolioUploadBtn');
+    
+    if (fileNameEl) fileNameEl.textContent = file.name;
+    if (fileSizeEl) fileSizeEl.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+    if (filePreviewEl) filePreviewEl.classList.add('active');
+    if (uploadBtnEl) {
+        uploadBtnEl.disabled = false;
+        uploadBtnEl.textContent = '📤 Ishni Yuklash';
+    }
 }
 
 // Upload document to server
 async function uploadDocument() {
-    if (!currentDocId || !selectedDocFile) return;
+    if (!currentDocId || !selectedDocFile) {
+        console.error('No file or docId');
+        return;
+    }
     
     const btn = document.getElementById('uploadBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Yuklanmoqda...';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Yuklanmoqda...';
+    }
     
     try {
+        const userData = getUserData();
         const formData = new FormData();
-        formData.append('telegramId', userData.telegramId || 'unknown');
+        formData.append('telegramId', userData.telegramId);
         formData.append('docId', currentDocId);
         formData.append('file', selectedDocFile);
+        
+        console.log('Uploading document...', currentDocId, selectedDocFile.name);
         
         const response = await fetch('/api/documents/upload', {
             method: 'POST',
@@ -727,38 +289,78 @@ async function uploadDocument() {
         });
         
         const result = await response.json();
+        console.log('Upload result:', result);
         
         if (result.success) {
-            alert('✅ Hujjat yuklandi! Admin ko\'rib chiqadi.');
-            document.getElementById('filePreview').classList.remove('active');
-            btn.textContent = '📤 Yuklash';
-            btn.disabled = true;
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                Telegram.WebApp.showPopup({
+                    title: '✅ Muvaffaqiyatli',
+                    message: 'Hujjat yuklandi! Admin ko\'rib chiqadi.'
+                });
+            } else {
+                alert('✅ Hujjat yuklandi!');
+            }
+            
+            const filePreviewEl = document.getElementById('filePreview');
+            if (filePreviewEl) filePreviewEl.classList.remove('active');
+            if (btn) {
+                btn.textContent = '📤 Yuklash';
+                btn.disabled = true;
+            }
             selectedDocFile = null;
         } else {
-            alert('❌ Xatolik: ' + (result.error || 'Noma\'lum xatolik'));
+            const errorMsg = result.error || 'Noma\'lum xatolik';
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                Telegram.WebApp.showPopup({
+                    title: '❌ Xatolik',
+                    message: 'Upload xatosi: ' + errorMsg
+                });
+            } else {
+                alert('❌ Xatolik: ' + errorMsg);
+            }
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '📤 Yuklash';
+            }
+        }
+    } catch (err) {
+        console.error('Upload error:', err);
+        if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+            Telegram.WebApp.showPopup({
+                title: '❌ Xatolik',
+                message: 'Upload xatosi: ' + err.message
+            });
+        } else {
+            alert('❌ Upload xatosi: ' + err.message);
+        }
+        if (btn) {
             btn.disabled = false;
             btn.textContent = '📤 Yuklash';
         }
-    } catch (err) {
-        alert('❌ Upload xatosi: ' + err.message);
-        btn.disabled = false;
-        btn.textContent = '📤 Yuklash';
     }
 }
 
 // Upload portfolio to server
 async function uploadPortfolioWork() {
-    if (!selectedPortfolioFile || !userData.selectedProfession) return;
+    if (!selectedPortfolioFile) {
+        console.error('No portfolio file');
+        return;
+    }
     
     const btn = document.getElementById('portfolioUploadBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Yuklanmoqda...';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Yuklanmoqda...';
+    }
     
     try {
+        const userData = getUserData();
         const formData = new FormData();
-        formData.append('telegramId', userData.telegramId || 'unknown');
-        formData.append('professionId', userData.selectedProfession.profId);
+        formData.append('telegramId', userData.telegramId);
+        formData.append('professionId', 'unknown'); // Will be set dynamically
         formData.append('file', selectedPortfolioFile);
+        
+        console.log('Uploading portfolio...', selectedPortfolioFile.name);
         
         const response = await fetch('/api/portfolio/upload', {
             method: 'POST',
@@ -766,47 +368,96 @@ async function uploadPortfolioWork() {
         });
         
         const result = await response.json();
+        console.log('Portfolio upload result:', result);
         
         if (result.success) {
-            alert('✅ Ish yuklandi! Admin baholaydi.');
-            document.getElementById('portfolioFilePreview').classList.remove('active');
-            btn.textContent = '📤 Ishni Yuklash';
-            btn.disabled = true;
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                Telegram.WebApp.showPopup({
+                    title: '✅ Muvaffaqiyatli',
+                    message: 'Ish yuklandi! Admin baholaydi.'
+                });
+            } else {
+                alert('✅ Ish yuklandi!');
+            }
+            
+            const filePreviewEl = document.getElementById('portfolioFilePreview');
+            if (filePreviewEl) filePreviewEl.classList.remove('active');
+            if (btn) {
+                btn.textContent = '📤 Ishni Yuklash';
+                btn.disabled = true;
+            }
             selectedPortfolioFile = null;
         } else {
-            alert('❌ Xatolik: ' + (result.error || 'Noma\'lum xatolik'));
+            const errorMsg = result.error || 'Noma\'lum xatolik';
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                Telegram.WebApp.showPopup({
+                    title: '❌ Xatolik',
+                    message: 'Upload xatosi: ' + errorMsg
+                });
+            } else {
+                alert('❌ Xatolik: ' + errorMsg);
+            }
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '📤 Ishni Yuklash';
+            }
+        }
+    } catch (err) {
+        console.error('Portfolio upload error:', err);
+        if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+            Telegram.WebApp.showPopup({
+                title: '❌ Xatolik',
+                message: 'Upload xatosi: ' + err.message
+            });
+        } else {
+            alert('❌ Upload xatosi: ' + err.message);
+        }
+        if (btn) {
             btn.disabled = false;
             btn.textContent = '📤 Ishni Yuklash';
         }
-    } catch (err) {
-        alert('❌ Upload xatosi: ' + err.message);
-        btn.disabled = false;
-        btn.textContent = '📤 Ishni Yuklash';
     }
 }
 
-// Setup upload areas on init
+// Setup upload areas
 function setupUploadAreas() {
-    const areas = document.querySelectorAll('.upload-area');
-    areas.forEach(area => {
-        area.addEventListener('click', function(e) {
+    console.log('Setting up upload areas...');
+    
+    // Document upload area
+    const docUploadArea = document.querySelector('.doc-item .upload-area');
+    if (docUploadArea) {
+        docUploadArea.addEventListener('click', function(e) {
             e.preventDefault();
-            const input = this.querySelector('input[type="file"]');
-            if (input) {
-                input.click();
-            }
+            e.stopPropagation();
+            triggerFileInput('fileInput');
         });
-    });
+    }
+    
+    // Portfolio upload area
+    const portfolioUploadArea = document.querySelector('#section-portfolio .upload-area');
+    if (portfolioUploadArea) {
+        portfolioUploadArea.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            triggerFileInput('portfolioFileInput');
+        });
+    }
+    
+    console.log('Upload areas setup complete');
 }
 
-// Init
+// Init on load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', setupUploadAreas);
 } else {
     setupUploadAreas();
 }
+
+console.log('✅ PDF Upload System loaded!');
 </body>
 </html>
+
+
 
 
 
