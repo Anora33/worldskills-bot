@@ -611,8 +611,43 @@ window.onload = function() {
     </div>
 </div>
 
+
+// Mobile + Desktop file upload fix
+function triggerFileInput(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    try {
+        input.click();
+    } catch (e) {
+        const event = new MouseEvent('click', { view: window, bubbles: true, cancelable: true });
+        input.dispatchEvent(event);
+    }
+}
+
+function setupUploadAreas() {
+    const areas = document.querySelectorAll('.upload-area');
+    areas.forEach(area => {
+        area.addEventListener('click', function(e) {
+            e.preventDefault();
+            const inputId = this.getAttribute('data-input') || 
+                           (this.querySelector('input') ? this.querySelector('input').id : null);
+            if (inputId) {
+                triggerFileInput(inputId);
+            }
+        });
+    });
+}
+
+// Init da chaqirish
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupUploadAreas);
+} else {
+    setupUploadAreas();
+}
 </body>
 </html>
+
+
 
 
 
