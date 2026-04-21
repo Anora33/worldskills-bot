@@ -1,4 +1,4 @@
-from handlers.admin import admin_panel
+﻿from handlers.admin import admin_panel
 from telegram.ext import CallbackQueryHandler
 # -*- coding: utf-8 -*-
 """WorldSkills Bot - FINAL FIXED VERSION"""
@@ -270,9 +270,10 @@ async def button_callback(update, context):
     elif data == 'admin_submissions':
         await query.edit_message_text('?? Kirgan ishlar')
     elif data == 'admin_students':
-        await query.edit_message_text('?? O'quvchilar')
+        await query.edit_message_text("?? Oquvchilar")
     else:
-        await query.edit_message_text('? Noma\'lum tugma')
+        await query.edit_message_text("? Noma\lum tugma")
 
 application.add_handler(CommandHandler('admin', admin_panel))
 application.add_handler(CallbackQueryHandler(button_callback))
+
