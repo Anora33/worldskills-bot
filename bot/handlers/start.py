@@ -425,21 +425,20 @@ async def callback_ai(callback: types.CallbackQuery):
 
 @router.callback_query(F.data == "menu_admin")
 async def callback_admin_help(callback: types.CallbackQuery):
+    # Inline keyboard - faqat https URL'lar ishlaydi
     builder = InlineKeyboardBuilder()
     builder.button(text="📱 Telegram", url="https://t.me/worldskills_admin")
-    builder.button(text="📞 Telefon", url="tel:+998933404080")
-    builder.button(text="📧 Email", url="mailto:dadaxon45@gmail.com")
     builder.button(text="🌐 Web-sayt", url="https://worldskills.uz/ru")
+    builder.button(text="📘 Facebook", url="https://www.facebook.com/WorldskillsUzbekistan/")
     builder.adjust(2)
     
     await callback.message.answer(
         "👨‍💼 <b>Admin Yordami</b>\n\n"
         "📞 <b>Aloqa:</b>\n"
         "• Telegram: @worldskills_admin\n"
-        "• Telefon: +998 93 340 40 80\n"
+        "• Telefon: <code>+998 93 340 40 80</code> 📋 (nusxalash uchun bosing)\n"
         "• Email: dadaxon45@gmail.com\n\n"
-        "🌐 <b>Web-sayt:</b>\n"
-        "• worldskills.uz",
+        "<i>Telefon raqamini nusxalash uchun ustiga bosing!</i>",
         reply_markup=builder.as_markup(),
         parse_mode="HTML"
     )
@@ -464,21 +463,20 @@ async def callback_info(callback: types.CallbackQuery):
 
 @router.callback_query(F.data == "menu_admin")
 async def callback_admin_help(callback: types.CallbackQuery):
+    # Inline keyboard - faqat https URL'lar ishlaydi
     builder = InlineKeyboardBuilder()
     builder.button(text="📱 Telegram", url="https://t.me/worldskills_admin")
-    builder.button(text="📞 Telefon", url="tel:+998933404080")
-    builder.button(text="📧 Email", url="mailto:dadaxon45@gmail.com")
     builder.button(text="🌐 Web-sayt", url="https://worldskills.uz/ru")
+    builder.button(text="📘 Facebook", url="https://www.facebook.com/WorldskillsUzbekistan/")
     builder.adjust(2)
     
     await callback.message.answer(
         "👨‍💼 <b>Admin Yordami</b>\n\n"
         "📞 <b>Aloqa:</b>\n"
         "• Telegram: @worldskills_admin\n"
-        "• Telefon: +998 93 340 40 80\n"
+        "• Telefon: <code>+998 93 340 40 80</code> 📋 (nusxalash uchun bosing)\n"
         "• Email: dadaxon45@gmail.com\n\n"
-        "🌐 <b>Web-sayt:</b>\n"
-        "• worldskills.uz",
+        "<i>Telefon raqamini nusxalash uchun ustiga bosing!</i>",
         reply_markup=builder.as_markup(),
         parse_mode="HTML"
     )
@@ -503,21 +501,20 @@ async def callback_info(callback: types.CallbackQuery):
 
 @router.callback_query(F.data == "menu_admin")
 async def callback_admin_help(callback: types.CallbackQuery):
+    # Inline keyboard - faqat https URL'lar ishlaydi
     builder = InlineKeyboardBuilder()
     builder.button(text="📱 Telegram", url="https://t.me/worldskills_admin")
-    builder.button(text="📞 Telefon", url="tel:+998933404080")
-    builder.button(text="📧 Email", url="mailto:dadaxon45@gmail.com")
     builder.button(text="🌐 Web-sayt", url="https://worldskills.uz/ru")
+    builder.button(text="📘 Facebook", url="https://www.facebook.com/WorldskillsUzbekistan/")
     builder.adjust(2)
     
     await callback.message.answer(
         "👨‍💼 <b>Admin Yordami</b>\n\n"
         "📞 <b>Aloqa:</b>\n"
         "• Telegram: @worldskills_admin\n"
-        "• Telefon: +998 93 340 40 80\n"
+        "• Telefon: <code>+998 93 340 40 80</code> 📋 (nusxalash uchun bosing)\n"
         "• Email: dadaxon45@gmail.com\n\n"
-        "🌐 <b>Web-sayt:</b>\n"
-        "• worldskills.uz",
+        "<i>Telefon raqamini nusxalash uchun ustiga bosing!</i>",
         reply_markup=builder.as_markup(),
         parse_mode="HTML"
     )
@@ -539,5 +536,6 @@ async def callback_info(callback: types.CallbackQuery):
     else:
         await callback.message.answer("❌ Ma'lumot topilmadi. /start orqali ro'yxatdan o'ting.")
     await callback.answer()
+
 
 
