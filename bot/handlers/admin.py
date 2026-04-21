@@ -1,21 +1,44 @@
-﻿import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ContextTypes
+﻿# -*- coding: utf-8 -*-
+from aiogram import Router, F, types
+from aiogram.filters import Command
+from aiogram.types import Message
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+import logging
+import os
 
-ADMIN_IDS = [701152982]
+logger = logging.getLogger(__name__)
+router = Router()
 
-async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
+@router.message(Command("admin"))
+async def cmd_admin(message: Message):
+    """Admin yordami - kontakt ma'lumotlari"""
     
-    if user_id not in ADMIN_IDS:
-        await update.message.reply_text("❌ Siz admin emassiz!")
-        return
+    builder = InlineKeyboardBuilder()
+    builder.button(text="📱 Telegram", url="https://t.me/worldskills_admin")
+    builder.button(text="📞 Telefon", url="tel:+998933404080")
+    builder.button(text="📧 Email", url="mailto:dadaxon45@gmail.com")
+    builder.button(text="🌐 Web-sayt", url="https://worldskills.uz/ru")
+    builder.button(text="📘 Facebook", url="https://www.facebook.com/WorldskillsUzbekistan/")
+    builder.button(text="📱 Telegram Kanal", url="https://t.me/worldskillstalim")
+    builder.button(text="🎬 YouTube", url="https://www.youtube.com/@worldskillsuzbekistan3441")
+    builder.button(text="📷 Instagram", url="https://www.instagram.com/worldskillsuzbekistan/")
+    builder.adjust(2)
     
-    keyboard = [
-        [InlineKeyboardButton("📊 Statistika", callback_data="admin_stats")],
-        [InlineKeyboardButton("📥 Kirgan ishlar", callback_data="admin_submissions")],
-        [InlineKeyboardButton("👥 O'quvchilar", callback_data="admin_students")],
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    await message.answer(
+        "👨‍💼 <b>Admin Yordami</b>\n\n"
+        "📞 <b>Aloqa:</b>\n"
+        "• Telegram: @worldskills_admin\n"
+        "• Telefon: +998 93 340 40 80\n"
+        "• Email: dadaxon45@gmail.com\n\n"
+        "🌐 <b>Ijtimoiy tarmoqlar:</b>\n"
+        "• Web-sayt: worldskills.uz\n"
+        "• Facebook: Worldskills Uzbekistan\n"
+        "• Telegram: @worldskillstalim\n"
+        "• YouTube: WorldSkills Uzbekistan\n"
+        "• Instagram: @worldskillsuzbekistan\n\n"
+        "<i>Savollaringiz bo'lsa, bemalol murojaat qiling!</i>",
+        reply_markup=builder.as_markup(),
+        parse_mode="HTML"
+    )
     
-    await update.message.reply_text("Admin paneliga xush kelibsiz!", reply_markup=reply_markup)
+    logger.info(f"✅ Admin help sent to {message.from_user.id}")

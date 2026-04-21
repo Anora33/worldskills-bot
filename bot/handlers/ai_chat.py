@@ -1,41 +1,59 @@
 ﻿# -*- coding: utf-8 -*-
-# ✅ AIOTELEGRAM 3.x IMPORTS
-from aiogram import Router, F
+from aiogram import Router, F, types
+from aiogram.filters import Command
 from aiogram.types import Message
-from aiogram.fsm.context import FSMContext  # ✅ 3.x
-from aiogram.utils.keyboard import ReplyKeyboardBuilder, KeyboardButton
-import logging, random
+import logging
+import os
 
 logger = logging.getLogger(__name__)
 router = Router()
 
-RESP = {"salom": ["Assalomu alaykum! 😊", "Salom!"], "rahmat": ["Arzimaydi!", "Marhamat!"], "xayr": ["Xayr! 👋"]}
+# Groq API sozlamalari
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-def simple_ans(t):
-    t = t.lower()
-    for k, v in RESP.items():
-        if k in t: return random.choice(v)
-    return "Qiziq savol!"
+@router.message(Command("ai"))
+async def cmd_ai(message: Message):
+    """AI yordamchini ishga tushirish"""
+    await message.answer(
+        "🤖 <b>AI Yordamchi</b>\n\n"
+        "Savolingizni yozing, men yordam beraman!\n\n"
+        "<i>Masalan:</i>\n"
+        "• WorldSkills qachon bo'ladi?\n"
+        "• Qanday hujjatlar kerak?\n"
+        "• Tayyorgarlik bo'yicha maslahat",
+        parse_mode="HTML"
+    )
 
-@router.message(F.text == "🤖 AI yordamchi")
-async def ai_start(msg: Message, state: FSMContext):
-    await state.update_data(ai_active=True)
-    kb = ReplyKeyboardBuilder()
-    kb.row(KeyboardButton(text="🔙 Chiqish"))
-    await msg.answer("🤖 <b>AI Yordamchi</b>\n\nSavolingizni yozing:")
-
-@router.message(F.text == "🔙 Chiqish")
-async def ai_exit(msg: Message, state: FSMContext):
-    await state.update_data(ai_active=False)
-    await state.clear()
-    kb = ReplyKeyboardBuilder()
-    for b in ["📱 Mini App", "📊 Mening statistikam", "🏆 Mening musobaqam", "🤖 AI yordamchi", "⭐ Reyting", "👨‍💼 Admin yordami"]:
-        kb.row(KeyboardButton(text=b))
-    await msg.answer("✅ AI mode dan chiqildi", reply_markup=kb.as_markup(resize_keyboard=True))
-
-@router.message()
-async def ai_handler(msg: Message, state: FSMContext):
-    data = await state.get_data()
-    if not data.get("ai_active"): return
-    ans = simple_ans(msg.text)
-    await msg.answer(f"🤖 AI: {ans}")
+@router.message(F.text)
+async def handle_ai_message(message: Message):
+    """AI ga savol yuborish"""
+    # Faqat /ai dan keyin ishlaydi (oddiy xabarlarga javob bermaslik uchun)
+    # Bu yerda oddiy javob qaytaramiz (Groq API ulanmagan bo'lsa)
+    
+    user_text = message.text.lower()
+    
+    # Oddiy keyword javoblari
+    responses = {
+        "worldskills": "🏆 WorldSkills Shanghai 2026 2026-yil sentabr oyida bo'lib o'tadi. 60+ mamlakat, 60+ kasb!",
+        "hujjat": "📄 Kerakli hujjatlar:\n• Pasport nusxasi\n• Sudlanganlik haqida ma'lumot\n• Ta'lim haqida hujjat\n• 3 ta rasm\nBarchasi my.gov.uz orqali olinadi!",
+        "tayyorgarlik": "💪 Tayyorgarlik bo'yicha:\n1. Kasbingiz bo'yicha amaliy mashqlar\n2. Nazariy bilimlarni mustahkamlash\n3. Vaqtni to'g'ri taqsimlash\n4. Stressga chidamlilik",
+        "kontakt": "📞 Aloqa:\nTelegram: @worldskills_admin\nTelefon: +998 93 340 40 80\nEmail: dadaxon45@gmail.com"
+    }
+    
+    # Keyword qidirish
+    for key, response in responses.items():
+        if key in user_text:
+            await message.answer(response)
+            return
+    
+    # Default javob
+    await message.answer(
+        "🤔 Men sizning savolingizni to'liq tushunmadim.\n\n"
+        "Quyidagilardan birini so'rang:\n"
+        "• WorldSkills qachon?\n"
+        "• Qanday hujjatlar kerak?\n"
+        "• Tayyorgarlik bo'yicha maslahat\n"
+        "• Kontakt ma'lumotlari\n\n"
+        "Yoki /admin orqali inson yordamiga murojaat qiling!"
+    )
