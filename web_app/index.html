@@ -2,78 +2,104 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WorldSkills Shanghai 2026</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, sans-serif; background: #000; color: #fff; padding-bottom: 80px; }
-        .header { background: linear-gradient(135deg,#fff,#888); color: #000; padding: 25px 15px; text-align: center; border-radius: 0 0 20px 20px; margin-bottom: 15px; }
-        .header h1 { font-size: 20px; font-weight: 800; margin-bottom: 5px; }
-        .content { padding: 0 12px; }
-        .card { background: #111; border: 1px solid #222; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
-        .card-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 8px; }
-        .btn-primary { background: linear-gradient(135deg,#fff,#888); color: #000; }
-        .btn-secondary { background: #0a0a0a; color: #fff; border: 1px solid #222; }
-        .back-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 14px; color: #fff; background: none; border: none; cursor: pointer; margin-bottom: 12px; padding: 8px 12px; }
-        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .cat-card { background: #0a0a0a; border: 1px solid #222; border-radius: 12px; padding: 16px 10px; text-align: center; cursor: pointer; }
-        .cat-icon { font-size: 32px; margin-bottom: 8px; }
-        .cat-name { font-size: 11px; font-weight: 600; margin-bottom: 4px; }
-        .cat-count { font-size: 9px; color: #888; }
-        .prof-list { display: flex; flex-direction: column; gap: 8px; }
-        .prof-item { background: #0a0a0a; border: 1px solid #222; border-radius: 12px; padding: 14px; cursor: pointer; }
-        .prof-en { font-weight: 600; font-size: 12px; color: #4CAF50; margin-bottom: 3px; }
-        .prof-uz { font-size: 11px; color: #888; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0a0a0a; border-top: 1px solid #222; display: flex; justify-content: space-around; padding: 10px 5px; }
-        .nav-item { flex: 1; text-align: center; padding: 6px 2px; cursor: pointer; color: #888; }
-        .nav-item.active { color: #fff; }
-        .nav-icon { font-size: 22px; margin-bottom: 3px; }
-        .nav-label { font-size: 9px; font-weight: 600; }
-        .section { display: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root { --bg: #000; --card: #111; --border: #222; --text: #fff; --muted: #888; --success: #4CAF50; --warning: #FFC107; --error: #f44336; --gradient: linear-gradient(135deg,#667eea,#764ba2); }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 80px; }
+        .header { background: var(--gradient); color: #fff; padding: 30px 15px; text-align: center; border-radius: 0 0 25px 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(102,126,234,0.3); }
+        .header h1 { font-size: 22px; font-weight: 800; margin-bottom: 5px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .header p { font-size: 12px; opacity: 0.95; }
+        .content { padding: 0 15px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 18px; margin-bottom: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); transition: transform 0.2s; }
+        .card:active { transform: scale(0.98); }
+        .card-title { font-size: 17px; font-weight: 700; margin-bottom: 15px; color: var(--text); }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 10px; transition: all 0.2s; }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: var(--gradient); color: #fff; box-shadow: 0 5px 15px rgba(102,126,234,0.4); }
+        .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--text); background: none; border: none; cursor: pointer; margin-bottom: 15px; padding: 10px 15px; border-radius: 12px; background: var(--card); }
+        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .cat-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .cat-card:active { transform: scale(0.95); border-color: #667eea; }
+        .cat-icon { font-size: 36px; margin-bottom: 10px; }
+        .cat-name { font-size: 12px; font-weight: 600; margin-bottom: 5px; line-height: 1.4; }
+        .cat-count { font-size: 10px; color: var(--muted); }
+        .prof-list { display: flex; flex-direction: column; gap: 10px; }
+        .prof-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; cursor: pointer; transition: all 0.2s; }
+        .prof-item:active { transform: translateX(5px); border-color: #667eea; }
+        .prof-en { font-weight: 700; font-size: 13px; color: var(--success); margin-bottom: 4px; }
+        .prof-uz { font-size: 12px; color: var(--muted); }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(17,17,17,0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 5px; z-index: 100; }
+        .nav-item { flex: 1; text-align: center; padding: 8px 5px; cursor: pointer; color: var(--muted); transition: all 0.2s; border-radius: 12px; }
+        .nav-item:active { transform: scale(0.9); }
+        .nav-item.active { color: #fff; background: rgba(102,126,234,0.2); }
+        .nav-icon { font-size: 24px; margin-bottom: 4px; }
+        .nav-label { font-size: 10px; font-weight: 600; }
+        .section { display: none; animation: fadeIn 0.3s ease; }
         .section.active { display: block; }
-        .upload-area { border: 2px dashed #222; border-radius: 12px; padding: 25px; text-align: center; cursor: pointer; margin: 12px 0; }
-        .upload-area:hover { border-color: #fff; background: rgba(255,255,255,0.05); }
-        .upload-icon { font-size: 40px; margin-bottom: 10px; }
-        .upload-text { font-size: 13px; font-weight: 600; margin-bottom: 5px; }
-        .upload-hint { font-size: 10px; color: #888; }
-        #fileInput, #portfolioFileInput { display: none; }
-        .file-preview { background: #0a0a0a; padding: 12px; border-radius: 10px; margin-top: 12px; display: none; }
-        .file-preview.active { display: block; }
-        .file-name { font-size: 11px; font-weight: 600; word-break: break-all; }
-        .file-size { font-size: 9px; color: #888; margin-top: 3px; }
-        .doc-item { background: #0a0a0a; border: 1px solid #222; border-radius: 12px; padding: 12px; margin-bottom: 8px; }
-        .doc-title { font-weight: 600; font-size: 12px; margin-bottom: 6px; }
-        .doc-status { font-size: 9px; padding: 3px 8px; border-radius: 8px; display: inline-block; margin-bottom: 8px; }
-        .doc-status.pending { background: rgba(255,193,7,0.2); color: #FFC107; }
-        .doc-status.approved { background: rgba(76,175,80,0.2); color: #4CAF50; }
-        .doc-status.rejected { background: rgba(244,67,54,0.2); color: #f44336; }
-        .doc-link { color: #4CAF50; text-decoration: none; font-size: 11px; display: inline-block; margin-bottom: 8px; }
-        .progress-bar { height: 8px; background: #222; border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
-        .progress-fill { height: 100%; background: linear-gradient(135deg,#fff,#888); border-radius: 4px; transition: width 0.3s; }
-        .progress-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
-        .progress-stat { background: #0a0a0a; padding: 8px; border-radius: 8px; text-align: center; }
-        .progress-stat-num { font-size: 16px; font-weight: 800; display: block; }
-        .progress-stat-num.approved { color: #4CAF50; }
-        .progress-stat-num.pending { color: #FFC107; }
-        .progress-stat-num.rejected { color: #f44336; }
-        .progress-stat-label { font-size: 8px; color: #888; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .upload-area { border: 2px dashed var(--border); border-radius: 16px; padding: 30px 20px; text-align: center; cursor: pointer; margin: 15px 0; transition: all 0.2s; background: rgba(102,126,234,0.05); }
+        .upload-area:active { border-color: #667eea; background: rgba(102,126,234,0.1); }
+        .upload-icon { font-size: 48px; margin-bottom: 12px; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .upload-text { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+        .upload-hint { font-size: 11px; color: var(--muted); }
+        #fileInput, #portfolioFileInput, #docFileInput { display: none; }
+        .file-preview { background: var(--card); padding: 14px; border-radius: 12px; margin-top: 15px; display: none; border: 1px solid var(--border); }
+        .file-preview.active { display: block; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .file-name { font-size: 12px; font-weight: 600; word-break: break-all; margin-bottom: 4px; }
+        .file-size { font-size: 10px; color: var(--muted); }
+        .doc-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 15px; margin-bottom: 10px; transition: all 0.2s; }
+        .doc-item:active { transform: translateX(5px); }
+        .doc-title { font-weight: 600; font-size: 13px; margin-bottom: 8px; }
+        .doc-status { font-size: 10px; padding: 4px 10px; border-radius: 8px; display: inline-block; margin-bottom: 10px; }
+        .doc-status.pending { background: rgba(255,193,7,0.15); color: var(--warning); }
+        .doc-status.approved { background: rgba(76,175,80,0.15); color: var(--success); }
+        .doc-status.rejected { background: rgba(244,67,54,0.15); color: var(--error); }
+        .doc-link { color: #667eea; text-decoration: none; font-size: 12px; display: inline-block; margin-bottom: 10px; font-weight: 500; }
+        .progress-bar { height: 10px; background: #222; border-radius: 5px; overflow: hidden; margin-bottom: 12px; }
+        .progress-fill { height: 100%; background: var(--gradient); border-radius: 5px; transition: width 0.5s ease; }
+        .progress-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+        .progress-stat { background: var(--card); padding: 10px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
+        .progress-stat-num { font-size: 18px; font-weight: 800; display: block; margin-bottom: 3px; }
+        .progress-stat-num.approved { color: var(--success); }
+        .progress-stat-num.pending { color: var(--warning); }
+        .progress-stat-num.rejected { color: var(--error); }
+        .progress-stat-label { font-size: 9px; color: var(--muted); }
+        .info-box { background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1)); border: 1px solid rgba(102,126,234,0.3); padding: 16px; border-radius: 14px; margin-bottom: 15px; }
+        .info-title { color: #667eea; font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+        .info-list { list-style: none; font-size: 12px; color: var(--muted); }
+        .info-list li { padding: 6px 0; border-bottom: 1px solid var(--border); }
+        .info-list li:last-child { border-bottom: none; }
+        .info-list li::before { content: "• "; color: #667eea; }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>🏆 WorldSkills Shanghai 2026</h1>
         <p>48-chi Jahon Kasb Chempionati</p>
-        <p id="userGreeting" style="font-size:11px;margin-top:8px;opacity:0.9"></p>
+        <p id="userGreeting" style="font-size:12px;margin-top:10px;opacity:0.95"></p>
     </div>
     
     <div class="content">
         <!-- Home Section -->
         <div id="section-home" class="section active">
+            <div class="card info-box">
+                <div class="info-title">ℹ️ WorldSkills Haqida</div>
+                <ul class="info-list">
+                    <li>Dunyodagi eng yirik kasb chempionati</li>
+                    <li>60+ mamlakat, 60+ kasb</li>
+                    <li>Shanghai 2026 - 48-chi nashr</li>
+                    <li>Har 2 yilda bir marta o'tkaziladi</li>
+                </ul>
+            </div>
             <div class="card">
                 <div class="card-title">🚀 Boshlash</div>
-                <button class="btn btn-primary" onclick="showSection('section-categories')">🎓 Kasbingizni tanlang</button>
+                <button class="btn btn-primary" onclick="showSection('section-categories')">🎓 Kasbingizni Tanlang</button>
                 <button class="btn btn-secondary" onclick="showSection('section-documents')">📄 Hujjatlar (my.gov.uz)</button>
             </div>
         </div>
@@ -101,20 +127,20 @@
             <button class="back-btn" onclick="showSection('section-professions')">← Orqaga</button>
             <div class="card">
                 <div class="card-title">💼 <span id="portfolioProfName">Kasb</span></div>
-                <div style="font-size:11px;color:#888;margin-bottom:12px;" id="portfolioProfDesc"></div>
+                <div style="font-size:12px;color:var(--muted);margin-bottom:15px;" id="portfolioProfDesc"></div>
                 <div class="upload-area" onclick="document.getElementById('portfolioFileInput').click()">
                     <div class="upload-icon">📎</div>
-                    <div class="upload-text">Ishingizni yuklang (PDF/Rasm/Video)</div>
-                    <div class="upload-hint">Max 20 MB • PDF, JPG, PNG, MP4</div>
+                    <div class="upload-text">Ishingizni Yuklang</div>
+                    <div class="upload-hint">PDF, Rasm (JPG/PNG) yoki Video (MP4) • Max 20 MB</div>
                 </div>
                 <input type="file" id="portfolioFileInput" accept=".pdf,.jpg,.jpeg,.png,.mp4" onchange="handlePortfolioFileSelect(event)">
                 <div class="file-preview" id="portfolioFilePreview">
                     <div class="file-name" id="portfolioFileName">file.pdf</div>
                     <div class="file-size" id="portfolioFileSize">0 MB</div>
                 </div>
-                <button class="btn btn-primary" id="portfolioUploadBtn" onclick="uploadPortfolioWork()" disabled>📤 Ishni Yuklash</button>
-                <div style="margin-top:15px;">
-                    <div class="card-title" style="font-size:13px;">📋 Yuklangan Ishlar</div>
+                <button class="btn btn-primary" id="portfolioUploadBtn" onclick="uploadPortfolioWork()" disabled style="margin-top:15px;">📤 Ishni Yuklash</button>
+                <div style="margin-top:20px;">
+                    <div class="card-title" style="font-size:14px;">📋 Yuklangan Ishlar</div>
                     <div id="portfolioUploadedList"></div>
                 </div>
             </div>
@@ -135,6 +161,14 @@
             <div class="card">
                 <div class="card-title">📄 my.gov.uz Hujjatlari</div>
                 <div id="docList"></div>
+            </div>
+            <div class="card info-box">
+                <div class="info-title">💡 Muhim</div>
+                <ul class="info-list">
+                    <li>Barcha hujjatlar A4 formatda PDF bo'lishi kerak</li>
+                    <li>my.gov.uz hujjatlarida QR kod bo'lishi shart</li>
+                    <li>Hujjat muddati 30 kundan kam qolmagan bo'lsin</li>
+                </ul>
             </div>
         </div>
     </div>
@@ -169,57 +203,57 @@
         }
         
         const categories = [
-            {id:'cat1',icon:'🏭',name:'Ishlab chiqarish',count:17},
-            {id:'cat2',icon:'💻',name:'IT va Axborot',count:8},
-            {id:'cat3',icon:'🏗️',name:'Qurilish',count:14},
-            {id:'cat4',icon:'🚚',name:'Transport',count:8},
-            {id:'cat5',icon:'🎨',name:"San'at",count:7},
-            {id:'cat6',icon:'👥',name:'Xizmatlar',count:10}
+            {id:'cat1',icon:'🏭',name:'Ishlab chiqarish\nva Muhandislik',count:17},
+            {id:'cat2',icon:'💻',name:'Axborot va\nKommunikatsiya',count:8},
+            {id:'cat3',icon:'🏗️',name:'Qurilish va\nBino Texnologiyalari',count:14},
+            {id:'cat4',icon:'🚚',name:'Transport va\nLogistika',count:8},
+            {id:'cat5',icon:'🎨',name:'Ijodiy San\'at\nva Moda',count:7},
+            {id:'cat6',icon:'👥',name:'Ijtimoiy va\nShaxsiy Xizmatlar',count:10}
         ];
         
         const professions = {
-            cat1: [{en:'Industrial Mechanics',uz:'Sanoat mexanikasi'},{en:'Mechatronics',uz:'Mexatronika'},{en:'CNC Turning',uz:'CNC tokarlik'},{en:'Welding',uz:'Payvandlash'},{en:'Electronics',uz:'Elektronika'}],
-            cat2: [{en:'Mobile Apps',uz:'Mobil ilovalar'},{en:'Software Dev',uz:'Dasturiy ta\'minot'},{en:'Web Tech',uz:'Veb texnologiyalar'},{en:'Cyber Security',uz:'Kiberxavfsizlik'}],
-            cat3: [{en:'Wall Tiling',uz:'Plitkalash'},{en:'Plumbing',uz:'Santexnika'},{en:'Electrical',uz:'Elektr'},{en:'Bricklaying',uz:'G\'isht terish'}],
-            cat4: [{en:'Automobile',uz:'Avtomobil'},{en:'Logistics',uz:'Logistika'},{en:'Rail Vehicle',uz:'Temiryo\'l'}],
-            cat5: [{en:'Jewellery',uz:'Zargarlik'},{en:'Fashion',uz:'Moda'},{en:'Graphic Design',uz:'Grafik dizayn'}],
-            cat6: [{en:'Cooking',uz:'Oshpazlik'},{en:'Hairdressing',uz:'Sartaroshlik'},{en:'Health Care',uz:'Sog\'liqni saqlash'}]
+            cat1: [{en:'Industrial Mechanics',uz:'Sanoat mexanikasi'},{en:'Mechatronics',uz:'Mexatronika'},{en:'Mechanical Engineering CAD',uz:'Mexanik muhandislik CAD'},{en:'CNC Turning',uz:'CNC tokarlik'},{en:'CNC Milling',uz:'CNC frezalash'},{en:'Welding',uz:'Payvandlash'},{en:'Electronics',uz:'Elektronika'},{en:'Industrial Control',uz:'Sanoat boshqaruvi'},{en:'Mobile Robotics',uz:'Mobil robototexnika'},{en:'Industry 4.0',uz:'Sanoat 4.0'},{en:'Chemical Laboratory',uz:'Kimyo laboratoriya'},{en:'Water Technology',uz:'Suv texnologiyasi'},{en:'Additive Manufacturing',uz:'3D chop etish'},{en:'Industrial Design',uz:'Sanoat dizayni'},{en:'Optoelectronic',uz:'Optoelektronika'},{en:'Renewable Energy',uz:'Qayta energiya'},{en:'Robot Systems',uz:'Robot tizimlari'}],
+            cat2: [{en:'ICT Network',uz:'Tarmoq infratuzilmasi'},{en:'Mobile Apps',uz:'Mobil ilovalar'},{en:'Software Dev',uz:'Dasturiy ta\'minot'},{en:'Web Technologies',uz:'Veb texnologiyalar'},{en:'Network Admin',uz:'Tarmoq boshqaruvi'},{en:'Cloud Computing',uz:'Bulutli hisoblash'},{en:'Cyber Security',uz:'Kiberxavfsizlik'},{en:'Software Testing',uz:'Dasturiy sinov'}],
+            cat3: [{en:'Wall Tiling',uz:'Plitkalash'},{en:'Plumbing',uz:'Santexnika'},{en:'Electrical',uz:'Elektr'},{en:'Bricklaying',uz:'G\'isht terish'},{en:'Plastering',uz:'Suvoq'},{en:'Painting',uz:'Bo\'yash'},{en:'Cabinetmaking',uz:'Duradgorlik'},{en:'Joinery',uz:'Yig\'ish'},{en:'Carpentry',uz:'Yog\'och'},{en:'Landscape',uz:'Landshaft'},{en:'Refrigeration',uz:'Sovutish'},{en:'Concrete',uz:'Beton'},{en:'Digital Construction',uz:'Raqamli qurilish'},{en:'Security',uz:'Xavfsizlik'}],
+            cat4: [{en:'Autobody',uz:'Kuzov'},{en:'Aircraft',uz:'Samolyot'},{en:'Automobile',uz:'Avtomobil'},{en:'Car Painting',uz:'Bo\'yash'},{en:'Heavy Vehicle',uz:'Og\'ir transport'},{en:'Logistics',uz:'Logistika'},{en:'Rail Vehicle',uz:'Temiryo\'l'},{en:'UAV Systems',uz:'Uchuvchisiz'}],
+            cat5: [{en:'Jewellery',uz:'Zargarlik'},{en:'Floristry',uz:'Gulchilik'},{en:'Fashion',uz:'Moda'},{en:'Graphic Design',uz:'Grafik dizayn'},{en:'Visual Merch',uz:'Vizual savdo'},{en:'3D Game Art',uz:'3D o\'yin'},{en:'Media Design',uz:'Media'}],
+            cat6: [{en:'Hairdressing',uz:'Sartaroshlik'},{en:'Beauty',uz:'Go\'zallik'},{en:'Patisserie',uz:'Qandolatchilik'},{en:'Cooking',uz:'Oshpazlik'},{en:'Restaurant',uz:'Restoran'},{en:'Health Care',uz:'Sog\'liq'},{en:'Bakery',uz:'Nonvoy'},{en:'Hotel',uz:'Mehmonxona'},{en:'Dental',uz:'Tish'},{en:'Retail',uz:'Savdo'}]
         };
         
         const officialDocs = [
             {id:'d1',title:'🧾 Sudlanganlik haqida',link:'https://my.gov.uz/uz/service/135'},
             {id:'d2',title:'🏠 Yashash joyi',link:'https://my.gov.uz/uz/service/367'},
-            {id:'d3',title:'💼 Mehnat faoliyati (inglizcha)',link:'https://my.gov.uz/uz/service/496'},
+            {id:'d3',title:'💼 Mehnat faoliyati',link:'https://my.gov.uz/uz/service/496'},
             {id:'d4',title:'🎓 O\'qish joyidan',link:'https://my.gov.uz/uz/service/323'},
             {id:'d5',title:'🚫 Chiqishga cheklov yo\'q',link:'https://my.gov.uz/uz/service/412'},
-            {id:'d6',title:'💰 Daromad (inglizcha)',link:'https://my.gov.uz/uz/service/263'},
+            {id:'d6',title:'💰 Daromad',link:'https://my.gov.uz/uz/service/263'},
             {id:'d7',title:'🧾 PNFL (Soliq ID)',link:'https://my.gov.uz/uz/service/65'},
             {id:'d8',title:'📑 Nikoh/ajrashish',link:'https://my.gov.uz/uz/service/112'},
             {id:'d9',title:'🆔 ID karta',link:'https://id.gov.uz'}
         ];
         
         let userData = { selectedProfession: null, documents: {}, portfolioWorks: [] };
-        let selectedPortfolioFile = null;
+        let selectedPortfolioFile = null, selectedDocFile = null, currentDocId = null;
         
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if (id === 'section-home') document.querySelectorAll('.nav-item')[0].classList.add('active');
-            else if (id === 'section-categories') document.querySelectorAll('.nav-item')[1].classList.add('active');
+            else if (id === 'section-categories' || id === 'section-professions' || id === 'section-portfolio') document.querySelectorAll('.nav-item')[1].classList.add('active');
             else if (id === 'section-documents') document.querySelectorAll('.nav-item')[2].classList.add('active');
         }
         
         function renderCategories() {
             const grid = document.getElementById('catGrid');
             grid.innerHTML = categories.map(c => 
-                '<div class="cat-card" onclick="showProfessions(\''+c.id+'\')"><div class="cat-icon">'+c.icon+'</div><div class="cat-name">'+c.name+'</div><div class="cat-count">'+c.count+' ta kasb</div></div>'
+                '<div class="cat-card" onclick="showProfessions(\''+c.id+'\')"><div class="cat-icon">'+c.icon+'</div><div class="cat-name">'+c.name.replace('\n',' ')+'</div><div class="cat-count">'+c.count+' ta kasb</div></div>'
             ).join('');
         }
         
         function showProfessions(catId) {
             const cat = categories.find(c => c.id === catId);
-            document.getElementById('catTitle').textContent = cat.name;
+            document.getElementById('catTitle').textContent = cat.name.replace('\n',' ');
             const list = document.getElementById('profList');
             const profs = professions[catId] || [];
             list.innerHTML = profs.map(p => 
@@ -233,6 +267,7 @@
             localStorage.setItem('ws_user', JSON.stringify(userData));
             document.getElementById('portfolioProfName').textContent = uz;
             document.getElementById('portfolioProfDesc').textContent = en;
+            renderPortfolioWorks();
             showSection('section-portfolio');
         }
         
@@ -261,7 +296,10 @@
         }
         
         async function uploadPortfolioWork() {
-            if (!selectedPortfolioFile || !userData.selectedProfession) return;
+            if (!selectedPortfolioFile || !userData.selectedProfession) {
+                tg.showPopup({title:'❌ Xatolik',message:'Iltimos, avval kasb tanlang!'});
+                return;
+            }
             
             const btn = document.getElementById('portfolioUploadBtn');
             btn.disabled = true;
@@ -273,17 +311,21 @@
                 formData.append('professionId', userData.selectedProfession.en);
                 formData.append('file', selectedPortfolioFile);
                 
+                console.log('Uploading portfolio...', telegramId, userData.selectedProfession.en, selectedPortfolioFile.name);
+                
                 const response = await fetch('/api/portfolio/upload', {
                     method: 'POST',
                     body: formData
                 });
                 
+                console.log('Response status:', response.status);
                 const result = await response.json();
+                console.log('Response:', result);
                 
                 if (result.success) {
                     tg.showPopup({
-                        title: '✅ Muvaffaqiyatli',
-                        message: 'Ish yuklandi! Admin baholaydi.'
+                        title: '✅ Muvaffaqiyatli!',
+                        message: 'Ish yuklandi! Admin ko\'rib chiqadi.'
                     });
                     userData.portfolioWorks.push({
                         fileName: selectedPortfolioFile.name,
@@ -300,6 +342,7 @@
                     throw new Error(result.error || 'Server xatosi');
                 }
             } catch (err) {
+                console.error('Upload error:', err);
                 tg.showPopup({title:'❌ Xatolik',message:'Upload xatosi: ' + err.message});
                 btn.disabled = false;
                 btn.textContent = '📤 Ishni Yuklash';
@@ -310,11 +353,11 @@
             const works = userData.portfolioWorks;
             const list = document.getElementById('portfolioUploadedList');
             if (works.length === 0) {
-                list.innerHTML = '<p style="font-size:11px;color:#888">Hali ish yuklanmagan</p>';
+                list.innerHTML = '<p style="font-size:12px;color:var(--muted);padding:10px;">Hali ish yuklanmagan</p>';
                 return;
             }
             list.innerHTML = works.map(w => 
-                '<div style="background:#0a0a0a;padding:10px;border-radius:8px;margin-bottom:6px;font-size:11px;">📄 ' + w.fileName + '<br><span style="color:#888">' + new Date(w.uploadedAt).toLocaleDateString() + '</span></div>'
+                '<div style="background:var(--card);padding:12px;border-radius:10px;margin-bottom:8px;font-size:12px;border:1px solid var(--border);">📄 ' + w.fileName + '<br><span style="color:var(--muted);font-size:10px;">' + new Date(w.uploadedAt).toLocaleDateString() + '</span></div>'
             ).join('');
         }
         
@@ -324,7 +367,7 @@
                 const docData = userData.documents[d.id] || {};
                 const status = docData.status || 'upload';
                 const statusText = { 'upload': '⏹️ Yuklash', 'pending': '⏳ Ko\'rib chiqilmoqda', 'approved': '✅ Tasdiqlandi', 'rejected': '❌ Qayta yuklang' }[status];
-                return '<div class="doc-item '+status+'" onclick="openDocModal(\''+d.id+'\')"><div class="doc-title">'+d.title+'</div><div class="doc-status '+status+'">'+statusText+'</div><a href="'+d.link+'" class="doc-link" target="_blank" onclick="event.stopPropagation()">🔗 my.gov.uz dan olish →</a><button class="btn btn-secondary" onclick="event.stopPropagation(); openDocModal(\''+d.id+'\')">'+(status==='upload'?'📎 Yuklash':'👁️ Ko\'rish')+'</button></div>';
+                return '<div class="doc-item '+status+'" onclick="openDocModal(\''+d.id+'\')"><div class="doc-title">'+d.title+'</div><div class="doc-status '+status+'">'+statusText+'</div><a href="'+d.link+'" class="doc-link" target="_blank" onclick="event.stopPropagation()">🔗 my.gov.uz dan olish →</a><button class="btn btn-secondary" onclick="event.stopPropagation(); openDocModal(\''+d.id+'\')" style="margin-top:8px;">'+(status==='upload'?'📎 Yuklash':'👁️ Ko\'rish')+'</button></div>';
             }).join('');
             checkDocumentProgress();
         }
@@ -346,6 +389,9 @@
             const doc = officialDocs.find(d => d.id === docId);
             if (!doc) return;
             
+            currentDocId = docId;
+            selectedDocFile = null;
+            
             tg.showPopup({
                 title: doc.title,
                 message: 'Hujjatni my.gov.uz dan oling va PDF formatda yuklang.',
@@ -354,8 +400,13 @@
                     {type:'ok',text:'Yuklash'}
                 ]
             });
+            
+            setTimeout(() => {
+                document.getElementById('docFileInput').click();
+            }, 500);
         }
         
+        // Init
         renderCategories();
         renderDocuments();
         renderPortfolioWorks();
