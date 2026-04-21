@@ -157,15 +157,20 @@ def upload_document():
         
         logger.info(f"User: {tid}, Doc: {doc_id}, File: {file.filename if file else 'None'}")
         
-        if not file:
+        if not file or not file.filename:
             logger.error("❌ No file")
             return jsonify({"success": False, "error": "Fayl topilmadi"}), 400
         
-        if not file.filename.endswith(".pdf"):
+        if not file.filename.lower().endswith(".pdf"):
             logger.error("❌ Not PDF")
             return jsonify({"success": False, "error": "Faqat PDF fayllar"}), 400
         
-        if file.size > 10 * 1024 * 1024:
+        # File size check - BytesIO uchun to'g'ri usul
+        file.seek(0, 2)
+        file_size = file.tell()
+        file.seek(0)
+        
+        if file_size > 10 * 1024 * 1024:
             logger.error("❌ Too large")
             return jsonify({"success": False, "error": "Max 10 MB"}), 400
         
@@ -208,20 +213,26 @@ def upload_portfolio():
         
         logger.info(f"User: {tid}, Prof: {prof_id}, File: {file.filename if file else 'None'}")
         
-        if not file:
+        if not file or not file.filename:
             logger.error("❌ No file")
             return jsonify({"success": False, "error": "Fayl topilmadi"}), 400
         
         # File type check
+        filename_lower = file.filename.lower()
         file_type = "pdf"
-        if file.filename.endswith((".jpg", ".jpeg")): file_type = "image"
-        elif file.filename.endswith(".png"): file_type = "image"
-        elif file.filename.endswith(".mp4"): file_type = "video"
-        elif not file.filename.endswith(".pdf"):
+        if filename_lower.endswith((".jpg", ".jpeg")): file_type = "image"
+        elif filename_lower.endswith(".png"): file_type = "image"
+        elif filename_lower.endswith(".mp4"): file_type = "video"
+        elif not filename_lower.endswith(".pdf"):
             logger.error("❌ Invalid file type")
             return jsonify({"success": False, "error": "Faqat PDF, Rasm (JPG/PNG) yoki Video (MP4)"}), 400
         
-        if file.size > 20 * 1024 * 1024:
+        # File size check - BytesIO uchun to'g'ri usul
+        file.seek(0, 2)  # Move to end
+        file_size = file.tell()  # Get size
+        file.seek(0)  # Reset to beginning
+        
+        if file_size > 20 * 1024 * 1024:
             logger.error("❌ Too large")
             return jsonify({"success": False, "error": "Max 20 MB"}), 400
         
@@ -335,3 +346,4 @@ if __name__ == "__main__":
     
     # Bot polling
     asyncio.run(dp.start_polling(bot))
+
