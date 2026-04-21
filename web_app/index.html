@@ -644,8 +644,171 @@ if (document.readyState === 'loading') {
 } else {
     setupUploadAreas();
 }
+
+// ============= PDF UPLOAD - MOBILE + DESKTOP =============
+let selectedDocFile = null;
+let selectedPortfolioFile = null;
+let currentDocId = null;
+let userData = JSON.parse(localStorage.getItem('ws_user') || '{}');
+
+// File input trigger
+function triggerFileInput(inputId) {
+    const input = document.getElementById(inputId);
+    if (input) {
+        input.click();
+    }
+}
+
+// Document file select
+function handleDocFileSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+        alert('❌ Faqat PDF fayllar!');
+        e.target.value = '';
+        return;
+    }
+    
+    if (file.size > 10 * 1024 * 1024) {
+        alert('❌ Max 10 MB!');
+        e.target.value = '';
+        return;
+    }
+    
+    selectedDocFile = file;
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = (file.size/1024/1024).toFixed(2) + ' MB';
+    document.getElementById('filePreview').classList.add('active');
+    document.getElementById('uploadBtn').disabled = false;
+}
+
+// Portfolio file select
+function handlePortfolioFileSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+        alert('❌ Faqat PDF fayllar!');
+        e.target.value = '';
+        return;
+    }
+    
+    if (file.size > 20 * 1024 * 1024) {
+        alert('❌ Max 20 MB!');
+        e.target.value = '';
+        return;
+    }
+    
+    selectedPortfolioFile = file;
+    document.getElementById('portfolioFileName').textContent = file.name;
+    document.getElementById('portfolioFileSize').textContent = (file.size/1024/1024).toFixed(2) + ' MB';
+    document.getElementById('portfolioFilePreview').classList.add('active');
+    document.getElementById('portfolioUploadBtn').disabled = false;
+}
+
+// Upload document to server
+async function uploadDocument() {
+    if (!currentDocId || !selectedDocFile) return;
+    
+    const btn = document.getElementById('uploadBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Yuklanmoqda...';
+    
+    try {
+        const formData = new FormData();
+        formData.append('telegramId', userData.telegramId || 'unknown');
+        formData.append('docId', currentDocId);
+        formData.append('file', selectedDocFile);
+        
+        const response = await fetch('/api/documents/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Hujjat yuklandi! Admin ko\'rib chiqadi.');
+            document.getElementById('filePreview').classList.remove('active');
+            btn.textContent = '📤 Yuklash';
+            btn.disabled = true;
+            selectedDocFile = null;
+        } else {
+            alert('❌ Xatolik: ' + (result.error || 'Noma\'lum xatolik'));
+            btn.disabled = false;
+            btn.textContent = '📤 Yuklash';
+        }
+    } catch (err) {
+        alert('❌ Upload xatosi: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = '📤 Yuklash';
+    }
+}
+
+// Upload portfolio to server
+async function uploadPortfolioWork() {
+    if (!selectedPortfolioFile || !userData.selectedProfession) return;
+    
+    const btn = document.getElementById('portfolioUploadBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Yuklanmoqda...';
+    
+    try {
+        const formData = new FormData();
+        formData.append('telegramId', userData.telegramId || 'unknown');
+        formData.append('professionId', userData.selectedProfession.profId);
+        formData.append('file', selectedPortfolioFile);
+        
+        const response = await fetch('/api/portfolio/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Ish yuklandi! Admin baholaydi.');
+            document.getElementById('portfolioFilePreview').classList.remove('active');
+            btn.textContent = '📤 Ishni Yuklash';
+            btn.disabled = true;
+            selectedPortfolioFile = null;
+        } else {
+            alert('❌ Xatolik: ' + (result.error || 'Noma\'lum xatolik'));
+            btn.disabled = false;
+            btn.textContent = '📤 Ishni Yuklash';
+        }
+    } catch (err) {
+        alert('❌ Upload xatosi: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = '📤 Ishni Yuklash';
+    }
+}
+
+// Setup upload areas on init
+function setupUploadAreas() {
+    const areas = document.querySelectorAll('.upload-area');
+    areas.forEach(area => {
+        area.addEventListener('click', function(e) {
+            e.preventDefault();
+            const input = this.querySelector('input[type="file"]');
+            if (input) {
+                input.click();
+            }
+        });
+    });
+}
+
+// Init
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupUploadAreas);
+} else {
+    setupUploadAreas();
+}
 </body>
 </html>
+
+
 
 
 
