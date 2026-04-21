@@ -219,6 +219,7 @@ try:
     dp.include_router(start.router)
     dp.include_router(ai_chat.router)
     dp.include_router(admin.router)
+    dp.include_router(admin_help.router)
 dp.include_router(admin_help.router)
     dp.include_router(webapp.router)
     logger.info("✅ Handlers loaded!")
@@ -237,4 +238,7 @@ if __name__ == "__main__":
     
     # Bot polling
     asyncio.run(dp.start_polling(bot))
+
+
+
 
