@@ -150,114 +150,95 @@ def check_admin_auth(req):
 @app.route("/api/documents/upload", methods=["POST"])
 def upload_document():
     try:
-        logger.info("📥 Document upload request received")
+        logger.info("📥 Document upload request")
         tid = request.form.get("telegramId")
         doc_id = request.form.get("docId")
         file = request.files.get("file")
         
-        logger.info(f"User: {tid}, Doc: {doc_id}, File: {file.filename if file else 'None'}")
-        
         if not file or not file.filename:
-            logger.error("❌ No file")
             return jsonify({"success": False, "error": "Fayl topilmadi"}), 400
         
         if not file.filename.lower().endswith(".pdf"):
-            logger.error("❌ Not PDF")
             return jsonify({"success": False, "error": "Faqat PDF fayllar"}), 400
         
-        # File size check - BytesIO uchun to'g'ri usul
+        # File size check
         file.seek(0, 2)
         file_size = file.tell()
         file.seek(0)
-        
         if file_size > 10 * 1024 * 1024:
-            logger.error("❌ Too large")
             return jsonify({"success": False, "error": "Max 10 MB"}), 400
         
         filename = secure_filename(f"{tid}_{doc_id}_{uuid.uuid4().hex}.pdf")
         filepath = os.path.join(UPLOAD_DIR, "documents", str(tid))
         os.makedirs(filepath, exist_ok=True)
         file.save(os.path.join(filepath, filename))
-        logger.info(f"✅ Document saved: {filename}")
         
-        # Database'ga saqlash
-        doc_titles = {
-            "d1": "Sudlanganlik haqida", "d2": "Yashash joyi", "d3": "Mehnat faoliyati",
-            "d4": "O'qish joyidan", "d5": "Chiqishga cheklov yo'q", "d6": "Daromad",
-            "d7": "PNFL (Soliq ID)", "d8": "Nikoh/ajrashish", "d9": "ID karta"
-        }
-        add_document(tid, doc_id, doc_titles.get(doc_id, "Hujjat"), filename)
+        # Save to DB
+        doc_titles = {"d1":"Sudlanganlik","d2":"Yashash joyi","d3":"Mehnat faoliyati","d4":"O'qish joyidan","d5":"Chiqishga cheklov yo'q","d6":"Daromad","d7":"PNFL","d8":"Nikoh","d9":"ID karta"}
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("INSERT INTO documents (telegram_id, doc_id, doc_title, filename) VALUES (?,?,?,?)",
+                 (str(tid), doc_id, doc_titles.get(doc_id,"Hujjat"), filename))
+        conn.commit()
+        conn.close()
         
-        # Admin'ga xabar
+        # Notify admin
         user = get_user(tid)
-        asyncio.run(notify_admin(
-            f"📄 <b>Yangi hujjat yuklandi!</b>\n\n"
-            f"👤 {user.get('fullname') if user else 'N/A'}\n"
-            f"📋 {doc_titles.get(doc_id, 'Hujjat')}\n"
-            f"📎 {filename}"
-        ))
+        asyncio.run(notify_admin(f"📄 <b>Yangi hujjat!</b>\n👤 {user.get('fullname') if user else 'N/A'}\n📋 {doc_titles.get(doc_id,'Hujjat')}\n📎 {filename}"))
         
         return jsonify({"success": True})
     except Exception as e:
-        logger.error(f"❌ Upload error: {e}")
+        logger.error(f"❌ Document upload error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 # ============= PORTFOLIO UPLOAD =============
 @app.route("/api/portfolio/upload", methods=["POST"])
 def upload_portfolio():
     try:
-        logger.info("📥 Portfolio upload request received")
+        logger.info("📥 Portfolio upload request")
         tid = request.form.get("telegramId")
         prof_id = request.form.get("professionId")
         file = request.files.get("file")
         
-        logger.info(f"User: {tid}, Prof: {prof_id}, File: {file.filename if file else 'None'}")
-        
         if not file or not file.filename:
-            logger.error("❌ No file")
             return jsonify({"success": False, "error": "Fayl topilmadi"}), 400
         
-        # File type check
-        filename_lower = file.filename.lower()
+        # File type
+        fn_lower = file.filename.lower()
         file_type = "pdf"
-        if filename_lower.endswith((".jpg", ".jpeg")): file_type = "image"
-        elif filename_lower.endswith(".png"): file_type = "image"
-        elif filename_lower.endswith(".mp4"): file_type = "video"
-        elif not filename_lower.endswith(".pdf"):
-            logger.error("❌ Invalid file type")
-            return jsonify({"success": False, "error": "Faqat PDF, Rasm (JPG/PNG) yoki Video (MP4)"}), 400
+        if fn_lower.endswith((".jpg",".jpeg")): file_type = "image"
+        elif fn_lower.endswith(".png"): file_type = "image"
+        elif fn_lower.endswith(".mp4"): file_type = "video"
+        elif not fn_lower.endswith(".pdf"):
+            return jsonify({"success": False, "error": "Faqat PDF, JPG, PNG yoki MP4"}), 400
         
-        # File size check - BytesIO uchun to'g'ri usul
-        file.seek(0, 2)  # Move to end
-        file_size = file.tell()  # Get size
-        file.seek(0)  # Reset to beginning
-        
+        # File size
+        file.seek(0, 2)
+        file_size = file.tell()
+        file.seek(0)
         if file_size > 20 * 1024 * 1024:
-            logger.error("❌ Too large")
             return jsonify({"success": False, "error": "Max 20 MB"}), 400
         
         filename = secure_filename(f"{tid}_{prof_id}_{uuid.uuid4().hex}.{file_type}")
         filepath = os.path.join(UPLOAD_DIR, "portfolio", str(tid), prof_id)
         os.makedirs(filepath, exist_ok=True)
         file.save(os.path.join(filepath, filename))
-        logger.info(f"✅ Portfolio saved: {filename}")
         
-        # Database'ga saqlash
-        add_portfolio(tid, prof_id, filename, file_type)
+        # Save to DB
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("INSERT INTO portfolio (telegram_id, profession_id, filename, file_type) VALUES (?,?,?,?)",
+                 (str(tid), prof_id, filename, file_type))
+        conn.commit()
+        conn.close()
         
-        # Admin'ga xabar
+        # Notify admin
         user = get_user(tid)
-        asyncio.run(notify_admin(
-            f"💼 <b>Yangi portfolio ish yuklandi!</b>\n\n"
-            f"👤 {user.get('fullname') if user else 'N/A'}\n"
-            f"🔧 Kasb: {prof_id}\n"
-            f"📎 {filename}\n"
-            f"📁 Tip: {file_type}"
-        ))
+        asyncio.run(notify_admin(f"💼 <b>Yangi portfolio!</b>\n👤 {user.get('fullname') if user else 'N/A'}\n🔧 {prof_id}\n📎 {filename}"))
         
         return jsonify({"success": True})
     except Exception as e:
-        logger.error(f"❌ Portfolio error: {e}")
+        logger.error(f"❌ Portfolio upload error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 # ============= ADMIN REVIEW ENDPOINTS =============
@@ -347,5 +328,7 @@ if __name__ == "__main__":
     
     # Bot polling
     asyncio.run(dp.start_polling(bot))
+
+
 
 
